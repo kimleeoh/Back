@@ -1,3 +1,4 @@
+import $ from 'jquery';
 const ADMIN_AUTH_CODE = (() => {
 
     let authCode = generateAuthCode();

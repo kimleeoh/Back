@@ -131,7 +131,12 @@ function fireSelected(element){
     });
   }
 
-module.exports={adminWebSocketInit, logout, fireSelected, confirmUser, rejectUser};
+function openNewWindow(element){
+    console.log(element.innerHTML);
+    window.open("https://d1bp3kp7g4awpu.cloudfront.net/test.png");
+}
+
+module.exports={adminWebSocketInit, logout, fireSelected, confirmUser, rejectUser, openNewWindow};
 
 
 

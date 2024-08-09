@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import express from 'express';
 import dotenv from 'dotenv';
 import redisHandler from './config/redisHandler.js';
+import s3Handler from './config/s3Handler.js';
 
 import adminLoginRoute from './admin/adminLogin.js';
 import adminHomeRoute from './admin/adminRoutes.js';
@@ -25,7 +26,11 @@ const {
     ADMIN_PORT, 
     CLIENT_PORT,
     REDIS_URL,
-    SESSION_SECRET
+    SESSION_SECRET,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_S3_REGION,
+    AWS_S3_BUCKET,
 } = process.env;
 
 const sessionMiddleware = session({
@@ -41,6 +46,7 @@ const sessionMiddleware = session({
   });
 
 redisHandler.create(REDIS_URL);
+s3Handler.create([AWS_S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET]);
 
 //adminApp.set('views', 'src/admin/views');
 adminApp.set('view engine', 'ejs');
@@ -54,6 +60,8 @@ adminApp.use(express.json());
 //clientApp.use('/schemas', express.static('src/schemas'));
 clientApp.use(express.urlencoded({extended: true}));
 clientApp.use(express.json());
+
+s3Handler.connect();
 
 redisHandler.connect();
 

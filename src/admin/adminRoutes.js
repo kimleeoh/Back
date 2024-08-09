@@ -4,6 +4,7 @@ import { AdminConfirm, AdminWarn, AdminUsers } from './adminSchemas.js';
 import redisHandler from '../config/redisHandler.js';
 import {User} from '../schemas/user.js';
 import mongoose, {SchemaTypes} from 'mongoose';
+import s3Handler from '../config/s3Handler.js';
 
 const router = express.Router();
 
@@ -129,6 +130,8 @@ router.post('/admin/mongoose', async (req, res) => {
         }  */ 
     }
 });
+
+//router.post('/admin/return')
 
 
 
