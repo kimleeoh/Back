@@ -1,58 +1,85 @@
 import mongoose from 'mongoose';
 import express from 'express';
 import dotenv from 'dotenv';
-import loginRoute from './auth/login.js';
-import adminRoute from './admin/adminLogin.js';
-import homeRoute from './route/home.js';
+import redisHandler from './config/redisHandler.js';
+
+import adminLoginRoute from './admin/adminLogin.js';
+import adminHomeRoute from './admin/adminRoutes.js';
+
+import loginRoute from './api/login.js';
 import apiRoute from './api/totalApis.js';
 import jwt from 'jsonwebtoken';
+import { Server } from 'socket.io';
+import { setupSocketIO } from './io.js';
 import session from 'express-session';
 //import cors from 'cors';
-import redis from 'redis';
-//const client = redis.createClient({ url: 'redis://<your_redis_url>' });
 
 
 dotenv.config();
-const app = express();
+const adminApp = express();
+const clientApp = express();
 
 
-const {PORT, MONGO_URI} = process.env;
+const {
+    MONGO_URI,
+    ADMIN_PORT, 
+    CLIENT_PORT,
+    REDIS_URL,
+    SESSION_SECRET
+} = process.env;
 
 const sessionMiddleware = session({
-    secret: 'ceoIr93@a0fj329Sd',
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 2 * 60 * 60 * 1000 // 8 시간
+      maxAge: 2 * 60 * 60 * 1000 // 2 시간
     }
   });
 
-app.set('views', 'src/views');
-app.set('view engine', 'ejs');
-app.use(express.static('src'));
-app.use(sessionMiddleware);
-app.use('/node_modules',express.static('node_modules'));
-app.use(express.urlencoded({extended: true}));
-app.use(express.json());
+redisHandler.create(REDIS_URL);
+
+//adminApp.set('views', 'src/admin/views');
+adminApp.set('view engine', 'ejs');
+adminApp.use('/admin', express.static('src/admin/'));
+adminApp.use(sessionMiddleware);
+adminApp.use(express.urlencoded({extended: true}));
+adminApp.use(express.json());
 //app.use(cors());
 
-app.use('/', homeRoute);
-app.use('/', loginRoute);
-app.use('/admin', adminRoute);
-app.use('/api', apiRoute);
+//clientApp.use('/api', express.static('src/api'));
+//clientApp.use('/schemas', express.static('src/schemas'));
+clientApp.use(express.urlencoded({extended: true}));
+clientApp.use(express.json());
+
+redisHandler.connect();
 
 mongoose
     .connect(MONGO_URI, {dbName: "root"})
     .then(()=>console.log('Successfully connected to mongodb'))
     .catch(e=>console.error(e));
 
-/*client.connect()
-      .then(()=>console.log('Successfully connected to redis'))
-      .catch(e=>console.error(e));*/
+adminApp.use('/admin', adminLoginRoute);
+adminApp.use('/', adminHomeRoute);
 
-app.listen(PORT, ()=>{
-    console.log(`Server listening on port ${PORT}`);
+clientApp.use('/', loginRoute);
+clientApp.use('/api', apiRoute);
+
+
+clientApp.listen(CLIENT_PORT, ()=> {
+    console.log(`Client server listening on port ${CLIENT_PORT}`);
 });
+
+const adminServer = adminApp.listen(ADMIN_PORT, ()=>{
+    console.log(`Admin server listening on port ${ADMIN_PORT}`);
+});
+const io = new Server(adminServer, {path: '/admin/online'});
+setupSocketIO(io);
+
+
+
+
+

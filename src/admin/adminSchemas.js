@@ -26,8 +26,8 @@ const adminConfirmSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    unconfirmedList: [{
-        Ruser: {type:mongoose.Types.ObjectId},
+    unconfirmed_list: [{
+        Ruser: {type:mongoose.Types.ObjectId, ref: 'User'},
         confirm_img: {type:String}
     }]
 });

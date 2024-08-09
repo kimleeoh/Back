@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="kor">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>관리자</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+    <script src="/admin/adminWebSocket.cjs"></script>
+    <script>
+      const socket = io.connect('http://localhost:4502', {
+    path: '/admin/online', // 서버 path와 일치시켜준다
+  });
+      $(adminWebSocketInit());
+      
+function alertUserInfo(element){
+    //element.innerHTML
+    console.log('b');
+}
+
+function openNewWindow(element){
+    window.open("/");
+
+}
+
+    </script> 
+  </head>
+  <body>
+    <form action="/admin/logout" method="post">
+      <button type="submit" class="w-100 btn btn-warning" onsubmit=logout()>로그아웃</button>
+    </form>
+    <ul class="horizontal-list" id="presentList">
+      <li><h1>현재 접속 중 :</h1></li>
+      <% if(presentAdmin!=undefined){presentAdmin.forEach(element => { %>
+      <li name="imHere" style="font-size: 9pt;"><%= element %></li>
+      <% });} %>
+    </ul>
+    <h2>검증 대기 유저</h2>
+    <div class="listContainer" id="waitingUserList">
+        <% if(waitingUser!=undefined&&selected!=undefined){waitingUser.forEach((Item, index) => { %>
+          <div class="divItem" id="div1-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes(index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
+            <p class="userObjectID" onclick="alertUserInfo(this)" disabled><%= Item.Ruser %></p>
+            <p class="imgLink" onclick=openNewWindow(this)><%= Item.confirm_img%></p>
+            <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>승인</button>
+            <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>거부</button>
+          </div>
+        <% });} %>
+    </div>
+    <h2>신고된 글목록</h2>
+    <div class="listContainer" id="warnedList">
+      <% if(warned!=undefined&&selected!=undefined){warned.forEach((Item, index) => { %>
+        <div class="divItem" id="div2-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes('2-'+index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
+          <p class="warnCount"><%= Item.count %></p>
+          <p class="docLink" onclick=openNewWindow(this)><%= Item.Rdoc%></p>
+          <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>페널티 및 삭제</button>
+          <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>요청 취소</button>
+        </div>
+      <% });} %>
+  </div>
+    <h2>탈퇴 유저 목록</h2>
+    <p>누적 총 유저</p><%= allUser %>
+    <p>현재 총 유저</p><%= allUser - quitUser%>
+    <div class="listContainer" id="quitUser">
+      <% if(quitUser!=undefined&&selected!=undefined){quitUser.forEach((Item, index) => { %>
+        <div class="divItem" id="div3-<%= index %>" >
+          <p><%= Item.reason %></p>
+        </div>
+      <% });} %>
+  </div>
+    
+  </body>
