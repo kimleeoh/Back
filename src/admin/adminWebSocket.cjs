@@ -127,6 +127,8 @@ function fireSelected(element){
     a.forEach((Item) => {
         if (Item.hasAttribute('disabled','true')) {
       Item.removeAttribute('disabled');
+        }if(Item.hasAttribute('pointer-events', 'none')){
+            Item.style.pointerEvents='';
         }
     });
   }

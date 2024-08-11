@@ -12,7 +12,7 @@ const setupSocketIO = (io) => {
         socket.on('selectWork', (index) => {
             console.log(index);
             if(skid in selectedSocket){
-                selectedSocket[skid].push(index);
+                selectedSocket[skid].includes(index)?null:selectedSocket[skid].push(index);
             }else{
                 selectedSocket[skid]=[];
                 selectedSocket[skid].push(index);

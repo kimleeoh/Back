@@ -4,7 +4,7 @@ import { QnaDocuments, HoneyDocuments } from '../schemas/docs.js';
 
 const router = express.Router();
 
-router.get('/qna', async (req, res) => {
+router.get('/dummy/qna', async (req, res) => {
     QnaDocuments.findOne()
     .then((result)=>{
         res.status(200).json(result);
@@ -16,7 +16,7 @@ router.get('/qna', async (req, res) => {
     });
 });
 
-router.get('/tips', async (req, res) => {
+router.get('/dummy/tips', async (req, res) => {
     HoneyDocuments.findOne()
     .then((result)=>{
         res.status(200).json(result);
