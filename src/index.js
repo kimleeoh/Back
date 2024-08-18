@@ -8,7 +8,7 @@ import adminLoginRoute from './admin/adminLogin.js';
 import adminHomeRoute from './admin/adminRoutes.js';
 
 import loginRoute from './api/login.js';
-import apiRoute from './api/totalApis.js';
+import apiRoute from './api/dummy.js';
 import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 import { setupSocketIO } from './io.js';

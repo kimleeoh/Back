@@ -1,95 +1,114 @@
 <!doctype html>
-<html lang="kor">
+<html lang="ko">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>관리자</title>
-    <link rel="stylesheet" href="admin.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-latest.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
-    <script src="/admin/adminWebSocket.cjs"></script>
     <style>
       /* 기본 리셋 */
       * {
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
       }
 
-      /* 페이지 설정 */
-      html {
-        width: 100%;
+      html, body {
         height: 100%;
-        background: radial-gradient(circle, #fff 0%, #aaa 100%) no-repeat;
-        overflow-x: hidden;
-        overflow-y: hidden;
+        background-color: rgba(0, 0, 0, 0.6);
+        color: #0F0;
+        font-family: monospace;
+        overflow: hidden;
       }
 
       body {
-        text-align: center;
-        display: table;
-        background: black;
-        width: 100%;
-        height: 100%;
-        color: #0F0;
-        font-family: monospace;
-        overflow-x: hidden;
-        overflow-y: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
       }
 
-      .listContainer, .divItem {
-        background-color: rgba(0, 0, 0, 0.8);
-        color: #0F0;
+      .container {
+        max-width: 1200px;
+        width: 100%;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.7);
         border: 1px solid #0F0;
-        margin-bottom: 10px;
-        padding: 10px;
+        border-radius: 8px;
       }
 
       h1, h2 {
+        margin-bottom: 20px;
         color: #0F0;
       }
 
-      button {
-        color: black;
+      .logout-btn, .btn {
+        padding: 10px 20px;
         background-color: #0F0;
+        color: #000;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 1em;
+      }
+
+      .logout-btn {
+        margin-bottom: 30px;
+      }
+
+      .btn-success {
+        background-color: #28a745;
+        color: #fff;
+      }
+
+      .btn-danger {
+        background-color: #dc3545;
+        color: #fff;
+      }
+
+      .list-group {
+        margin-bottom: 30px;
+        gap: 20px;
+      }
+
+      .list-group-item {
+        background-color: rgba(0, 0, 0, 0.4);
+        color: #0F0;
         border: 1px solid #0F0;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+
+      .horizontal-list {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
       }
 
       #author {
-        position: absolute;
+        position: fixed;
         bottom: 10px;
         left: 10px;
-        color : #0F0;
-        z-index : 1;
-        box-sizing: border-box;
-        vertical-align: middle;
+        color: #0F0;
       }
 
-      span {
-        font-family: monospace;
-        font-size: 1.5em;
-      }
-
-      span:after {
-        content:"_gheorghe";
-        opacity: 0;
-        animation: cursor 1s infinite;
-      }
-
-      @keyframes cursor {
-        0% { opacity: 0; }
-        40% { opacity: 0; }
-        50% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { opacity: 0; }
+      /* Canvas 스타일 */
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
       }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+    <script src="/admin/adminWebSocket.cjs"></script>
     <script>
       const socket = io.connect('http://localhost:4502', {
         path: '/admin/online',
       });
-
-      $(adminWebSocketInit());
 
       function alertUserInfo(element) {
         console.log('b');
@@ -97,81 +116,98 @@
     </script>
   </head>
   <body>
-    <form action="/admin/logout" method="post">
-      <button type="submit" class="w-100 btn btn-warning" onsubmit=logout()>로그아웃</button>
-    </form>
-    <ul class="horizontal-list" id="presentList">
-      <li><h1>현재 접속 중 :</h1></li>
-      <% if(presentAdmin!=undefined){presentAdmin.forEach(element => { %>
-      <li name="imHere" style="font-size: 9pt;"><%= element %></li>
-      <% });} %>
-    </ul>
-    <h2>검증 대기 유저</h2>
-    <div class="listContainer" id="waitingUserList">
-        <% if(waitingUser!=undefined&&selected!=undefined){waitingUser.forEach((Item, index) => { %>
-          <div class="divItem" id="div1-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes(index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
+    <canvas id="c"></canvas>
+
+    <div class="container">
+      <form action="/admin/logout" method="post">
+        <button type="submit" class="logout-btn" onsubmit="logout()">Logout</button>
+      </form>
+
+      <div class="list-group">
+        <h2>현재 접속 중</h2>
+        <ul class="horizontal-list" id="presentList">
+          <% if(presentAdmin!=undefined){presentAdmin.forEach(element => { %>
+          <li name="imHere" style="font-size: 9pt;"><%= element %></li>
+          <% });} %>
+        </ul>
+      </div>
+
+      <div class="list-group">
+        <h2>검증 대기 유저</h2>
+        <div class="list-group-item" id="waitingUserList">
+          <% if(waitingUser!=undefined&&selected!=undefined){waitingUser.forEach((Item, index) => { %>
+          <div id="div1-<%= index %>" onclick="fireSelected(this)" style="<%= selected.includes(index.toString()) ? 'background-color:yellow; pointer-events:none;' : '' %>">
             <p class="userObjectID" onclick="alertUserInfo(this)" disabled><%= Item.Ruser %></p>
-            <p class="imgLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.confirm_img%></p>
-            <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>승인</button>
-            <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>거부</button>
+            <p class="imgLink" onclick="openNewWindow(this)" style="pointer-events: none;"><%= Item.confirm_img%></p>
+            <button type="button" class="btn btn-success" onclick="confirmUser(this)" disabled>승인</button>
+            <button type="button" class="btn btn-danger" onclick="rejectUser(this)" disabled>거부</button>
           </div>
-        <% });} %>
+          <% });} %>
+        </div>
+      </div>
+
+      <div class="list-group">
+        <h2>신고된 글목록</h2>
+        <div class="list-group-item" id="warnedList">
+          <% if(warned!=undefined&&selected!=undefined){warned.forEach((Item, index) => { %>
+          <div id="div2-<%= index %>" onclick="fireSelected(this)" style="<%= selected.includes('2-'+index.toString()) ? 'background-color:yellow; pointer-events:none;' : '' %>">
+            <p class="warnCount"><%= Item.count %></p>
+            <p class="docLink" onclick="openNewWindow(this)" style="pointer-events: none;"><%= Item.Rdoc%></p>
+            <button type="button" class="btn btn-success" onclick="confirmUser(this)" disabled>페널티 및 삭제</button>
+            <button type="button" class="btn btn-danger" onclick="rejectUser(this)" disabled>요청 취소</button>
+          </div>
+          <% });} %>
+        </div>
+      </div>
+
+      <div class="list-group">
+        <h2>탈퇴 유저 목록</h2>
+        <p>누적 총 유저: <%= allUser %></p>
+        <p>현재 총 유저: <%= allUser - quitUser %></p>
+        <div id="quitUser">
+          <% if(quitUser!=undefined&&selected!=undefined){quitUser.forEach((Item, index) => { %>
+          <div class="list-group-item" id="div3-<%= index %>">
+            <p><%= Item.reason %></p>
+          </div>
+          <% });} %>
+        </div>
+      </div>
     </div>
-    <h2>신고된 글목록</h2>
-    <div class="listContainer" id="warnedList">
-      <% if(warned!=undefined&&selected!=undefined){warned.forEach((Item, index) => { %>
-        <div class="divItem" id="div2-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes('2-'+index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
-          <p class="warnCount"><%= Item.count %></p>
-          <p class="docLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.Rdoc%></p>
-          <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>페널티 및 삭제</button>
-          <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>요청 취소</button>
-        </div>
-      <% });} %>
-  </div>
-    <h2>탈퇴 유저 목록</h2>
-    <p>누적 총 유저</p><%= allUser %>
-    <p>현재 총 유저</p><%= allUser - quitUser%>
-    <div class="listContainer" id="quitUser">
-      <% if(quitUser!=undefined&&selected!=undefined){quitUser.forEach((Item, index) => { %>
-        <div class="divItem" id="div3-<%= index %>" >
-          <p><%= Item.reason %></p>
-        </div>
-      <% });} %>
-  </div>
-  <span id="author">adrian</span>
-  <canvas id="c"></canvas>
-  <script>
-    var c = document.getElementById("c");
-    var ctx = c.getContext("2d");
 
-    c.height = window.innerHeight;
-    c.width = window.innerWidth;
+    <span id="author">A-F Killer</span>
 
-    var matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
-    matrix = matrix.split("");
+    <script>
+      var c = document.getElementById("c");
+      var ctx = c.getContext("2d");
 
-    var font_size = 10;
-    var columns = c.width / font_size;
-    var drops = [];
-    for (var x = 0; x < columns; x++) drops[x] = 1;
+      c.height = window.innerHeight;
+      c.width = window.innerWidth;
 
-    function draw() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
-      ctx.fillRect(0, 0, c.width, c.height);
+      var matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
+      matrix = matrix.split("");
 
-      ctx.fillStyle = "#0F0";
-      ctx.font = font_size + "px arial";
-      for (var i = 0; i < drops.length; i++) {
-        var text = matrix[Math.floor(Math.random() * matrix.length)];
-        ctx.fillText(text, i * font_size, drops[i] * font_size);
+      var font_size = 10;
+      var columns = c.width / font_size;
+      var drops = [];
+      for (var x = 0; x < columns; x++) drops[x] = 1;
 
-        if (drops[i] * font_size > c.height && Math.random() > 0.975) drops[i] = 0;
+      function draw() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
+        ctx.fillRect(0, 0, c.width, c.height);
 
-        drops[i]++;
+        ctx.fillStyle = "#0F0";
+        ctx.font = font_size + "px arial";
+        for (var i = 0; i < drops.length; i++) {
+          var text = matrix[Math.floor(Math.random() * matrix.length)];
+          ctx.fillText(text, i * font_size, drops[i] * font_size);
+
+          if (drops[i] * font_size > c.height && Math.random() > 0.975) drops[i] = 0;
+
+          drops[i]++;
+        }
       }
-    }
 
-    setInterval(draw, 35);
-  </script>
+      setInterval(draw, 30);
+    </script>
   </body>
 </html>
