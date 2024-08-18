@@ -31,7 +31,7 @@
       .container {
         max-width: 1200px;
         width: 100%;
-        padding: 20px;
+        padding: 0px 20px 20px 20px;
         background: rgba(0, 0, 0, 0.7);
         border: 1px solid #0F0;
         border-radius: 8px;
@@ -42,7 +42,7 @@
         color: #0F0;
       }
 
-      .logout-btn, .btn {
+      .logout-btn {
         padding: 10px 20px;
         background-color: #0F0;
         color: #000;
@@ -51,25 +51,36 @@
         cursor: pointer;
         font-family: inherit;
         font-size: 1em;
+        margin: 20px 10px;
       }
 
-      .logout-btn {
-        margin-bottom: 30px;
+      .btn {
+        padding: 10px 20px;
+        background-color: #0F0;
+        color: #000;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 1em;
+        margin-top: 10px;
       }
 
-      .btn-success {
-        background-color: #28a745;
-        color: #fff;
-      }
-
-      .btn-danger {
-        background-color: #dc3545;
-        color: #fff;
+      .btn-border {
+        padding: 10px 20px;
+        background-color: transparent;
+        color: #0F0;
+        border: 1px solid #0F0;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 1em;
+        margin-top: 10px;
       }
 
       .list-group {
         margin-bottom: 30px;
-        gap: 20px;
+        gap: 50px;
       }
 
       .list-group-item {
@@ -78,11 +89,17 @@
         border: 1px solid #0F0;
         padding: 10px;
         margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: left;
+        gap: 10px;
       }
 
       .horizontal-list {
         display: flex;
-        gap: 10px;
+        padding: 0 20px;
+        gap: 100px;
         margin-bottom: 30px;
       }
 
@@ -103,6 +120,7 @@
         height: 100%;
       }
     </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
     <script src="/admin/adminWebSocket.cjs"></script>
     <script>
@@ -126,37 +144,37 @@
       <div class="list-group">
         <h2>현재 접속 중</h2>
         <ul class="horizontal-list" id="presentList">
-          <% if(presentAdmin!=undefined){presentAdmin.forEach(element => { %>
+          <% if (presentAdmin != undefined) { presentAdmin.forEach(element => { %>
           <li name="imHere" style="font-size: 9pt;"><%= element %></li>
-          <% });} %>
+          <% }); } %>
         </ul>
       </div>
 
       <div class="list-group">
         <h2>검증 대기 유저</h2>
         <div class="list-group-item" id="waitingUserList">
-          <% if(waitingUser!=undefined&&selected!=undefined){waitingUser.forEach((Item, index) => { %>
-          <div id="div1-<%= index %>" onclick="fireSelected(this)" style="<%= selected.includes(index.toString()) ? 'background-color:yellow; pointer-events:none;' : '' %>">
-            <p class="userObjectID" onclick="alertUserInfo(this)" disabled><%= Item.Ruser %></p>
-            <p class="imgLink" onclick="openNewWindow(this)" style="pointer-events: none;"><%= Item.confirm_img%></p>
-            <button type="button" class="btn btn-success" onclick="confirmUser(this)" disabled>승인</button>
-            <button type="button" class="btn btn-danger" onclick="rejectUser(this)" disabled>거부</button>
+          <% if (waitingUser != undefined && selected != undefined) { waitingUser.forEach((Item, index) => { %>
+          <div id="div1-<%= index %>" onclick=fireSelected(this) style="<%= selected.includes(index.toString()) ? 'background-color:red; pointer-events:none;' : '' %>">
+            <p class="userObjectID" onclick=alertUserInfo(this) disabled><%= Item.Ruser %></p>
+            <p class="imgLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.confirm_img %></p>
+            <button type="button" class="btn btn" onclick=confirmUser(this) disabled>승인</button>
+            <button type="button" class="btn-border" onclick=rejectUser(this) disabled>거부</button>
           </div>
-          <% });} %>
+          <% }); } %>
         </div>
       </div>
 
       <div class="list-group">
         <h2>신고된 글목록</h2>
         <div class="list-group-item" id="warnedList">
-          <% if(warned!=undefined&&selected!=undefined){warned.forEach((Item, index) => { %>
-          <div id="div2-<%= index %>" onclick="fireSelected(this)" style="<%= selected.includes('2-'+index.toString()) ? 'background-color:yellow; pointer-events:none;' : '' %>">
+          <% if (warned != undefined && selected != undefined) { warned.forEach((Item, index) => { %>
+          <div id="div2-<%= index %>" onclick=fireSelected(this) style="<%= selected.includes('2-' + index.toString()) ? 'background-color:red; pointer-events:none;' : '' %>">
             <p class="warnCount"><%= Item.count %></p>
-            <p class="docLink" onclick="openNewWindow(this)" style="pointer-events: none;"><%= Item.Rdoc%></p>
-            <button type="button" class="btn btn-success" onclick="confirmUser(this)" disabled>페널티 및 삭제</button>
-            <button type="button" class="btn btn-danger" onclick="rejectUser(this)" disabled>요청 취소</button>
+            <p class="docLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.Rdoc %></p>
+            <button type="button" class="btn btn" onclick=confirmUser(this) disabled>페널티 및 삭제</button>
+            <button type="button" class="btn-border" onclick=rejectUser(this) disabled>요청 취소</button>
           </div>
-          <% });} %>
+          <% }); } %>
         </div>
       </div>
 
@@ -165,11 +183,11 @@
         <p>누적 총 유저: <%= allUser %></p>
         <p>현재 총 유저: <%= allUser - quitUser %></p>
         <div id="quitUser">
-          <% if(quitUser!=undefined&&selected!=undefined){quitUser.forEach((Item, index) => { %>
+          <% if (quitUser != undefined && selected != undefined) { quitUser.forEach((Item, index) => { %>
           <div class="list-group-item" id="div3-<%= index %>">
             <p><%= Item.reason %></p>
           </div>
-          <% });} %>
+          <% }); } %>
         </div>
       </div>
     </div>
