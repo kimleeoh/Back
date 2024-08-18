@@ -42,7 +42,7 @@ function adminWebSocketInit() {
         const targetDiv = $('#div' + index);
 
         // LED Indicator 및 버튼 상태 업데이트
-        targetDiv.find('.led-indicator').removeClass('led-available led-unavailable').addClass('led-selected');
+        targetDiv.find('.led-indicator').removeClass('led-available led-selected').addClass('led-unavailable');
         targetDiv.find('button').removeAttr('disabled');
     });
 
@@ -94,8 +94,18 @@ function rejectUser(element) {
 }
 
 function fireSelected(element) {
-    const ind = element.id.replace('div', '');
+    const ind = element.id.toString().replace('div', '');
     socket.emit('selectWork', ind);
+
+    const traversal = Array.from(element.closest('.request').children);
+    console.log(traversal);
+    traversal.forEach((element) => {
+        if (element.tagName == 'DIV') {
+            element.querySelector('.led-indicator').classList.remove('led-available');
+            element.querySelector('.led-indicator').classList.add('led-selected');
+            element.querySelector('button').setAttribute('disabled', true);
+        }
+    });
 }
 
 function openNewWindow(element) {

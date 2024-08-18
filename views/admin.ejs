@@ -182,15 +182,15 @@
         <% if (waitingUser != undefined && selected != undefined) { waitingUser.forEach((Item, index) => { %>
         <div id="div1-<%= index %>" class='request' onclick=fireSelected(this) >
           <!-- LED Indicator -->
-          <div class="led-indicator <%= Item.status === 'available' ? 'led-available' : Item.status === 'selected' ? 'led-selected' : 'led-unavailable' %>"></div>
+          <div class="led-indicator <%= selected.includes(index.toString()) ? led-unavailable : led-available %>"></div>
           <div>
             <p class="userObjectID" onclick=alertUserInfo(this) disabled><%= Item.Ruser %></p>
             <p class="imgLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.confirm_img %></p>
           </div>
           <div>
             <!-- 버튼의 disabled 속성 설정 -->
-            <button type="button" class="btn-border" onclick=rejectUser(this) <%= Item.status !== 'selected' ? 'disabled' : '' %> >거부</button>
-            <button type="button" class="btn btn" onclick=confirmUser(this) <%= Item.status !== 'selected' ? 'disabled' : '' %> >승인</button>
+            <button type="button" class="btn-border" onclick=rejectUser(this) <%= selected.includes(index.toString()) ? 'disabled' : '' %> >거부</button>
+            <button type="button" class="btn btn" onclick=confirmUser(this) <%= selected.includes(index.toString()) ? 'disabled' : '' %> >승인</button>
           </div>
         </div>
         <% }); } %>
