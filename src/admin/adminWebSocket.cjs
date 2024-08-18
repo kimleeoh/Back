@@ -18,7 +18,7 @@ function adminWebSocketInit() {
         });
     });
 
-    socket.on('someDisconnected', (list) => {
+    socket.on('someDisconnected', () => {
         console.log('Admin logged out');
         
         $('li[name="imHere"]').remove();
@@ -39,30 +39,22 @@ function adminWebSocketInit() {
 
     socket.on('selected', (index) => {
         console.log('Selected work:', index);
-        $('#div' + index).css({
-            'background-color': 'red',
-            'pointer-events': 'none'
-        });
-        $.post('/admin/redis', {type: 'selected', index: index}, (data, status) => {
-            if (status != "success") {
-                alert('Failed to update work, retry.');
-            }
-        });
+        const targetDiv = $('#div' + index);
+
+        // LED Indicator 및 버튼 상태 업데이트
+        targetDiv.find('.led-indicator').removeClass('led-available led-unavailable').addClass('led-selected');
+        targetDiv.find('button').removeAttr('disabled');
     });
 
     socket.on('unselect', (list) => {
         if (list != null) {
             console.log('Unselected work:', list);
             list.forEach((index) => {
-                $('#div' + index).css({
-                    'background-color': 'transparent',
-                    'pointer-events': ''
-                });
-            });
-            $.post('/admin/redis', {type: 'finished', index: list}, (data, status) => {
-                if (status != "success") {
-                    alert('Failed to update work, retry.');
-                }
+                const targetDiv = $('#div' + index);
+
+                // LED Indicator 및 버튼 상태 업데이트
+                targetDiv.find('.led-indicator').removeClass('led-selected led-unavailable').addClass('led-available');
+                targetDiv.find('button').attr('disabled', true);
             });
         }
     });
@@ -70,19 +62,14 @@ function adminWebSocketInit() {
     socket.on('finished', (index) => {
         console.log('Finished work:', index);
         $('#div' + index).remove();
-        $.post('/admin/redis', {type: 'finished', index: index}, (data, status) => {
-            if (status != 'success') {
-                alert('Failed to update work, retry.');
-            }
-        });
     });
 }
 
 function confirmUser(element) {
-    const parentDiv = element.parentElement;
-    const ind = parentDiv.id.toString().replace('div', '');
+    const parentDiv = element.closest('.request');
+    const ind = parentDiv.id.replace('div', '');
     const target = ind.split('-')[0] == 1 ? "confirmU" : "warnU";
-    $.post('/admin/mongoose', {type: 'confirm', id: parentDiv.children[0].innerHTML, where: target}, (data, status) => {
+    $.post('/admin/mongoose', {type: 'confirm', id: parentDiv.querySelector('.userObjectID').innerHTML, where: target}, (data, status) => {
         if (status == 'success') {
             $('#div' + ind).remove();
             socket.emit('finishWork', ind);
@@ -93,10 +80,10 @@ function confirmUser(element) {
 }
 
 function rejectUser(element) {
-    const parentDiv = element.parentElement;
-    const ind = parentDiv.id.toString().replace('div', '');
+    const parentDiv = element.closest('.request');
+    const ind = parentDiv.id.replace('div', '');
     const target = ind.split('-')[0] == 1 ? "confirmU" : "warnU";
-    $.post('/admin/mongoose', {type: 'unconfirm', id: parentDiv.children[0].innerHTML, where: target}, (data, status) => {
+    $.post('/admin/mongoose', {type: 'unconfirm', id: parentDiv.querySelector('.userObjectID').innerHTML, where: target}, (data, status) => {
         if (status == 'success') {
             $('#div' + ind).remove();
             socket.emit('finishWork', ind);
@@ -106,14 +93,9 @@ function rejectUser(element) {
     });
 }
 
-function logout() {
-    socket.disconnect();
-}
-
 function fireSelected(element) {
-    element.style.pointerEvents = 'none'; // Ensure pointer events are disabled
-    const result = element.id.toString().replace('div', '');
-    socket.emit('selectWork', result);
+    const ind = element.id.replace('div', '');
+    socket.emit('selectWork', ind);
 }
 
 function openNewWindow(element) {

@@ -31,7 +31,7 @@
       .container {
         max-width: 1200px;
         width: 100%;
-        padding: 0px 20px 20px 20px;
+        padding: 0px 20px 0px 20px;
         background: rgba(0, 0, 0, 0.7);
         border: 1px solid #0F0;
         border-radius: 8px;
@@ -79,7 +79,7 @@
       }
 
       .list-group {
-        margin-bottom: 30px;
+        margin: 30px 0 30px 0;
         gap: 50px;
       }
 
@@ -103,80 +103,116 @@
         margin-bottom: 30px;
       }
 
-      #author {
-        position: fixed;
-        bottom: 10px;
-        left: 10px;
-        color: #0F0;
-      }
+      .request {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
 
-      /* Canvas 스타일 */
-      canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: -1;
-        width: 100%;
-        height: 100%;
-      }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
-    <script src="/admin/adminWebSocket.cjs"></script>
-    <script>
-      const socket = io.connect('http://localhost:4502', {
-        path: '/admin/online',
-      });
+  .led-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  .led-available {
+    background-color: gray; /* 대기 중 */
+  }
+  .led-selected {
+    background-color: #0f0; /* 본인 처리 중 */
+  }
+  .led-unavailable {
+    background-color: #f00; /* 타인 처리 중 */
+  }
 
-      function alertUserInfo(element) {
-        console.log('b');
-      }
-    </script>
-  </head>
-  <body>
-    <canvas id="c"></canvas>
+  #author {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    color: #0F0;
+  }
 
-    <div class="container">
-      <form action="/admin/logout" method="post">
-        <button type="submit" class="logout-btn" onsubmit="logout()">Logout</button>
-      </form>
+  /* Canvas 스타일 */
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+<script src="/admin/adminWebSocket.cjs"></script>
+<script>
+  const socket = io.connect('http://localhost:4502', {
+    path: '/admin/online',
+  });
 
-      <div class="list-group">
-        <h2>현재 접속 중</h2>
-        <ul class="horizontal-list" id="presentList">
-          <% if (presentAdmin != undefined) { presentAdmin.forEach(element => { %>
-          <li name="imHere" style="font-size: 9pt;"><%= element %></li>
-          <% }); } %>
-        </ul>
-      </div>
+  $(adminWebSocketInit());
 
-      <div class="list-group">
-        <h2>검증 대기 유저</h2>
-        <div class="list-group-item" id="waitingUserList">
-          <% if (waitingUser != undefined && selected != undefined) { waitingUser.forEach((Item, index) => { %>
-          <div id="div1-<%= index %>" onclick=fireSelected(this) style="<%= selected.includes(index.toString()) ? 'background-color:red; pointer-events:none;' : '' %>">
+  function alertUserInfo(element) {
+    console.log('b');
+  }
+</script>
+</head>
+<body>
+  <canvas id="c"></canvas>
+
+  <div class="container">
+
+    <div class="list-group">
+      <h2>현재 접속 중</h2>
+      <ul class="horizontal-list" id="presentList">
+        <% if (presentAdmin != undefined) { presentAdmin.forEach(element => { %>
+        <li name="imHere" style="font-size: 9pt;"><%= element %></li>
+        <% }); } %>
+      </ul>
+    </div>
+
+    <div class="list-group">
+      <h2>인증 대기 유저</h2>
+      <div class="list-group-item" id="waitingUserList">
+        <% if (waitingUser != undefined && selected != undefined) { waitingUser.forEach((Item, index) => { %>
+        <div id="div1-<%= index %>" class='request' onclick=fireSelected(this) >
+          <!-- LED Indicator -->
+          <div class="led-indicator <%= Item.status === 'available' ? 'led-available' : Item.status === 'selected' ? 'led-selected' : 'led-unavailable' %>"></div>
+          <div>
             <p class="userObjectID" onclick=alertUserInfo(this) disabled><%= Item.Ruser %></p>
             <p class="imgLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.confirm_img %></p>
-            <button type="button" class="btn btn" onclick=confirmUser(this) disabled>승인</button>
-            <button type="button" class="btn-border" onclick=rejectUser(this) disabled>거부</button>
           </div>
-          <% }); } %>
+          <div>
+            <!-- 버튼의 disabled 속성 설정 -->
+            <button type="button" class="btn-border" onclick=rejectUser(this) <%= Item.status !== 'selected' ? 'disabled' : '' %> >거부</button>
+            <button type="button" class="btn btn" onclick=confirmUser(this) <%= Item.status !== 'selected' ? 'disabled' : '' %> >승인</button>
+          </div>
         </div>
+        <% }); } %>
       </div>
+    </div>
 
-      <div class="list-group">
-        <h2>신고된 글목록</h2>
-        <div class="list-group-item" id="warnedList">
-          <% if (warned != undefined && selected != undefined) { warned.forEach((Item, index) => { %>
-          <div id="div2-<%= index %>" onclick=fireSelected(this) style="<%= selected.includes('2-' + index.toString()) ? 'background-color:red; pointer-events:none;' : '' %>">
-            <p class="warnCount"><%= Item.count %></p>
-            <p class="docLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.Rdoc %></p>
-            <button type="button" class="btn btn" onclick=confirmUser(this) disabled>페널티 및 삭제</button>
-            <button type="button" class="btn-border" onclick=rejectUser(this) disabled>요청 취소</button>
+    <div class="list-group">
+      <h2>신고된 글목록</h2>
+      <div class="list-group-item" id="warnedList">
+        <% if (warned != undefined && selected != undefined) { warned.forEach((Item, index) => { %>
+        <div id="div2-<%= index %>" class='request' onclick=fireSelected(this) >
+          <p class="warnCount"><%= Item.count %></p>
+          <p class="docLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.Rdoc %></p>
+          <div>
+            <!-- 버튼의 disabled 속성 설정 -->
+            <button type="button" class="btn btn" onclick=confirmUser(this) <%= Item.status !== 'selected' ? 'disabled' : '' %> >페널티 및 삭제</button>
+            <button type="button" class="btn-border" onclick=rejectUser(this) <%= Item.status !== 'selected' ? 'disabled' : '' %> >요청 취소</button>
           </div>
-          <% }); } %>
         </div>
+        <% }); } %>
       </div>
+    </div>
 
       <div class="list-group">
         <h2>탈퇴 유저 목록</h2>
@@ -190,6 +226,11 @@
           <% }); } %>
         </div>
       </div>
+
+      <form action="/admin/logout" method="post" style="align-self: flex-end; display: flex;">
+        <button type="submit" class="logout-btn" onsubmit="logout()">Logout</button>
+      </form>
+
     </div>
 
     <span id="author">A-F Killer</span>
