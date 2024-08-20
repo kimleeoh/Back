@@ -8,12 +8,13 @@ import adminLoginRoute from './admin/adminLogin.js';
 import adminHomeRoute from './admin/adminRoutes.js';
 
 import loginRoute from './api/login.js';
-import apiRoute from './api/totalApis.js';
+import dummyRoute from './api/dummy.js';
+import registerRoute from './api/register.js';
 import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 import { setupSocketIO } from './io.js';
 import session from 'express-session';
-//import cors from 'cors';
+import cors from 'cors';
 
 
 dotenv.config();
@@ -54,15 +55,14 @@ adminApp.use('/admin', express.static('src/admin/'));
 adminApp.use(sessionMiddleware);
 adminApp.use(express.urlencoded({extended: true}));
 adminApp.use(express.json());
-//app.use(cors());
 
-//clientApp.use('/api', express.static('src/api'));
 //clientApp.use('/schemas', express.static('src/schemas'));
 clientApp.use(express.urlencoded({extended: true}));
 clientApp.use(express.json());
+clientApp.use(cors({origin: "http://localhost:3000", // 접근 권한을 부여하는 도메인
+    optionsSuccessStatus: 200}));
 
 s3Handler.connect();
-
 redisHandler.connect();
 
 mongoose
@@ -74,8 +74,8 @@ adminApp.use('/admin', adminLoginRoute);
 adminApp.use('/', adminHomeRoute);
 
 clientApp.use('/', loginRoute);
-clientApp.use('/api', apiRoute);
-
+clientApp.use('/api', dummyRoute);
+clientApp.use('/api', registerRoute);
 
 clientApp.listen(CLIENT_PORT, ()=> {
     console.log(`Client server listening on port ${CLIENT_PORT}`);

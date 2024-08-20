@@ -1,15 +1,15 @@
 import mongoose from 'mongoose';
 
 const qnaSchema = new mongoose.Schema({
-    _id: { type: mongoose.Types.ObjectId,required: true },
+    _id: { type: mongoose.SchemaTypes.ObjectId,required: true },
     restricted_type: { type:Number }, 
     user_main: { type: String },
     user_img: { type: String },
     user_badge_img: { type: String },
-    Ruser: { type: mongoose.Types.ObjectId },
+    Ruser: { type: mongoose.SchemaTypes.ObjectId },
     answer_list: [{ 
-        Ranswer: { type: mongoose.Types.ObjectId },
-        Ruser: { type: mongoose.Types.ObjectId },
+        Ranswer: { type: mongoose.SchemaTypes.ObjectId },
+        Ruser: { type: mongoose.SchemaTypes.ObjectId },
         user_grade: { type: String }
     }],
     now_category_list: [{ type: String }],
@@ -18,7 +18,7 @@ const qnaSchema = new mongoose.Schema({
     img: { type: String },
     like: { type: Number },
     picked_index: { type: Number },
-    Rnotifyusers_list: [{ type: mongoose.Types.ObjectId }],
+    Rnotifyusers_list: [{ type: mongoose.SchemaTypes.ObjectId }],
     scrap: { type: Number },
     views: { type: Number },
     time: { type: Date },
@@ -26,16 +26,16 @@ const qnaSchema = new mongoose.Schema({
 });
 
 const tipsSchema = new mongoose.Schema({
-    _id: { type: mongoose.Types.ObjectId,required: true },
-    Ruser: { type: mongoose.Types.ObjectId },
+    _id: { type: mongoose.SchemaTypes.ObjectId,required: true },
+    Ruser: { type: mongoose.SchemaTypes.ObjectId },
     now_category: { type: String },
     title: { type: String },
     content: { type: String },
     preview_img: { type: String },
     like: { type: Number },
     point: { type: Number },
-    Rfile: { type: mongoose.Types.ObjectId },
-    Rnotifyusers_list: [{ type: mongoose.Types.ObjectId }],
+    Rfile: { type: mongoose.SchemaTypes.ObjectId },
+    Rnotifyusers_list: [{ type: mongoose.SchemaTypes.ObjectId }],
     scrap: { type: Number },
     views: { type: Number },
     time: { type: Date },

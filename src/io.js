@@ -21,6 +21,8 @@ const setupSocketIO = (io) => {
             socket.broadcast.emit('selected', index);
         });
 
+        
+
         socket.on("finishWork", (index) => {
             console.log(index);
             selectedSocket[skid].filter((v)=>v!==index);
