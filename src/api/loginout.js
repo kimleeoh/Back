@@ -35,6 +35,7 @@ router.get('/', (req, res) => {
 });
 
 router.post('/api/login/key', async (req, res) => {
+    try{
     instance = symmetricKeyHolder();
     const { symmetricKey, iv } = instance;
     const pub = crypto.createPublicKey(req.body.pub);
@@ -42,6 +43,10 @@ router.post('/api/login/key', async (req, res) => {
     const encryptedIV = crypto.publicEncrypt(pub, iv);
     const encryptedSymmetricKey = crypto.publicEncrypt(pub, symmetricKey);
     res.status(200).send({message : "Success", iv : encryptedIV, key : encryptedSymmetricKey});
+    }catch(err){
+        console.error(err);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
 });
 
 router.post('/api/login', async (req, res) => {
@@ -107,7 +112,7 @@ router.post('/api/login', async (req, res) => {
     }
 });
 
-router.post('/api/logout', async (req, res) => {
+router.delete('/api/logout', async (req, res) => {
     const redisClient = redisHandler.getRedisClient();
     const token = req.cookies.token;
     const sessionId = jwt.decode(token).sessionId;
