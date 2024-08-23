@@ -3,13 +3,14 @@ import express from 'express';
 import dotenv from 'dotenv';
 import redisHandler from './config/redisHandler.js';
 import s3Handler from './config/s3Handler.js';
+import rateLimiter from './config/rateLimiter.js';
 
 import adminLoginRoute from './admin/adminLogin.js';
 import adminHomeRoute from './admin/adminRoutes.js';
 
-import loginRoute from './api/login.js';
+import loginRoute from './api/loginout.js';
 import dummyRoute from './api/dummy.js';
-import registerRoute from './api/register.js';
+import {registerRoute} from './api/register.js';
 import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 import { setupSocketIO } from './io.js';
@@ -59,7 +60,9 @@ adminApp.use(express.json());
 //clientApp.use('/schemas', express.static('src/schemas'));
 clientApp.use(express.urlencoded({extended: true}));
 clientApp.use(express.json());
+clientApp.use(rateLimiter);
 clientApp.use(cors({origin: "http://localhost:3000", // 접근 권한을 부여하는 도메인
+    credentials: true,
     optionsSuccessStatus: 200}));
 
 s3Handler.connect();
@@ -76,6 +79,7 @@ adminApp.use('/', adminHomeRoute);
 clientApp.use('/', loginRoute);
 clientApp.use('/api', dummyRoute);
 clientApp.use('/api', registerRoute);
+
 
 clientApp.listen(CLIENT_PORT, ()=> {
     console.log(`Client server listening on port ${CLIENT_PORT}`);

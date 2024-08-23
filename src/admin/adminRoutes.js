@@ -82,6 +82,11 @@ router.post('/admin/redis', async (req, res) => {
     }
 });
 
+router.put('/admin/online/newData', async (req, res) => { 
+    io.emit('newData');
+    res.status(200).send('Success');
+});
+
 router.post('/admin/mongoose', async (req, res) => {
     const idd = new mongoose.Types.ObjectId(req.body.id, "hex");
     console.log(idd);

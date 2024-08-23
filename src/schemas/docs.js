@@ -43,7 +43,6 @@ const tipsSchema = new mongoose.Schema({
 });
 
 const QnaDocuments = mongoose.model('QnaDocuments', qnaSchema, 'QnaDocuments');
-
 const PilgyDocuments = mongoose.model('PilgyDocuments', tipsSchema, 'PilgyDocuments');
 const TestDocuments = mongoose.model('TestDocuments', tipsSchema, 'TestDocuments');
 const HoneyDocuments = mongoose.model('HoneyDocuments', tipsSchema, 'HoneyDocuments');

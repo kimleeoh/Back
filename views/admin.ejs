@@ -26,6 +26,7 @@ function alertUserInfo(element){
     <form action="/admin/logout" method="post">
       <button type="submit" class="w-100 btn btn-warning" onsubmit=logout()>로그아웃</button>
     </form>
+    <p>주의:새로고침 시 로그아웃됩니다. 관리자페이지라 대충 만들어서 그럼ㅎ 새 요청 뜨면 알아서 추가되니 걱정 노노.</p>
     <ul class="horizontal-list" id="presentList">
       <li><h1>현재 접속 중 :</h1></li>
       <% if(presentAdmin!=undefined){presentAdmin.forEach(element => { %>

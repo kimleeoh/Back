@@ -1,5 +1,10 @@
+import { type } from "jquery";
 
 function adminWebSocketInit(){ 
+
+    window.addEventListener('beforeunload', () => {
+        socket.disconnect();
+    });
 
     socket.on('someLoggined', () => {
         console.log('Admin logged in');
@@ -21,6 +26,10 @@ function adminWebSocketInit(){
                     document.getElementById("presentList").appendChild(newElement);
                 });
             }});
+    });
+
+    socket.on('newData', (data) => { 
+        $.get('/admin/online');
     });
 
     socket.on('someDisconnected', (list) => {

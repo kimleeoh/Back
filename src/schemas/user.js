@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
     level: { type: Number},
     password: { type: String},
     picked: { type: Number},
+    intro: { type: String},
     profile_img: { type: String}
  });
 
