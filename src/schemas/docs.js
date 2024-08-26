@@ -42,9 +42,21 @@ const tipsSchema = new mongoose.Schema({
     warn: { type: Number }
 });
 
+const qnaAnswerSchema = new mongoose.Schema({
+    _id: { type: mongoose.SchemaTypes.ObjectId,required: true},
+    content: { type: String, required: true},
+    img_list: {type: [String]},
+    like: {type: Number},
+    QNAtitle: {type: String,required: true},
+    QNAcategory: {type: [String],required: true},
+    Rqna: {type: mongoose.SchemaTypes.ObjectId}
+});
+
+const QnaAnswers = mongoose.model('QNA', qnaAnswerSchema, 'QnaAnswers');
+
 const QnaDocuments = mongoose.model('QnaDocuments', qnaSchema, 'QnaDocuments');
 const PilgyDocuments = mongoose.model('PilgyDocuments', tipsSchema, 'PilgyDocuments');
 const TestDocuments = mongoose.model('TestDocuments', tipsSchema, 'TestDocuments');
 const HoneyDocuments = mongoose.model('HoneyDocuments', tipsSchema, 'HoneyDocuments');
 
-export { QnaDocuments, PilgyDocuments, TestDocuments, HoneyDocuments };
+export { QnaDocuments, PilgyDocuments, TestDocuments, HoneyDocuments, QnaAnswers };
