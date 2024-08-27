@@ -24,6 +24,26 @@ const qnaSchema = new mongoose.Schema({
     time: { type: Date },
     warn: { type: Number }
 });
+const qnaAlreadySchema = new mongoose.Schema({
+    _id: { type: mongoose.SchemaTypes.ObjectId,required: true },
+    restricted_type: { type:Number }, 
+    user_main: { type: String },
+    user_img: { type: String },
+    user_badge_img: { type: String },
+    Ruser: { type: mongoose.SchemaTypes.ObjectId },
+    answer_list: {type:Array},
+    now_category_list: [{ type: String }],
+    title: { type: String },
+    content: { type: String },
+    img: { type: String },
+    like: { type: Number },
+    picked_index: { type: Number },
+    Rnotifyusers_list: [{ type: mongoose.SchemaTypes.ObjectId }],
+    scrap: { type: Number },
+    views: { type: Number },
+    time: { type: Date },
+    warn: { type: Number }
+});
 
 const tipsSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId,required: true },
@@ -53,10 +73,11 @@ const qnaAnswerSchema = new mongoose.Schema({
 });
 
 const QnaAnswers = mongoose.model('QNA', qnaAnswerSchema, 'QnaAnswers');
+const QnaAlready = mongoose.model('QnaAlready', qnaAlreadySchema, 'QnaDocuments');
 
 const QnaDocuments = mongoose.model('QnaDocuments', qnaSchema, 'QnaDocuments');
 const PilgyDocuments = mongoose.model('PilgyDocuments', tipsSchema, 'PilgyDocuments');
 const TestDocuments = mongoose.model('TestDocuments', tipsSchema, 'TestDocuments');
 const HoneyDocuments = mongoose.model('HoneyDocuments', tipsSchema, 'HoneyDocuments');
 
-export { QnaDocuments, PilgyDocuments, TestDocuments, HoneyDocuments, QnaAnswers };
+export { QnaDocuments, PilgyDocuments, TestDocuments, HoneyDocuments, QnaAnswers, QnaAlready };

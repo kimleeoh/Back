@@ -4,7 +4,7 @@ const categorySchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     category_name: { type: String },
     type: { type: Number },
-    sub_category_list: [[{ type: mongoose.SchemaTypes.ObjectId }]]
+    sub_category_list: []
 },  { versionKey: false });
 
 const lowestCategorySchema = new mongoose.Schema({
@@ -12,7 +12,6 @@ const lowestCategorySchema = new mongoose.Schema({
     category_name: { type: String },
     isugubun_ju: { type: String },
     isugubun_bu: { type: String },
-    gonghak: { type: Boolean },
     sub_num: { type: Number },
     sub_type: { type: String },
     professor: { type: String },
