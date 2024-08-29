@@ -18,7 +18,7 @@ router.get('/dummy/qna', async (req, res) => {
             user_grade:result.answer_list[0].user_grade
         };
 
-        result.answer_list.push(fin);
+        result.answer_list = [fin];
         console.log(fin);
         res.status(200).json(result);
     }

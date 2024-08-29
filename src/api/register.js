@@ -10,11 +10,72 @@ import fs from 'fs';
 import { CustomBoardView, Score, UserDocs } from '../schemas/userRelated.js';
 import { AdminConfirm } from '../admin/adminSchemas.js';
 
-
-//이거는 로그인 전 데이터 암호화용 대칭키가 될 것.
-const symmetricKey = crypto.randomBytes(32);
-const iv = crypto.randomBytes(16); // 초기화 벡터(IV) 생성
 const registerRoute = express.Router();
+
+class symmetricDataQueue {
+    #items = new Map();
+
+    constructor() {
+        this.#items = {};
+    }
+
+    // Add an element to the end of the queue
+    // 30분 이상된 데이터는 삭제
+    async enqueue(element,iv,id){
+        this.#items.set(id,[element,iv,Date.now()]);
+        if(this.#items[id][2] < Date.now()-1800000){
+            this.#items.shift();
+        }
+        return;
+    }
+
+    searchByKey(key){
+        const index = this.#items.has(key);
+        if(index == -1){
+            return -1;
+        }
+        const result = this.#items[index].slice(0,2)
+        return result;
+    }
+
+    deleteByKey(key){
+        const index = this.#items.has(key);
+        if(index == -1){
+            return -1;
+        }
+        this.#items.splice(index,1);
+        return 1;
+    }
+
+    // Remove an element from the front of the queue
+    // dequeue() {
+    //     if (this.isEmpty()) {
+    //         return "Queue is empty";
+    //     }
+    //     return this.items.shift();
+    // }
+
+    // // Check if the queue is empty
+    // isEmpty() {
+    //     return this.items.length === 0;
+    // }
+
+    // // Get the front element of the queue
+    // front() {
+    //     if (this.isEmpty()) {
+    //         return "Queue is empty";
+    //     }
+    //     return this.items[0];
+    // }
+
+    // // Get the size of the queue
+    // size() {
+    //     return this.items.length;
+    // }
+
+}
+
+const symmetricKeyHolder = symmetricDataQueue();
 
 
 function decipherAES(target, symmetricKey, iv){
@@ -48,13 +109,20 @@ registerRoute.post("/register/page/:page", async function (req, res) {
         //이름 입력
         //{name : "이름", pub : "암호화된 client공개키"}
         //이로서 client<->server 대칭키로 암호화된 정보 주고받음.
+        //이거는 로그인 전 데이터 암호화용 대칭키가 될 것.
+        const symmetricKey = crypto.randomBytes(32);
+        const iv = crypto.randomBytes(16); // 초기화 벡터(IV) 생성
         const newDocId = crypto.randomBytes(16).toString('hex');
+        
+        const preTest = cipherAES(newDocId, symmetricKey, iv);
         
         const pub = crypto.createPublicKey(req.body.pub);
         //이 두 정보는 퍼블릭 키로 암호화됨.
         const encryptedData = crypto.publicEncrypt(pub, newDocId);
         const encryptedIV = crypto.publicEncrypt(pub, iv);
         const encryptedSymmetricKey = crypto.publicEncrypt(pub, symmetricKey);
+
+        await symmetricKeyHolder.enqueue(symmetricKey, iv, preTest);
         try{
             await redisClient.hSet(newDocId, 'name',req.body.name);
             await redisClient.expire(newDocId, 3600);
@@ -65,8 +133,8 @@ registerRoute.post("/register/page/:page", async function (req, res) {
     }
     else if (nowpage == 2) {
         //학부 입력
-        //{id : "암호화된 id", hakbu : "학부"}
-
+        //{id : "암호화된 id", hakbu : "학부" }
+        const symmetricKey = symmetricKeyHolder.searchByKey(req.body.id);
         const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
         try{
             await redisClient.hSet(decryptedRedisID, 'hakbu', req.body.hakbu);
@@ -78,6 +146,7 @@ registerRoute.post("/register/page/:page", async function (req, res) {
     else if (nowpage == 3) {
         //학번 입력
         //{id : "암호화된 id", hakbun : "학번"}
+        const symmetricKey = symmetricKeyHolder.searchByKey(req.body.id);
         const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
         try{
             await redisClient.hSet(decryptedRedisID, 'hakbun',req.body.hakbun);
