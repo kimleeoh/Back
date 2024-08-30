@@ -14,36 +14,39 @@ const registerRoute = express.Router();
 
 class symmetricDataQueue {
     #items = new Map();
+    #times;
 
     constructor() {
         this.#items = {};
+        this.#times = [];
     }
 
     // Add an element to the end of the queue
     // 30분 이상된 데이터는 삭제
     async enqueue(element,iv,id){
-        this.#items.set(id,[element,iv,Date.now()]);
-        if(this.#items[id][2] < Date.now()-1800000){
-            this.#items.shift();
+        this.#times.push([Date.now(), id]);
+        this.#items.set(id,[element,iv]);
+        if(this.#times[0][0] < Date.now()-1800000){
+            this.#items.remove(this.#times[0][1]);
+            this.#times.shift();
         }
         return;
     }
 
     searchByKey(key){
         const index = this.#items.has(key);
-        if(index == -1){
+        if(index == false){
             return -1;
         }
-        const result = this.#items[index].slice(0,2)
-        return result;
+        return this.#items[key];
     }
 
     deleteByKey(key){
         const index = this.#items.has(key);
-        if(index == -1){
+        if(index == false){
             return -1;
         }
-        this.#items.splice(index,1);
+        this.#items.delete(key);
         return 1;
     }
 
@@ -105,6 +108,7 @@ async function hashPassword(password) {
 registerRoute.post("/register/page/:page", async function (req, res) {
     const redisClient = redisHandler.getRedisClient();
     const nowpage = parseInt(req.params.page);
+    
     if (nowpage == 1) {
         //이름 입력
         //{name : "이름", pub : "암호화된 client공개키"}

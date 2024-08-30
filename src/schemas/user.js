@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     Rcustom_brd: { type: mongoose.SchemaTypes.ObjectId},
     Rdoc: { type: mongoose.SchemaTypes.ObjectId},
     Rnotify_list: [{ type: mongoose.SchemaTypes.ObjectId}],
+    notify_type:[{ type: Number}],
     Rscore: { type: mongoose.SchemaTypes.ObjectId},
     badge_img: { type: String},
     email: { type: String},

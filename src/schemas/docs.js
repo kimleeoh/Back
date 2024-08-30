@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const qnaSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId,required: true },
-    restricted_type: { type:Number }, 
+    restricted_type: { type:Boolean }, 
     user_main: { type: String },
     user_img: { type: String },
     user_badge_img: { type: String },
@@ -21,12 +21,12 @@ const qnaSchema = new mongoose.Schema({
     Rnotifyusers_list: [{ type: mongoose.SchemaTypes.ObjectId }],
     scrap: { type: Number },
     views: { type: Number },
-    time: { type: Date },
+    time: { type: Date, index: true },
     warn: { type: Number }
 });
 const qnaAlreadySchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId,required: true },
-    restricted_type: { type:Number }, 
+    restricted_type: { type:Boolean }, 
     user_main: { type: String },
     user_img: { type: String },
     user_badge_img: { type: String },
@@ -58,7 +58,7 @@ const tipsSchema = new mongoose.Schema({
     Rnotifyusers_list: [{ type: mongoose.SchemaTypes.ObjectId }],
     scrap: { type: Number },
     views: { type: Number },
-    time: { type: Date },
+    time: { type: Date, index: true },
     warn: { type: Number }
 });
 
