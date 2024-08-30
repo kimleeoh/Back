@@ -75,7 +75,7 @@ class symmetricDataQueue {
 
 }
 
-const symmetricKeyHolder = symmetricDataQueue();
+const symmetricKeyHolder = new symmetricDataQueue();
 
 
 function decipherAES(target, symmetricKey, iv){

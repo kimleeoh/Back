@@ -28,6 +28,7 @@ const symmetricKeyHolder = ()=>{
 
 
 const router = express.Router();
+//symmetricKey, iv를 세션에 저장해야함.
 let instance = null;
 
 router.get('/', (req, res) => {
@@ -36,14 +37,15 @@ router.get('/', (req, res) => {
 
 router.post('/api/login/key', async (req, res) => {
     try{
-    instance = symmetricKeyHolder();
-    const { symmetricKey, iv } = instance;
-    const pub = crypto.createPublicKey(req.body.pub);
-    //이 두 정보는 퍼블릭 키로 암호화됨.
-    const encryptedIV = crypto.publicEncrypt(pub, iv);
-    const encryptedSymmetricKey = crypto.publicEncrypt(pub, symmetricKey);
-    res.status(200).send({message : "Success", iv : encryptedIV, key : encryptedSymmetricKey});
-    }catch(err){
+        instance = symmetricKeyHolder();
+        const { symmetricKey, iv } = instance;
+        const pub = crypto.createPublicKey(req.body.pub);
+        //이 두 정보는 퍼블릭 키로 암호화됨.
+        const encryptedIV = crypto.publicEncrypt(pub, iv);
+        const encryptedSymmetricKey = crypto.publicEncrypt(pub, symmetricKey);
+        res.status(200).send({message : "Success", iv : encryptedIV, key : encryptedSymmetricKey});
+    }
+    catch(err){
         console.error(err);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
@@ -64,6 +66,7 @@ router.post('/api/login', async (req, res) => {
     }
 
     const isDuplicate = await redisClient.hGet("idempotency", idempotencyKey);
+
     if (unixTimestamp - isDuplicate< 60) {
         return res.status(409).json({ message: 'Duplicate request' });
     }else{
@@ -92,12 +95,18 @@ router.post('/api/login', async (req, res) => {
         }
 
         const sessionId = uuidv4();
+        const sensitiveSessionID=crypto.randomBytes(16).toString('hex');
+        
+        const sessionId_E=crypto.privateEncrypt(privateKey, Buffer.from(sessionId)).toString('base64');
+        const sensitiveSessionID_E=crypto.privateEncrypt(privateKey, Buffer.from(sensitiveSessionID)).toString('base64');
+        
         const userData = { name : user.name, profile: user.profile_img };
-        const payload = { sessionId, userData };
-    
+        const payload = { sessionId : sessionId_E, sensitiveSessionID : sensitiveSessionID_E, userData };
+        
         // Store session data in Redis with a 1-hour expiration
         const temp = user.toJSON();
         await redisClient.set(sessionId, JSON.stringify(temp), 'EX', 3600);
+        await redisClient.set("refreshToken", sensitiveSessionID);
         //to reconvert to object, use JSON.parse
         // Create JWT with a 1-hour expiration
         const token = jwt.sign( payload , privateKey, { expiresIn: '1h', algorithm:'RS256' });
@@ -113,12 +122,19 @@ router.post('/api/login', async (req, res) => {
 });
 
 router.delete('/api/logout', async (req, res) => {
-    const redisClient = redisHandler.getRedisClient();
-    const token = req.cookies.token;
-    const sessionId = jwt.decode(token).sessionId;
-    await redisClient.del(sessionId);
-    res.clearCookie('token');
-    res.status(200).json({ message: 'Logged out successfully' });
+    try{
+        const redisClient = redisHandler.getRedisClient();
+        const token = req.cookies.token;
+        const sessionId = jwt.decode(token).sessionId;
+        await redisClient.del(sessionId);
+        res.clearCookie('token');
+        res.status(200).json({ message: 'Logged out successfully' });
+    }
+    catch(err){
+        console.error(err);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
 });
+
 
 export default router;
