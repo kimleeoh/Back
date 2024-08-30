@@ -5,7 +5,7 @@ import { User } from '../schemas/user.js';
 
 const router = express.Router();
 
-router.get('/dummy/qna', async (req, res) => {
+router.get('/dummy/testqna', async (req, res) => {
     try{
         const result = await QnaAlready.findOne();
         console.log(result);    
@@ -28,7 +28,7 @@ router.get('/dummy/qna', async (req, res) => {
     }
 });
 
-router.get('/dummy/tips', async (req, res) => {
+router.get('/dummy/testtips', async (req, res) => {
     HoneyDocuments.findOne()
     .then((result)=>{
         res.status(200).json(result);
