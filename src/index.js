@@ -10,7 +10,7 @@ import redisHandler from "./config/redisHandler.js";
 import s3Handler from "./config/s3Handler.js";
 import rateLimiter from "./config/rateLimiter.js";
 import setupSwagger from "./config/swagger.js"; // Swagger 설정 파일
-import setupSocketIO from "./io.js"; // 소켓 설정 파일
+import { setupSocketIO } from "./io.js"; // 소켓 설정 파일
 
 // 새로운 라우터 설정 파일 가져오기
 import setupRoutes from "./routes/index.js";

@@ -1,3 +1,3 @@
-import dummyRouter from './dummy.js';
+// import dummyRouter from "./dummy.js";
 
-export default {dummyRouter};
+// export default { dummyRouter };
