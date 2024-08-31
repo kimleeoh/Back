@@ -1,77 +1,48 @@
-import express from "express";
-import { User } from "../schemas/user.js";
 import crypto from "crypto";
+import { User } from "../schemas/user.js";
 import redisHandler from "../config/redisHandler.js";
 import smtpTransport from "../config/emailHandler.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import axios from "axios";
-import fs from "fs";
 import { CustomBoardView, Score, UserDocs } from "../schemas/userRelated.js";
 import { AdminConfirm } from "../admin/adminSchemas.js";
 
-const registerRoute = express.Router();
-
 class symmetricDataQueue {
   #items = new Map();
+  #times;
 
   constructor() {
     this.#items = {};
+    this.#times = [];
   }
 
-  // Add an element to the end of the queue
-  // 30분 이상된 데이터는 삭제
   async enqueue(element, iv, id) {
-    this.#items.set(id, [element, iv, Date.now()]);
-    if (this.#items[id][2] < Date.now() - 1800000) {
-      this.#items.shift();
+    this.#times.push([Date.now(), id]);
+    this.#items.set(id, [element, iv]);
+    if (this.#times[0][0] < Date.now() - 1800000) {
+      this.#items.remove(this.#times[0][1]);
+      this.#times.shift();
     }
     return;
   }
 
   searchByKey(key) {
     const index = this.#items.has(key);
-    if (index == -1) {
+    if (index == false) {
       return -1;
     }
-    const result = this.#items[index].slice(0, 2);
-    return result;
+    return this.#items[key];
   }
 
   deleteByKey(key) {
     const index = this.#items.has(key);
-    if (index == -1) {
+    if (index == false) {
       return -1;
     }
-    this.#items.splice(index, 1);
+    this.#items.delete(key);
     return 1;
   }
-
-  // Remove an element from the front of the queue
-  // dequeue() {
-  //     if (this.isEmpty()) {
-  //         return "Queue is empty";
-  //     }
-  //     return this.items.shift();
-  // }
-
-  // // Check if the queue is empty
-  // isEmpty() {
-  //     return this.items.length === 0;
-  // }
-
-  // // Get the front element of the queue
-  // front() {
-  //     if (this.isEmpty()) {
-  //         return "Queue is empty";
-  //     }
-  //     return this.items[0];
-  // }
-
-  // // Get the size of the queue
-  // size() {
-  //     return this.items.length;
-  // }
 }
 
 const symmetricKeyHolder = new symmetricDataQueue();
@@ -84,24 +55,24 @@ function decipherAES(target, symmetricKey, iv) {
   return decryptedResult;
 }
 
-function cipherAES(target, symmetricKey, iv) {
+export function cipherAES(target, symmetricKey, iv) {
   const cipher = crypto.createCipheriv("aes-256-cbc", symmetricKey, iv);
   let encryptedResult = cipher.update(target, "utf8", "base64");
   encryptedResult += cipher.final("base64");
-
   return encryptedResult;
 }
 
-async function hashPassword(password) {
+export async function hashPassword(password) {
   const saltRounds = 10; // The cost factor for generating the salt
   const salt = await bcrypt.genSalt(saltRounds);
   const hashedPassword = await bcrypt.hash(password, salt);
   return hashedPassword;
 }
 
-registerRoute.post("/register/page/:page", async function (req, res) {
+const handleRegister = async function (req, res) {
   const redisClient = redisHandler.getRedisClient();
   const nowpage = parseInt(req.params.page);
+
   if (nowpage == 1) {
     //이름 입력
     //{name : "이름", pub : "암호화된 client공개키"}
@@ -132,7 +103,7 @@ registerRoute.post("/register/page/:page", async function (req, res) {
     } catch (err) {
       res.status(500).send(`Internal Server Error-redis: ${err}`);
     }
-  } else if (nowpage == 2) {
+  } else if (nowpage === 2) {
     //학부 입력
     //{id : "암호화된 id", hakbu : "학부" }
     const symmetricKey = symmetricKeyHolder.searchByKey(req.body.id);
@@ -282,15 +253,15 @@ registerRoute.post("/register/page/:page", async function (req, res) {
       res.status(500).send(`Internal Server Error-mongoose: ${err}`);
     }
   }
-});
+};
 
 var generateRandomNumber = function (min, max) {
   var randNum = Math.floor(Math.random() * (max - min + 1)) + min;
   return randNum;
 };
 
-registerRoute.post("/register/email", async (req, res) => {
-  //{email : 입력이메일값}
+// 이메일 인증 처리
+const handleEmail = async (req, res) => {
   const number = generateRandomNumber(11111, 99999);
   console.log(req.body.email);
 
@@ -311,13 +282,13 @@ registerRoute.post("/register/email", async (req, res) => {
     res.status(500).send(err);
     smtpTransport.close();
   }
-});
+};
 
-registerRoute.post("/register/emailAuthNum", async (req, res) => {
-  //{email : 입력이메일값, authNum : 입력인증번호}
+// 이메일 인증번호 확인 처리
+const handleEmailAuthNum = async (req, res) => {
   try {
     const result = await redisClient.hGet(req.body.email, "authNum");
-    if (result == req.body.authNum) {
+    if (result === req.body.authNum) {
       res.status(200).send({ message: "auth success" });
     } else {
       res.status(401).send({ message: "auth failed" });
@@ -325,6 +296,12 @@ registerRoute.post("/register/emailAuthNum", async (req, res) => {
   } catch (err) {
     res.status(500).send(err);
   }
-});
+};
 
-export { registerRoute, decipherAES, cipherAES, hashPassword };
+export {
+  symmetricKeyHolder,
+  decipherAES,
+  handleRegister,
+  handleEmail,
+  handleEmailAuthNum,
+};
