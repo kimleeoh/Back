@@ -96,3 +96,6 @@ const adminServer = adminApp.listen(ADMIN_PORT, () => {
 });
 const io = new Server(adminServer, { path: "/admin/online" });
 setupSocketIO(io);
+
+// clientApp 내보내기
+export default clientApp;
