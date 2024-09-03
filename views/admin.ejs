@@ -49,6 +49,7 @@ function alertUserInfo(element){
       <% if(warned!=undefined&&selected!=undefined){warned.forEach((Item, index) => { %>
         <div class="divItem" id="div2-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes('2-'+index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
           <p class="warnCount"><%= Item.count %></p>
+          <p class="warnWhy"><%= Item.warnWhy%></p>
           <p class="docLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.Rdoc%></p>
           <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>페널티 및 삭제</button>
           <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>요청 취소</button>

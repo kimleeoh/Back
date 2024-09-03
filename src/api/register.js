@@ -13,11 +13,11 @@ import { AdminConfirm } from '../admin/adminSchemas.js';
 const registerRoute = express.Router();
 
 class symmetricDataQueue {
-    #items = new Map();
+    #items;
     #times;
 
     constructor() {
-        this.#items = {};
+        this.#items = new Map();
         this.#times = [];
     }
 
@@ -25,7 +25,8 @@ class symmetricDataQueue {
     // 30분 이상된 데이터는 삭제
     async enqueue(element,iv,id){
         this.#times.push([Date.now(), id]);
-        this.#items.set(id,[element,iv]);
+        const data = [element,iv];
+        this.#items.set(id,data);
         if(this.#times[0][0] < Date.now()-1800000){
             this.#items.remove(this.#times[0][1]);
             this.#times.shift();
@@ -38,7 +39,8 @@ class symmetricDataQueue {
         if(index == false){
             return -1;
         }
-        return this.#items[key];
+        console.log(this.#items.get(key));
+        return this.#items.get(key);
     }
 
     deleteByKey(key){
@@ -118,15 +120,17 @@ registerRoute.post("/register/page/:page", async function (req, res) {
         const iv = crypto.randomBytes(16); // 초기화 벡터(IV) 생성
         const newDocId = crypto.randomBytes(16).toString('hex');
         
-        const preTest = cipherAES(newDocId, symmetricKey, iv);
-        
         const pub = crypto.createPublicKey(req.body.pub);
+
+        const imsi = cipherAES(newDocId, symmetricKey, iv).toString();
         //이 두 정보는 퍼블릭 키로 암호화됨.
         const encryptedData = crypto.publicEncrypt(pub, newDocId);
         const encryptedIV = crypto.publicEncrypt(pub, iv);
         const encryptedSymmetricKey = crypto.publicEncrypt(pub, symmetricKey);
-
-        await symmetricKeyHolder.enqueue(symmetricKey, iv, preTest);
+        
+        const savedKey = symmetricKey.toString('base64');
+        const savedIV = iv.toString('base64');
+        await symmetricKeyHolder.enqueue(savedKey, savedIV,imsi);
         try{
             await redisClient.hSet(newDocId, 'name',req.body.name);
             await redisClient.expire(newDocId, 3600);
@@ -137,8 +141,11 @@ registerRoute.post("/register/page/:page", async function (req, res) {
     }
     else if (nowpage == 2) {
         //학부 입력
-        //{id : "암호화된 id", hakbu : "학부" }
-        const symmetricKey = symmetricKeyHolder.searchByKey(req.body.id);
+        //{id : "암호화된 id", hakbu : "학부"}
+        
+        const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+        const symmetricKey = Buffer.from(resultList[0], 'base64');
+        const iv = Buffer.from(resultList[1], 'base64');
         const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
         try{
             await redisClient.hSet(decryptedRedisID, 'hakbu', req.body.hakbu);
@@ -150,7 +157,9 @@ registerRoute.post("/register/page/:page", async function (req, res) {
     else if (nowpage == 3) {
         //학번 입력
         //{id : "암호화된 id", hakbun : "학번"}
-        const symmetricKey = symmetricKeyHolder.searchByKey(req.body.id);
+        const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+        const symmetricKey = Buffer.from(resultList[0], 'base64');
+        const iv = Buffer.from(resultList[1], 'base64');
         const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
         try{
             await redisClient.hSet(decryptedRedisID, 'hakbun',req.body.hakbun);
@@ -162,6 +171,9 @@ registerRoute.post("/register/page/:page", async function (req, res) {
     else if (nowpage == 4) {
         //이메일 입력
         //{id : "암호화된 id", email : "암호화된 이메일"}
+        const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+        const symmetricKey = Buffer.from(resultList[0], 'base64');
+        const iv = Buffer.from(resultList[1], 'base64');
         const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
         const decryptedData2 = decipherAES(req.body.email, symmetricKey, iv);
 
@@ -175,6 +187,9 @@ registerRoute.post("/register/page/:page", async function (req, res) {
     else if (nowpage == 5) {
         //비밀번호 입력
         //{id : "암호화된 id", bibun : "암호화된 비밀번호"}
+        const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+        const symmetricKey = Buffer.from(resultList[0], 'base64');
+        const iv = Buffer.from(resultList[1], 'base64');
         const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
         const decryptedData2 = decipherAES(req.body.bibun, symmetricKey, iv);
         
@@ -194,7 +209,8 @@ registerRoute.post("/register/page/:page", async function (req, res) {
             Rbadge_list: [],
             Rcustom_brd: custom,
             Rdoc: doc,
-            Rnotify_list: [],
+            notify_list: [],
+            notify_type: [],
             Rscore: score,
             badge_img: "",
             email: mySavedData.email,
@@ -262,19 +278,19 @@ registerRoute.post("/register/page/:page", async function (req, res) {
             await myCustom.save();
             await myDoc.save();
             await myScore.save();
-            await AdminConfirm.updateOne({_id:0}, {$inc : {unconfirmed_list : {Ruser:final._id, confirm_img:"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"}}});//나중에 이미지 추가
+            await AdminConfirm.updateOne({_id:0}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"}}});//나중에 이미지 추가
             await AdminConfirm.updateOne({_id:2}, {$inc : {all_user_sum : 1}});
             console.log("new user created");
-            const result = await axios.put(`http://localhost:4502/admin/online/newData`);
-            if(result.status == 200){
-                res.status(200).send({message : "User created and broadcasted to admin"});
-            }else{
-                res.status(200).send({message : "only user created"});
-            }
 
         }
         catch(err){
             res.status(500).send(`Internal Server Error-mongoose: ${err}`);
+        }
+        const result = await axios.put(`http://localhost:4502/admin/online/newData`);
+        if(result.status == 200){
+            res.status(200).send({message : "User created and broadcasted to admin"});
+        }else{
+            res.status(200).send({message : "only user created"});
         }
     }
 });

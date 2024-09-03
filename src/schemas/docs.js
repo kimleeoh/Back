@@ -69,7 +69,8 @@ const qnaAnswerSchema = new mongoose.Schema({
     like: {type: Number},
     QNAtitle: {type: String,required: true},
     QNAcategory: {type: [String],required: true},
-    Rqna: {type: mongoose.SchemaTypes.ObjectId}
+    Rqna: {type: mongoose.SchemaTypes.ObjectId},
+    warn: {type: Number}
 });
 
 const QnaAnswers = mongoose.model('QNA', qnaAnswerSchema, 'QnaAnswers');

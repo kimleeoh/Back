@@ -39,7 +39,8 @@ const adminWarnSchema = new mongoose.Schema({
     },
     warn_list: [{
         Rdoc: {type:mongoose.Types.ObjectId},
-        count: {type:Number}
+        count: {type:Number},
+        why_list: [{type:Number}]
     }]
 });
 
