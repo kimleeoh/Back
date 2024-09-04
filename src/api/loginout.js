@@ -126,7 +126,9 @@ router.delete('/api/logout', async (req, res) => {
         const redisClient = redisHandler.getRedisClient();
         const token = req.cookies.token;
         const sessionId = jwt.decode(token).sessionId;
+        const sensitiveSessionId = jwt.decode(token).sensitiveSessionID;
         await redisClient.del(sessionId);
+        await redisClient.sRem("refreshToken", sensitiveSessionId);
         res.clearCookie('token');
         res.status(200).json({ message: 'Logged out successfully' });
     }
