@@ -9,7 +9,7 @@ import { Server } from "socket.io";
 import redisHandler from "./config/redisHandler.js";
 import s3Handler from "./config/s3Handler.js";
 import rateLimiter from "./config/rateLimiter.js";
-import setupSwagger from "./config/swagger.js"; // Swagger 설정 파일
+// import setupSwagger from "./config/swagger.js"; // Swagger 설정 파일
 import { setupSocketIO } from "./io.js"; // 소켓 설정 파일
 
 import adminRoutes from "./routes/adminRoutes.js"; // 기존 관리자용 라우터
@@ -18,6 +18,7 @@ import clientRoutes from "./routes/clientRoutes.js"; // 새로운 클라이언�
 dotenv.config();
 const adminApp = express();
 const clientApp = express();
+s;
 
 const {
   MONGO_URI,

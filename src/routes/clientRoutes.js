@@ -4,12 +4,12 @@ import {
   handleLogin,
   handleLogout,
   handleKeyRequest,
-} from "../api/loginout.js";
+} from "../api/Auth/loginout.js";
 import {
   handleRegister,
   handleEmail,
   handleEmailAuthNum,
-} from "../api/register.js";
+} from "../api/Auth/register.js";
 
 const router = express.Router();
 

@@ -1,25 +1,25 @@
 import crypto from "crypto";
-import { User } from "../schemas/user.js";
-import redisHandler from "../config/redisHandler.js";
-import smtpTransport from "../config/emailHandler.js";
+import { User } from "../../schemas/user.js";
+import redisHandler from "../../config/redisHandler.js";
+import smtpTransport from "../../config/emailHandler.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import axios from "axios";
-import { CustomBoardView, Score, UserDocs } from "../schemas/userRelated.js";
-import { AdminConfirm } from "../admin/adminSchemas.js";
+import { CustomBoardView, Score, UserDocs } from "../../schemas/userRelated.js";
+import { AdminConfirm } from "../../admin/adminSchemas.js";
 
 class symmetricDataQueue {
-  #items = new Map();
+  #items;
   #times;
 
   constructor() {
-    this.#items = {};
+    this.#items = new Map();
     this.#times = [];
   }
 
   async enqueue(element, iv, id) {
-    this.#times.push([Date.now(), id]);
-    this.#items.set(id, [element, iv]);
+    const data = [element, iv];
+    this.#items.set(id, data);
     if (this.#times[0][0] < Date.now() - 1800000) {
       this.#items.remove(this.#times[0][1]);
       this.#times.shift();
@@ -40,8 +40,8 @@ class symmetricDataQueue {
     if (index == false) {
       return -1;
     }
-    this.#items.delete(key);
-    return 1;
+    console.log(this.#items.get(key));
+    return this.#items.get(key);
   }
 }
 
@@ -82,15 +82,17 @@ const handleRegister = async function (req, res) {
     const iv = crypto.randomBytes(16); // 초기화 벡터(IV) 생성
     const newDocId = crypto.randomBytes(16).toString("hex");
 
-    const preTest = cipherAES(newDocId, symmetricKey, iv);
-
     const pub = crypto.createPublicKey(req.body.pub);
+
+    const imsi = cipherAES(newDocId, symmetricKey, iv).toString();
+
     //이 두 정보는 퍼블릭 키로 암호화됨.
     const encryptedData = crypto.publicEncrypt(pub, newDocId);
     const encryptedIV = crypto.publicEncrypt(pub, iv);
     const encryptedSymmetricKey = crypto.publicEncrypt(pub, symmetricKey);
-
-    await symmetricKeyHolder.enqueue(symmetricKey, iv, preTest);
+    const savedKey = symmetricKey.toString("base64");
+    const savedIV = iv.toString("base64");
+    await symmetricKeyHolder.enqueue(savedKey, savedIV, imsi);
     try {
       await redisClient.hSet(newDocId, "name", req.body.name);
       await redisClient.expire(newDocId, 3600);
@@ -106,8 +108,10 @@ const handleRegister = async function (req, res) {
   } else if (nowpage === 2) {
     //학부 입력
     //{id : "암호화된 id", hakbu : "학부" }
-    const symmetricKey = symmetricKeyHolder.searchByKey(req.body.id);
     const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
+    const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+    const symmetricKey = Buffer.from(resultList[0], "base64");
+    const iv = Buffer.from(resultList[1], "base64");
     try {
       await redisClient.hSet(decryptedRedisID, "hakbu", req.body.hakbu);
       res.status(200).send({ message: "Hakbu added" });
@@ -117,7 +121,9 @@ const handleRegister = async function (req, res) {
   } else if (nowpage == 3) {
     //학번 입력
     //{id : "암호화된 id", hakbun : "학번"}
-    const symmetricKey = symmetricKeyHolder.searchByKey(req.body.id);
+    const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+    const symmetricKey = Buffer.from(resultList[0], "base64");
+    const iv = Buffer.from(resultList[1], "base64");
     const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
     try {
       await redisClient.hSet(decryptedRedisID, "hakbun", req.body.hakbun);
@@ -130,7 +136,9 @@ const handleRegister = async function (req, res) {
     //{id : "암호화된 id", email : "암호화된 이메일"}
     const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
     const decryptedData2 = decipherAES(req.body.email, symmetricKey, iv);
-
+    const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+    const symmetricKey = Buffer.from(resultList[0], "base64");
+    const iv = Buffer.from(resultList[1], "base64");
     try {
       await redisClient.hSet(decryptedRedisID, "email", decryptedData2);
       res.status(200).send({ message: "Email added" });
@@ -142,7 +150,9 @@ const handleRegister = async function (req, res) {
     //{id : "암호화된 id", bibun : "암호화된 비밀번호"}
     const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
     const decryptedData2 = decipherAES(req.body.bibun, symmetricKey, iv);
-
+    const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+    const symmetricKey = Buffer.from(resultList[0], "base64");
+    const iv = Buffer.from(resultList[1], "base64");
     const hashedPassword = await hashPassword(decryptedData2);
     const mySavedData = await redisClient.hGetAll(decryptedRedisID);
     await redisClient.del(decryptedRedisID);
@@ -228,7 +238,7 @@ const handleRegister = async function (req, res) {
       await AdminConfirm.updateOne(
         { _id: 0 },
         {
-          $inc: {
+          $push: {
             unconfirmed_list: {
               Ruser: final._id,
               confirm_img:
@@ -266,7 +276,7 @@ const handleEmail = async (req, res) => {
   console.log(req.body.email);
 
   const mailOptions = {
-    from: EMAIL_USER,
+    from: process.env.EMAIL_USER,
     to: req.body.email,
     subject: " [A-F Killer] 이메일 확인 인증번호 안내",
     html: `<h1>아래 인증번호를 확인하여 5분 내로 이메일 인증을 완료해 주세요.</h1><br></br><b>${number}</b>`,

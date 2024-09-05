@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { User } from "../schemas/user.js";
+import { User } from "../../schemas/user.js";
 import fs from "fs";
 import crypto from "crypto";
-import redisHandler from "../config/redisHandler.js";
+import redisHandler from "../../config/redisHandler.js";
 import { decipherAES } from "./register.js";
 
 // JWT 인증용 RSA 키 생성
@@ -143,7 +143,9 @@ export const handleLogout = async (req, res) => {
     const redisClient = redisHandler.getRedisClient();
     const token = req.cookies.token;
     const sessionId = jwt.decode(token).sessionId;
+    const sensitiveSessionId = jwt.decode(token).sensitiveSessionID;
     await redisClient.del(sessionId);
+    await redisClient.sRem("refreshToken", sensitiveSessionId);
     res.clearCookie("token");
     res.status(200).json({ message: "Logged out successfully" });
   } catch (err) {
