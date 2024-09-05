@@ -306,7 +306,7 @@ registerRoute.post('/register/email', async (req,res)=>{
     console.log(req.body.email);
 
     const mailOptions = {
-        from: EMAIL_USER,
+        from: process.env.EMAIL_USER,
         to: req.body.email,
         subject: " [A-F Killer] 이메일 확인 인증번호 안내",
         html: `<h1>아래 인증번호를 확인하여 5분 내로 이메일 인증을 완료해 주세요.</h1><br></br><b>${number}</b>`

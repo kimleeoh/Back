@@ -4,7 +4,7 @@ const notifySchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     Notifys_list: [{
         types : {type:Number},
-        Rwho_user : {type:mongoose.SchemaTypes.ObjectId},
+        who_user : {type:String},
         Rdoc : {type:mongoose.SchemaTypes.ObjectId},
         Rdoc_title : {type:String},
         time: {type:Number, default: Date.now},
