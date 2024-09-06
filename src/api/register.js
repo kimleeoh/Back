@@ -9,6 +9,7 @@ import axios from 'axios';
 import fs from 'fs';
 import { CustomBoardView, Score, UserDocs } from '../schemas/userRelated.js';
 import { AdminConfirm } from '../admin/adminSchemas.js';
+import s3Handler from '../config/s3Handler.js';
 
 const registerRoute = express.Router();
 
@@ -194,6 +195,20 @@ registerRoute.post("/register/page/:page", async function (req, res) {
         const decryptedData2 = decipherAES(req.body.bibun, symmetricKey, iv);
         
         const hashedPassword = await hashPassword(decryptedData2);
+        try{
+            await redisClient.hSet(decryptedRedisID, 'password', hashedPassword);
+            res.status(200).send({message : "Pass added"});
+        }catch(err){
+            res.status(500).send(`Internal Server Error-redis: ${err}`);
+        }
+    }else if (nowpage == 6) {
+        //{id : "암호화된 id", imgLink : "암호화된 인증이미지 링크"}
+        const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+        const symmetricKey = Buffer.from(resultList[0], 'base64');
+        const iv = Buffer.from(resultList[1], 'base64');
+        const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
+        const decryptedData2 = decipherAES(req.body.imgLink, symmetricKey, iv);
+
         const mySavedData = await redisClient.hGetAll(decryptedRedisID);
         await redisClient.del(decryptedRedisID);
 
@@ -218,7 +233,7 @@ registerRoute.post("/register/page/:page", async function (req, res) {
             hakbu: mySavedData.hakbu,
             hakbun: mySavedData.hakbun,
             level: 0,
-            password: hashedPassword,
+            password: mySavedData.password,
             picked: 0,
             intro: "",
             profile_img: ""
@@ -278,7 +293,8 @@ registerRoute.post("/register/page/:page", async function (req, res) {
             await myCustom.save();
             await myDoc.save();
             await myScore.save();
-            await AdminConfirm.updateOne({_id:0}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"}}});//나중에 이미지 추가
+            //"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"
+            await AdminConfirm.updateOne({_id:0}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:decryptedData2}}});//나중에 이미지 추가
             await AdminConfirm.updateOne({_id:2}, {$inc : {all_user_sum : 1}});
             console.log("new user created");
 
@@ -331,11 +347,22 @@ registerRoute.post('/register/emailAuthNum', async (req,res)=>{
     try{
         const result = await redisClient.hGet(req.body.email, 'authNum');
         if(result == req.body.authNum){
+            await redisClient.del(req.body.email);
             res.status(200).send({message : "auth success"});
         }else{
             res.status(401).send({message : "auth failed"});
         }
     }
+    catch(err){
+        res.status(500).send(err);
+    }
+});
+
+registerRoute.post('/register/imgUpload', async (req,res)=>{
+    //{id : "암호화된 id", img : "이미지"}
+    try{
+    const link = await s3Handler.put('confirm', img);
+    res.status(200).send({message : "img uploaded", link : link});}
     catch(err){
         res.status(500).send(err);
     }

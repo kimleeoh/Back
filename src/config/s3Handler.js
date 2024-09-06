@@ -22,15 +22,17 @@ const s3Handler = (() => {
                 secretAccessKey: envWrap[2]},
         });
         bucketName = envWrap[3];},
-        connect: () => {S3client.getObject({Bucket:bucketName, Key:"test.png"})
+        connect: async() => {await S3client.getObject({Bucket:bucketName, Key:"test.png"})
             .then((result)=>{if(result!=undefined){console.log('Successfully connected to S3');}})
             .catch(e=>console.error(e));},
-        get: (imgLink)=>{S3client.getObject({Bucket:bucketName, Key:imgLink}).then((result)=>{return result.Body;});},
-        put: (fileDestination, img)=>{
-            S3client.putObject({Bucket:bucketName, Key:fileDestination+"/"+currentFileNums[fileDestination]+".jpg", Body:img});
+        get: async(imgLink)=>{S3client.getObject({Bucket:bucketName, Key:imgLink}).then((result)=>{return result.Body;});},
+        put: async(fileDestination, img)=>{
+            await S3client.putObject({Bucket:bucketName, Key:fileDestination+"/"+currentFileNums[fileDestination]+".jpg", Body:img});
+            const link = `https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/${currentFileNums[fileDestination]}.jpg`
             currentFileNums[fileDestination]++;
+            return link;
         },
-        delete: (imgLink)=>{S3client.deleteObject({Bucket:bucketName, Key:imgLink});},
+        delete: async(imgLink)=>{await S3client.deleteObject({Bucket:bucketName, Key:imgLink});},
     };
 })();
 
