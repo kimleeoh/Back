@@ -11,6 +11,7 @@ import smtpTransport from "./emailHandler.js";
 6: 포인트 관련 획득(남이 눌러준누적좋아요 10개단위마다, 누적스크랩 10개단위마다..등등)
 7: 포인트 관련 획득(내가 누른 누적좋아요 10개단위마다, 누적스크랩 10개단위마다..등등)
 8: 배지 획득
+9: 게시물이 신고처리됨
 ... 
 */
 
@@ -126,6 +127,7 @@ const notify = (() => {
             }
         },
         Self:async (selfId, docId, docTitle, typeNum) => {
+            //뱃지 획득을 알림창에 띄워두는거
             const updateData = {
                 Notifys_list: {
                     types: typeNum,

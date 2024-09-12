@@ -23,6 +23,7 @@ const scoreSchema = new mongoose.Schema({
 
 const userDocSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
+    written: { type: Number },
     Rpilgy_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rhoney_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rtest_list: { type: [mongoose.SchemaTypes.ObjectId] },
