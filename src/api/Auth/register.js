@@ -1,12 +1,17 @@
+import express from "express";
+import { User } from "../schemas/user.js";
 import crypto from "crypto";
-import { User } from "../../schemas/user.js";
-import redisHandler from "../../config/redisHandler.js";
-import smtpTransport from "../../config/emailHandler.js";
+import redisHandler from "../config/redisHandler.js";
+import smtpTransport from "../config/emailHandler.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import axios from "axios";
-import { CustomBoardView, Score, UserDocs } from "../../schemas/userRelated.js";
-import { AdminConfirm } from "../../admin/adminSchemas.js";
+import fs from "fs";
+import { CustomBoardView, Score, UserDocs } from "../schemas/userRelated.js";
+import { AdminConfirm } from "../admin/adminSchemas.js";
+import s3Handler from "../config/s3Handler.js";
+
+const registerRoute = express.Router();
 
 class symmetricDataQueue {
   #items;
@@ -17,7 +22,10 @@ class symmetricDataQueue {
     this.#times = [];
   }
 
+  // Add an element to the end of the queue
+  // 30분 이상된 데이터는 삭제
   async enqueue(element, iv, id) {
+    this.#times.push([Date.now(), id]);
     const data = [element, iv];
     this.#items.set(id, data);
     if (this.#times[0][0] < Date.now() - 1800000) {
@@ -32,7 +40,8 @@ class symmetricDataQueue {
     if (index == false) {
       return -1;
     }
-    return this.#items[key];
+    console.log(this.#items.get(key));
+    return this.#items.get(key);
   }
 
   deleteByKey(key) {
@@ -40,9 +49,35 @@ class symmetricDataQueue {
     if (index == false) {
       return -1;
     }
-    console.log(this.#items.get(key));
-    return this.#items.get(key);
+    this.#items.delete(key);
+    return 1;
   }
+
+  // Remove an element from the front of the queue
+  // dequeue() {
+  //     if (this.isEmpty()) {
+  //         return "Queue is empty";
+  //     }
+  //     return this.items.shift();
+  // }
+
+  // // Check if the queue is empty
+  // isEmpty() {
+  //     return this.items.length === 0;
+  // }
+
+  // // Get the front element of the queue
+  // front() {
+  //     if (this.isEmpty()) {
+  //         return "Queue is empty";
+  //     }
+  //     return this.items[0];
+  // }
+
+  // // Get the size of the queue
+  // size() {
+  //     return this.items.length;
+  // }
 }
 
 const symmetricKeyHolder = new symmetricDataQueue();
@@ -55,21 +90,22 @@ function decipherAES(target, symmetricKey, iv) {
   return decryptedResult;
 }
 
-export function cipherAES(target, symmetricKey, iv) {
+function cipherAES(target, symmetricKey, iv) {
   const cipher = crypto.createCipheriv("aes-256-cbc", symmetricKey, iv);
   let encryptedResult = cipher.update(target, "utf8", "base64");
   encryptedResult += cipher.final("base64");
+
   return encryptedResult;
 }
 
-export async function hashPassword(password) {
+async function hashPassword(password) {
   const saltRounds = 10; // The cost factor for generating the salt
   const salt = await bcrypt.genSalt(saltRounds);
   const hashedPassword = await bcrypt.hash(password, salt);
   return hashedPassword;
 }
 
-const handleRegister = async function (req, res) {
+registerRoute.post("/register/page/:page", async function (req, res) {
   const redisClient = redisHandler.getRedisClient();
   const nowpage = parseInt(req.params.page);
 
@@ -85,11 +121,11 @@ const handleRegister = async function (req, res) {
     const pub = crypto.createPublicKey(req.body.pub);
 
     const imsi = cipherAES(newDocId, symmetricKey, iv).toString();
-
     //이 두 정보는 퍼블릭 키로 암호화됨.
     const encryptedData = crypto.publicEncrypt(pub, newDocId);
     const encryptedIV = crypto.publicEncrypt(pub, iv);
     const encryptedSymmetricKey = crypto.publicEncrypt(pub, symmetricKey);
+
     const savedKey = symmetricKey.toString("base64");
     const savedIV = iv.toString("base64");
     await symmetricKeyHolder.enqueue(savedKey, savedIV, imsi);
@@ -105,13 +141,14 @@ const handleRegister = async function (req, res) {
     } catch (err) {
       res.status(500).send(`Internal Server Error-redis: ${err}`);
     }
-  } else if (nowpage === 2) {
+  } else if (nowpage == 2) {
     //학부 입력
-    //{id : "암호화된 id", hakbu : "학부" }
-    const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
+    //{id : "암호화된 id", hakbu : "학부"}
+
     const resultList = symmetricKeyHolder.searchByKey(req.body.id);
     const symmetricKey = Buffer.from(resultList[0], "base64");
     const iv = Buffer.from(resultList[1], "base64");
+    const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
     try {
       await redisClient.hSet(decryptedRedisID, "hakbu", req.body.hakbu);
       res.status(200).send({ message: "Hakbu added" });
@@ -134,11 +171,12 @@ const handleRegister = async function (req, res) {
   } else if (nowpage == 4) {
     //이메일 입력
     //{id : "암호화된 id", email : "암호화된 이메일"}
-    const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
-    const decryptedData2 = decipherAES(req.body.email, symmetricKey, iv);
     const resultList = symmetricKeyHolder.searchByKey(req.body.id);
     const symmetricKey = Buffer.from(resultList[0], "base64");
     const iv = Buffer.from(resultList[1], "base64");
+    const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
+    const decryptedData2 = decipherAES(req.body.email, symmetricKey, iv);
+
     try {
       await redisClient.hSet(decryptedRedisID, "email", decryptedData2);
       res.status(200).send({ message: "Email added" });
@@ -148,12 +186,27 @@ const handleRegister = async function (req, res) {
   } else if (nowpage == 5) {
     //비밀번호 입력
     //{id : "암호화된 id", bibun : "암호화된 비밀번호"}
-    const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
-    const decryptedData2 = decipherAES(req.body.bibun, symmetricKey, iv);
     const resultList = symmetricKeyHolder.searchByKey(req.body.id);
     const symmetricKey = Buffer.from(resultList[0], "base64");
     const iv = Buffer.from(resultList[1], "base64");
+    const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
+    const decryptedData2 = decipherAES(req.body.bibun, symmetricKey, iv);
+
     const hashedPassword = await hashPassword(decryptedData2);
+    try {
+      await redisClient.hSet(decryptedRedisID, "password", hashedPassword);
+      res.status(200).send({ message: "Pass added" });
+    } catch (err) {
+      res.status(500).send(`Internal Server Error-redis: ${err}`);
+    }
+  } else if (nowpage == 6) {
+    //{id : "암호화된 id", imgLink : "암호화된 인증이미지 링크"}
+    const resultList = symmetricKeyHolder.searchByKey(req.body.id);
+    const symmetricKey = Buffer.from(resultList[0], "base64");
+    const iv = Buffer.from(resultList[1], "base64");
+    const decryptedRedisID = decipherAES(req.body.id, symmetricKey, iv);
+    const decryptedData2 = decipherAES(req.body.imgLink, symmetricKey, iv);
+
     const mySavedData = await redisClient.hGetAll(decryptedRedisID);
     await redisClient.del(decryptedRedisID);
 
@@ -169,7 +222,8 @@ const handleRegister = async function (req, res) {
       Rbadge_list: [],
       Rcustom_brd: custom,
       Rdoc: doc,
-      Rnotify_list: [],
+      notify_list: [],
+      notify_type: [],
       Rscore: score,
       badge_img: "",
       email: mySavedData.email,
@@ -177,7 +231,7 @@ const handleRegister = async function (req, res) {
       hakbu: mySavedData.hakbu,
       hakbun: mySavedData.hakbun,
       level: 0,
-      password: hashedPassword,
+      password: mySavedData.password,
       picked: 0,
       intro: "",
       profile_img: "",
@@ -235,43 +289,40 @@ const handleRegister = async function (req, res) {
       await myCustom.save();
       await myDoc.save();
       await myScore.save();
+      //"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"
       await AdminConfirm.updateOne(
         { _id: 0 },
         {
           $push: {
-            unconfirmed_list: {
-              Ruser: final._id,
-              confirm_img:
-                "https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png",
-            },
+            unconfirmed_list: { Ruser: final._id, confirm_img: decryptedData2 },
           },
         }
       ); //나중에 이미지 추가
       await AdminConfirm.updateOne({ _id: 2 }, { $inc: { all_user_sum: 1 } });
       console.log("new user created");
-      const result = await axios.put(
-        `http://localhost:4502/admin/online/newData`
-      );
-      if (result.status == 200) {
-        res
-          .status(200)
-          .send({ message: "User created and broadcasted to admin" });
-      } else {
-        res.status(200).send({ message: "only user created" });
-      }
     } catch (err) {
       res.status(500).send(`Internal Server Error-mongoose: ${err}`);
     }
+    const result = await axios.put(
+      `http://localhost:4502/admin/online/newData`
+    );
+    if (result.status == 200) {
+      res
+        .status(200)
+        .send({ message: "User created and broadcasted to admin" });
+    } else {
+      res.status(200).send({ message: "only user created" });
+    }
   }
-};
+});
 
 var generateRandomNumber = function (min, max) {
   var randNum = Math.floor(Math.random() * (max - min + 1)) + min;
   return randNum;
 };
 
-// 이메일 인증 처리
-const handleEmail = async (req, res) => {
+registerRoute.post("/register/email", async (req, res) => {
+  //{email : 입력이메일값}
   const number = generateRandomNumber(11111, 99999);
   console.log(req.body.email);
 
@@ -292,13 +343,14 @@ const handleEmail = async (req, res) => {
     res.status(500).send(err);
     smtpTransport.close();
   }
-};
+});
 
-// 이메일 인증번호 확인 처리
-const handleEmailAuthNum = async (req, res) => {
+registerRoute.post("/register/emailAuthNum", async (req, res) => {
+  //{email : 입력이메일값, authNum : 입력인증번호}
   try {
     const result = await redisClient.hGet(req.body.email, "authNum");
-    if (result === req.body.authNum) {
+    if (result == req.body.authNum) {
+      await redisClient.del(req.body.email);
       res.status(200).send({ message: "auth success" });
     } else {
       res.status(401).send({ message: "auth failed" });
@@ -306,12 +358,16 @@ const handleEmailAuthNum = async (req, res) => {
   } catch (err) {
     res.status(500).send(err);
   }
-};
+});
 
-export {
-  symmetricKeyHolder,
-  decipherAES,
-  handleRegister,
-  handleEmail,
-  handleEmailAuthNum,
-};
+registerRoute.post("/register/imgUpload", async (req, res) => {
+  //{id : "암호화된 id", img : "이미지"}
+  try {
+    const link = await s3Handler.put("confirm", img);
+    res.status(200).send({ message: "img uploaded", link: link });
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+export { registerRoute, decipherAES, cipherAES, hashPassword };
