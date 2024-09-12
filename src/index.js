@@ -18,7 +18,6 @@ import clientRoutes from "./routes/clientRoutes.js"; // 새로운 클라이언�
 dotenv.config();
 const adminApp = express();
 const clientApp = express();
-s;
 
 const {
   MONGO_URI,
