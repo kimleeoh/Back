@@ -5,9 +5,12 @@ const mainInquiry = (()=>{
     let redisClient = null;
     const stringFields = ['hakbu', 'intro', 'profile_img'];
     return {
+        isNotRedis: ()=>{return (redisClient == null);},
+
         inputRedisClient: (cli)=>{redisClient=cli;},
+
         read : async (paramList, redisId)=>{
-            const stringfiedJSON = await redisClient.sGet(redisId);
+            const stringfiedJSON = await redisClient.get(redisId);
             const userInfo = JSON.parse(stringfiedJSON);
             let returnParam = Object.create(null);
             // Add multiple fields to returnParam

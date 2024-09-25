@@ -5,6 +5,7 @@ const mainInquiry = (()=>{
     let redisClient = null;
     const stringFields = ['hakbu', 'intro', 'profile_img'];
     return {
+        isNotRedis: ()=>{return (redisClient == null);},
         inputRedisClient: (cli)=>{redisClient=cli;},
         read : async (paramList, redisId)=>{
             const stringfiedJSON = await redisClient.sGet(redisId);

@@ -11,10 +11,12 @@ import adminHomeRoute from './admin/adminRoutes.js';
 import loginRoute from './api/loginout.js';
 import dummyRoute from './api/dummy.js';
 import {registerRoute} from './api/register.js';
+import qnaRoute from './api/qna.js';
 import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 import { setupSocketIO } from './io.js';
 import session from 'express-session';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
 
@@ -59,6 +61,7 @@ adminApp.use(express.json());
 
 //clientApp.use('/schemas', express.static('src/schemas'));
 clientApp.use(express.urlencoded({extended: true}));
+clientApp.use(cookieParser());
 clientApp.use(express.json());
 clientApp.use(rateLimiter);
 clientApp.use(cors({origin: "http://localhost:3000", // 접근 권한을 부여하는 도메인
@@ -79,6 +82,7 @@ adminApp.use('/', adminHomeRoute);
 clientApp.use('/', loginRoute);
 clientApp.use('/api', dummyRoute);
 clientApp.use('/api', registerRoute);
+clientApp.use('/api', qnaRoute);
 
 
 clientApp.listen(CLIENT_PORT, ()=> {

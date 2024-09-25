@@ -95,8 +95,9 @@ router.post('/api/login', async (req, res) => {
         }
 
         const sessionId = uuidv4();
-        const sensitiveSessionID=crypto.randomBytes(16).toString('hex');
-        
+        const sensitiveSessionID=crypto.randomBytes(16);
+        console.log(sessionId);
+        console.log(sensitiveSessionID.toString('hex'));
         const sessionId_E=crypto.privateEncrypt(privateKey, Buffer.from(sessionId)).toString('base64');
         const sensitiveSessionID_E=crypto.privateEncrypt(privateKey, Buffer.from(sensitiveSessionID)).toString('base64');
         
@@ -106,7 +107,7 @@ router.post('/api/login', async (req, res) => {
         // Store session data in Redis with a 1-hour expiration
         const temp = user.toJSON();
         await redisClient.set(sessionId, JSON.stringify(temp), 'EX', 3600);
-        await redisClient.set("refreshToken", sensitiveSessionID);
+        await redisClient.sAdd("refreshToken", sensitiveSessionID.toString('hex'));
         //to reconvert to object, use JSON.parse
         // Create JWT with a 1-hour expiration
         const token = jwt.sign( payload , privateKey, { expiresIn: '1h', algorithm:'RS256' });

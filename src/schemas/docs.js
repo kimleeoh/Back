@@ -5,7 +5,7 @@ const qnaSchema = new mongoose.Schema({
     restricted_type: { type:Boolean }, 
     user_main: { type: String },
     user_img: { type: String },
-    user_badge_img: { type: String },
+    
     Ruser: { type: mongoose.SchemaTypes.ObjectId },
     answer_list: [{ 
         Ranswer: { type: mongoose.SchemaTypes.ObjectId },
@@ -15,7 +15,8 @@ const qnaSchema = new mongoose.Schema({
     now_category_list: [{ type: String }],
     title: { type: String },
     content: { type: String },
-    img: { type: String },
+    preview_content: { type: String },
+    img_list: [{ type: String }],
     like: { type: Number },
     picked_index: { type: Number },
     Rnotifyusers_list: [{ type: mongoose.SchemaTypes.ObjectId }],
@@ -29,7 +30,7 @@ const qnaAlreadySchema = new mongoose.Schema({
     restricted_type: { type:Boolean }, 
     user_main: { type: String },
     user_img: { type: String },
-    user_badge_img: { type: String },
+    
     Ruser: { type: mongoose.SchemaTypes.ObjectId },
     answer_list: {type:Array},
     now_category_list: [{ type: String }],
