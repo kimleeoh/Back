@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import { QnaDocuments, HoneyDocuments,QnaAnswers,QnaAlready } from '../schemas/docs.js';
-import { User } from '../schemas/user.js';
-import mainInquiry from '../functions/mainInquiry.js';
-import redisHandler from '../config/redisHandler.js';
-import s3Handler from '../config/s3Handler.js';
-import { UserDocs } from '../schemas/userRelated.js';
+import { QnaDocuments, HoneyDocuments,QnaAnswers,QnaAlready } from '../../../schemas/docs.js';
+import { User } from '../../../schemas/user.js';
+import mainInquiry from '../../../functions/mainInquiry.js';
+import redisHandler from '../../../config/redisHandler.js';
+import s3Handler from '../../../config/s3Handler.js';
+import { UserDocs } from '../../../schemas/userRelated.js';
 
 //decryptedSessionId: sessionId_D, 이건 해독된 세션아이디
 //decryptedUserData: decoded.userData -> 이건 이름이랑 프로필 사진만 가지고 있음
