@@ -16,8 +16,6 @@ import { handleQnACreate } from "../api/Board/QnA/createPage.js";
 
 const router = express.Router();
 
-router.get("/", (req,res)=>{res.send('<h1>서버 실행 중</h1>');});
-
 // Dummy 관련 라우터
 router.get("/dummy/testqna", getQnaData);
 router.get("/dummy/testtip", getTipData);

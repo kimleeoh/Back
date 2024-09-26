@@ -73,7 +73,10 @@ mongoose
     .catch(e=>console.error(e));
 
 adminApp.use('/', adminRoutes);
-clientApp.use("/", clientRoutes);
+clientApp.use("/api", clientRoutes);
+clientApp.get('/',(req, res) => {
+    res.send('<h1>서버 실행 중</h1>');
+});
 
 clientApp.listen(CLIENT_PORT, ()=> {
     console.log(`Client server listening on port ${CLIENT_PORT}`);
