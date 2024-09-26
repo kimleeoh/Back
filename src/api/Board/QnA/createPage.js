@@ -1,20 +1,18 @@
-import express from 'express';
 import mongoose from 'mongoose';
 import { QnaDocuments, HoneyDocuments,QnaAnswers,QnaAlready } from '../schemas/docs.js';
 import { User } from '../schemas/user.js';
 import mainInquiry from '../functions/mainInquiry.js';
-import myMiddleware from '../config/jwtManageMiddleware.js';
 import redisHandler from '../config/redisHandler.js';
 import s3Handler from '../config/s3Handler.js';
 import { UserDocs } from '../schemas/userRelated.js';
 
-const router = express.Router();
-
 //decryptedSessionId: sessionId_D, 이건 해독된 세션아이디
 //decryptedUserData: decoded.userData -> 이건 이름이랑 프로필 사진만 가지고 있음
-router.post('/qna/create/post', myMiddleware, async (req, res) => {
-    //프론트측에서 보낼 데이터 : title, content, images, now_category_list, limit, point, time
-    
+// router.post('/qna/create/post', myMiddleware, async (req, res) => {
+//     //프론트측에서 보낼 데이터 : title, content, images, now_category_list, limit, point, time
+// });
+
+const handleQnACreate = async(req, res)=>{
     try{
         const data = new QnaDocuments();
         if(mainInquiry.isNotRedis){
@@ -61,6 +59,6 @@ router.post('/qna/create/post', myMiddleware, async (req, res) => {
         console.error(e);
         res.status(500).send('Internal Server Error');
     }
-});
+}
 
-export default router;
+export { handleQnACreate };

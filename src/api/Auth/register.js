@@ -1,17 +1,14 @@
-import express from 'express';
-import {User} from '../schemas/user.js';
+import {User} from '../../schemas/user.js';
 import crypto from 'crypto';
-import redisHandler from '../config/redisHandler.js';
-import smtpTransport from '../config/emailHandler.js';
+import redisHandler from '../../config/redisHandler.js';
+import smtpTransport from '../../config/emailHandler.js';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import axios from 'axios';
 import fs from 'fs';
-import { CustomBoardView, Score, UserDocs } from '../schemas/userRelated.js';
-import { AdminConfirm } from '../admin/adminSchemas.js';
-import s3Handler from '../config/s3Handler.js';
-
-const registerRoute = express.Router();
+import { CustomBoardView, Score, UserDocs } from '../../schemas/userRelated.js';
+import { AdminConfirm } from '../../admin/adminSchemas.js';
+import s3Handler from '../../config/s3Handler.js';
 
 class symmetricDataQueue {
     #items;
@@ -100,7 +97,6 @@ function cipherAES(target, symmetricKey, iv){
     return encryptedResult;
 }
 
-
 async function hashPassword(password) {
     const saltRounds = 10; // The cost factor for generating the salt
     const salt = await bcrypt.genSalt(saltRounds);
@@ -108,7 +104,16 @@ async function hashPassword(password) {
     return hashedPassword;
 }
 
-registerRoute.post("/register/page/:page", async function (req, res) {
+var generateRandomNumber = function (min, max) {
+    var randNum = Math.floor(Math.random() * (max - min + 1)) + min;
+    return randNum;
+};
+
+// registerRoute.post("/register/page/:page", async function (req, res) {
+    
+// });
+
+const handleRegister=async(req,res)=>{
     const redisClient = redisHandler.getRedisClient();
     const nowpage = parseInt(req.params.page);
     
@@ -309,15 +314,13 @@ registerRoute.post("/register/page/:page", async function (req, res) {
             res.status(200).send({message : "only user created"});
         }
     }
-});
+}
 
-var generateRandomNumber = function (min, max) {
-    var randNum = Math.floor(Math.random() * (max - min + 1)) + min;
-    return randNum;
-};
+// registerRoute.post('/register/email', async (req,res)=>{
+//     //{email : 입력이메일값}
+// });
 
-registerRoute.post('/register/email', async (req,res)=>{
-    //{email : 입력이메일값}
+const handleEmailAuthSend=async(req,res)=>{
     const number = generateRandomNumber(11111, 99999);
     console.log(req.body.email);
 
@@ -339,11 +342,13 @@ registerRoute.post('/register/email', async (req,res)=>{
         res.status(500).send(err);
         smtpTransport.close();
     }
-    
-});
+}
 
-registerRoute.post('/register/emailAuthNum', async (req,res)=>{
-    //{email : 입력이메일값, authNum : 입력인증번호}
+// registerRoute.post('/register/emailAuthNum', async (req,res)=>{
+//     //{email : 입력이메일값, authNum : 입력인증번호}
+// });
+
+async function handleEmailAuthCheck(){
     try{
         const result = await redisClient.hGet(req.body.email, 'authNum');
         if(result == req.body.authNum){
@@ -356,16 +361,22 @@ registerRoute.post('/register/emailAuthNum', async (req,res)=>{
     catch(err){
         res.status(500).send(err);
     }
-});
+}
 
-registerRoute.post('/register/imgUpload', async (req,res)=>{
-    //{id : "암호화된 id", img : "이미지"}
+// registerRoute.post('/register/imgUpload', async (req,res)=>{
+//     //{id : "암호화된 id", img : "이미지"}
+// });
+
+const handleConfirmImgUpload=async(req,res)=>{
     try{
-    const link = await s3Handler.put('confirm', img);
-    res.status(200).send({message : "img uploaded", link : link});}
-    catch(err){
-        res.status(500).send(err);
-    }
-});
+        const link = await s3Handler.put('confirm', img);
+        res.status(200).send({message : "img uploaded", link : link});}
+        catch(err){
+            res.status(500).send(err);
+        }
+}
 
-export {registerRoute, decipherAES, cipherAES, hashPassword};
+export {
+    decipherAES, cipherAES, hashPassword, //보안 관련
+    handleRegister, handleConfirmImgUpload, handleEmailAuthSend, handleEmailAuthCheck  //라우터 관련
+};

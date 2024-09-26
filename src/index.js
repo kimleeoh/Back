@@ -3,15 +3,11 @@ import express from 'express';
 import dotenv from 'dotenv';
 import redisHandler from './config/redisHandler.js';
 import s3Handler from './config/s3Handler.js';
-import rateLimiter from './config/rateLimiter.js';
+import rateLimiter from './functions/rateLimiter.js';
 
-import adminLoginRoute from './admin/adminLogin.js';
-import adminHomeRoute from './admin/adminRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import clientRoutes from './routes/clientRoutes.js';
 
-import loginRoute from './api/loginout.js';
-import dummyRoute from './api/dummy.js';
-import {registerRoute} from './api/register.js';
-import qnaRoute from './api/qna.js';
 import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 import { setupSocketIO } from './io.js';
@@ -76,14 +72,8 @@ mongoose
     .then(()=>console.log('Successfully connected to mongodb'))
     .catch(e=>console.error(e));
 
-adminApp.use('/admin', adminLoginRoute);
-adminApp.use('/', adminHomeRoute);
-
-clientApp.use('/', loginRoute);
-clientApp.use('/api', dummyRoute);
-clientApp.use('/api', registerRoute);
-clientApp.use('/api', qnaRoute);
-
+adminApp.use('/', adminRoutes);
+clientApp.use("/", clientRoutes);
 
 clientApp.listen(CLIENT_PORT, ()=> {
     console.log(`Client server listening on port ${CLIENT_PORT}`);

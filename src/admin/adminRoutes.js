@@ -1,4 +1,3 @@
-import express from 'express';
 import { ADMIN_AUTH_CODE } from './adminAuthcodeSafer.js';
 import { AdminConfirm, AdminWarn, AdminUsers } from './adminSchemas.js';
 import redisHandler from '../config/redisHandler.js';
@@ -6,18 +5,22 @@ import {User} from '../schemas/user.js';
 import mongoose, {SchemaTypes} from 'mongoose';
 import s3Handler from '../config/s3Handler.js';
 
-const router = express.Router();
+// router.get('/', async (req, res) => {
+// });
 
-router.get('/', async (req, res) => {
+const handleAdminHome = async (req, res) => {
     if(req.session.user!=undefined){
         console.log(req.session.user);
         res.redirect(301,'/admin/online');
     }else{
         res.render('home.ejs', {loginStatus:''});
     }
-});
+}
 
-router.get('/admin/online', async (req, res) => {
+// router.get('/admin/online', async (req, res) => {
+// });
+
+const handleAdminOnline = async (req, res) => {
     if(req.session.user!=undefined&&req.session.user.authCode!=undefined && req.session.user.authCode === ADMIN_AUTH_CODE.get()){
         console.log("yup");
         const redisClient = redisHandler.getRedisClient();
@@ -53,9 +56,12 @@ router.get('/admin/online', async (req, res) => {
     }else{
         res.status(401).send("Unauthorized");
     }
-});
+}
 
-router.post('/admin/redis', async (req, res) => {
+// router.post('/admin/redis', async (req, res) => {
+// });
+
+const handleAdminRedis = async (req, res) => {
     const redisClient = redisHandler.getRedisClient();
     
     if(req.body.type=="selected"){
@@ -80,14 +86,20 @@ router.post('/admin/redis', async (req, res) => {
               res.status(500).send('Internal Server Error-Redis');
         });
     }
-});
+}
 
-router.put('/admin/online/newData', async (req, res) => { 
+// router.put('/admin/online/newData', async (req, res) => { 
+// });
+
+const handleAdminNewData = async (req, res) => {
     io.emit('newData');
     res.status(200).send('Success');
-});
+}
 
-router.post('/admin/mongoose', async (req, res) => {
+// router.post('/admin/mongoose', async (req, res) => {
+// });
+
+const handleAdminMongoose = async (req, res) => {
     const idd = new mongoose.Types.ObjectId(req.body.id, "hex");
     console.log(idd);
     if(req.body.where=="confirmU"){
@@ -134,10 +146,10 @@ router.post('/admin/mongoose', async (req, res) => {
             })
         }  */ 
     }
-});
+}
 
 //router.post('/admin/return')
 
 
 
-export default router;
+export {handleAdminHome, handleAdminOnline, handleAdminRedis, handleAdminNewData, handleAdminMongoose};

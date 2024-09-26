@@ -1,6 +1,6 @@
 import { User } from "../schemas/user.js";
 import { Notify } from "../schemas/notify.js";
-import smtpTransport from "./emailHandler.js";
+import smtpTransport from "../config/emailHandler.js";
 
 /*
 1: 알림설정 눌러놓은 게시글 수정되면 알림

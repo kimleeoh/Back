@@ -1,11 +1,11 @@
-import express from 'express';
 import { AdminLogin } from './adminSchemas.js';
 import { ADMIN_AUTH_CODE } from './adminAuthcodeSafer.js';
 import redisHandler from '../config/redisHandler.js';
 
-const router = express.Router();
+// router.post('/login', async (req, res) => {
+// });
 
-router.post('/login', async (req, res) => {
+const handleAdminLogin = async (req, res) => {
     console.log(req.body);
     const { rawUsername, rawPassword } = req.body;
     const username = String(rawUsername).replace(/[^a-zA-Z0-9*@]/g, '');
@@ -37,10 +37,12 @@ router.post('/login', async (req, res) => {
         console.error(e);
         res.status(500).render("home.ejs",{loginStatus:'Internal Server Error'});
     });
-    
-});
+}
 
-router.post('/logout', async (req, res) => {
+// router.post('/logout', async (req, res) => {
+// });
+
+const handleAdminLogout = async (req, res) => {
     if(req.session.user){
         const redisClient = redisHandler.getRedisClient();
         console.log(req.session.user.name);
@@ -62,15 +64,18 @@ router.post('/logout', async (req, res) => {
     }else{
         res.redirect(301,'/');
     }
-});
+}
 
-router.get('/session-time-left', (req, res) => {
+// router.get('/session-time-left', (req, res) => {
+// });
+
+const handleAdminSessionTimeLeft = async (req, res) => {    
     if (req.session) {
         const ttl = req.session.cookie.maxAge - (Date.now() - req.session.cookie._expires.getTime());
         res.status(200).json({time:ttl, session:req.session});
     } else {
         res.status(404).send('No active session');
     }
-});
+}
 
-export default router;
+export { handleAdminLogin, handleAdminLogout, handleAdminSessionTimeLeft };

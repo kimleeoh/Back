@@ -2,10 +2,10 @@ import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { User } from '../schemas/user.js';
+import { User } from '../../schemas/user.js';
 import fs from 'fs';
 import crypto from 'crypto';
-import redisHandler from '../config/redisHandler.js';
+import redisHandler from '../../config/redisHandler.js';
 import { decipherAES, hashPassword } from './register.js';
 import { timeStamp } from 'console';
 
@@ -26,16 +26,13 @@ const symmetricKeyHolder = ()=>{
     return {symmetricKey, iv};
 }
 
-
-const router = express.Router();
 //symmetricKey, iv를 세션에 저장해야함.
 let instance = null;
 
-router.get('/', (req, res) => {
-    res.send('<h1>서버 실행 중</h1>');
-});
+// router.post('/api/login/key', async (req, res) => {
+// });
 
-router.post('/api/login/key', async (req, res) => {
+const handleKeyRequest = async(req, res)=>{
     try{
         instance = symmetricKeyHolder();
         const { symmetricKey, iv } = instance;
@@ -49,9 +46,12 @@ router.post('/api/login/key', async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
-});
+}
 
-router.post('/api/login', async (req, res) => {
+// router.post('/api/login', async (req, res) => {
+// });
+
+const handleLogin = async(req, res)=>{
     const { symmetricKey, iv } = instance;
     const { username, password } = req.body;
     console.log(username, password);
@@ -120,9 +120,12 @@ router.post('/api/login', async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
-});
+}
 
-router.delete('/api/logout', async (req, res) => {
+// router.delete('/api/logout', async (req, res) => {
+// });
+
+const handleLogout = async(req, res)=>{
     try{
         const redisClient = redisHandler.getRedisClient();
         const token = req.cookies.token;
@@ -137,7 +140,7 @@ router.delete('/api/logout', async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
-});
+}
 
 
-export default router;
+export { handleKeyRequest, handleLogin, handleLogout };
