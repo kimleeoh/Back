@@ -12,15 +12,15 @@
     <script>
       const socket = io.connect('http://localhost:4502', {
     path: '/admin/online', // 서버 path와 일치시켜준다
-  });
+      });
       $(adminWebSocketInit());
-      
+
 function alertUserInfo(element){
     //element.innerHTML
-    console.log('b');
-}
+        console.log('b');
+      }
 
-    </script> 
+    </script>
   </head>
   <body>
     <form action="/admin/logout" method="post">
@@ -42,8 +42,8 @@ function alertUserInfo(element){
             <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>승인</button>
             <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>거부</button>
           </div>
-        <% });} %>
-    </div>
+          <% });} %>
+        </div>
     <h2>신고된 글목록</h2>
     <div class="listContainer" id="warnedList">
       <% if(warned!=undefined&&selected!=undefined){warned.forEach((Item, index) => { %>

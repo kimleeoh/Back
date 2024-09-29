@@ -14,28 +14,30 @@ const handleAdminLogin = async (req, res) => {
     AdminLogin.find({_id:"3", Admins:{$elemMatch:{id:username, pw:password}}})
     .then((result)=>{
         if(result.length > 0){
-            req.session.user={
-                name : username,
-                authCode : ADMIN_AUTH_CODE.get()
+            req.session.user = {
+                name: username,
+                authCode: ADMIN_AUTH_CODE.get()
             };
             console.log(req.session.user);
             const redisClient = redisHandler.getRedisClient();
             redisClient.sAdd('logged_in_admins', req.session.user.name)
-            .then(() => {res.redirect(301,'/admin/online');})
+            .then(() => {
+                res.redirect(301, '/admin/online');
+            })
             .catch((err) => {
                 console.log(err);
                 if (err) {
-                  console.error('Redis error:', err);
-                  res.status(500).render("home.ejs",{loginStatus:'Internal Server Error-Redis'});
+                    console.error('Redis error:', err);
+                    res.status(500).render("home.ejs", { loginStatus: 'Internal Server Error-Redis' });
                 }
             });
-        }else{
-            res.status(401).send('Unauthorized');
+        } else {
+            res.status(401).render("home.ejs", { loginStatus: 'Unauthorized' });
         }
     })
-    .catch((e)=>{
+    .catch((e) => {
         console.error(e);
-        res.status(500).render("home.ejs",{loginStatus:'Internal Server Error'});
+        res.status(500).render("home.ejs", { loginStatus: 'Internal Server Error' });
     });
 }
 
@@ -47,22 +49,22 @@ const handleAdminLogout = async (req, res) => {
         const redisClient = redisHandler.getRedisClient();
         console.log(req.session.user.name);
         await redisClient.sRem('logged_in_admins', req.session.user.name)
-        .then(()=>{
-            req.session.destroy((err)=>{
-                if(err){
+        .then(() => {
+            req.session.destroy((err) => {
+                if (err) {
                     console.error(err);
                     res.status(500).send('Internal Server Error');
                 }
                 console.log("destroyed");
-                res.redirect(301,'/');
+                res.redirect(301, '/');
             });
         })
         .catch((err) => {
-              console.error('Redis error:', err);
-              res.status(500).send('Internal Server Error-Redis');
+            console.error('Redis error:', err);
+            res.status(500).send('Internal Server Error-Redis');
         });
-    }else{
-        res.redirect(301,'/');
+    } else {
+        res.redirect(301, '/');
     }
 }
 
@@ -72,7 +74,7 @@ const handleAdminLogout = async (req, res) => {
 const handleAdminSessionTimeLeft = async (req, res) => {    
     if (req.session) {
         const ttl = req.session.cookie.maxAge - (Date.now() - req.session.cookie._expires.getTime());
-        res.status(200).json({time:ttl, session:req.session});
+        res.status(200).json({ time: ttl, session: req.session });
     } else {
         res.status(404).send('No active session');
     }
