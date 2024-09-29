@@ -15,34 +15,35 @@ import smtpTransport from "../config/emailHandler.js";
 ... 
 */
 
-const othersMessageList = [
-    "을 수정했어요!",
-    "에 답변을 달았어요!",
+const othersMessageList = ["을 수정했어요!", "에 답변을 달았어요!"];
+
+const totalFormat = (type) => [
+    `<h1>${senderName}님이 글 ${docTitle}${othersMessageList[type]}</h1><br></br><input type="button" value="확인하러 가기" onclick="window.open('https://localhost:3000/qna/${docId}', '_blank')">`,
 ];
 
-const totalFormat = (type)=> [
-    `<h1>${senderName}님이 글 ${docTitle}${othersMessageList[type]}</h1><br></br><input type="button" value="확인하러 가기" onclick="window.open('https://localhost:3000/qna/${docId}', '_blank')">`
-];
-
-async function notiMailer(userEmail, isAnswerType, docId, docTitle, senderName){
+async function notiMailer(
+    userEmail,
+    isAnswerType,
+    docId,
+    docTitle,
+    senderName
+) {
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: userEmail,
         subject: " [A-F Killer] 새로운 알림이 도착했습니다.",
-        html: totalFormat(isAnswerType)
+        html: totalFormat(isAnswerType),
     };
 
-    try{
+    try {
         await smtpTransport.sendMail(mailOptions);
         smtpTransport.close();
-        return {status:true, message : "mail sent"};
-    }
-    catch(err){
+        return { status: true, message: "mail sent" };
+    } catch (err) {
         smtpTransport.close();
-        return {status:false, message : err};
+        return { status: false, message: err };
     }
 }
-
 
 const notify = (() => {
     let authorTimestamp = Date.now();
@@ -50,105 +51,128 @@ const notify = (() => {
     //몇 분 내로 보낸 좋아요 알림은 무시하게 코드짜기
     //timer fire
     return {
-        Author:async(docAuthorId, docId, docTitle,senderName, typeNum) => {  
-            try{
+        Author: async (docAuthorId, docId, docTitle, senderName, typeNum) => {
+            try {
                 //notify 호출 이전에 client session에 저장된 작성자의 id와 mainInquiry를 통해 알람 생성자의 name을 가져와야함
                 const authorNotify = await User.findById(docAuthorId).Rnotify;
                 const noti = await Notify.findById(authorNotify);
 
-                if(2<typeNum && typeNum<6){
-                    const index = noti.Notifys_list.findIndex((obj)=>obj.types==typeNum&&obj.who_user==senderName);
-                    const thatObj = index==-1? undefined : noti.Notifys_list[index];
-                    
-                    if(thatObj!=undefined && thatObj.time - authorTimestamp < 300000){
+                if (2 < typeNum && typeNum < 6) {
+                    const index = noti.Notifys_list.findIndex(
+                        (obj) =>
+                            obj.types == typeNum && obj.who_user == senderName
+                    );
+                    const thatObj =
+                        index == -1 ? undefined : noti.Notifys_list[index];
+
+                    if (
+                        thatObj != undefined &&
+                        thatObj.time - authorTimestamp < 300000
+                    ) {
                         thatObj.count++;
                         await noti.save();
-                        console.log('이미 알림이 있습니다.');
-                        return {state: true, message:"updated"};
-                    }
-                    else{
+                        console.log("이미 알림이 있습니다.");
+                        return { state: true, message: "updated" };
+                    } else {
                         authorTimestamp = Date.now();
                         noti.Notifys_list.push({
                             types: typeNum,
                             who_user: senderName,
                             time: authorTimestamp,
-                            Rdoc : docId,
-                            Rdoc_title : docTitle,
-                            count: 1 // Initialize count
+                            Rdoc: docId,
+                            Rdoc_title: docTitle,
+                            count: 1, // Initialize count
                         });
                         await noti.save();
-                        return {state: true, message:"created"};
+                        return { state: true, message: "created" };
                     }
-                }else{
+                } else {
                     authorTimestamp = Date.now();
-                    if(typeNum<3){
-                        await notiMailer(noti.email, typeNum==2, docId, docTitle, senderName);
+                    if (typeNum < 3) {
+                        await notiMailer(
+                            noti.email,
+                            typeNum == 2,
+                            docId,
+                            docTitle,
+                            senderName
+                        );
                     }
                     noti.Notifys_list.push({
                         types: typeNum,
                         who_user: senderName,
                         time: authorTimestamp,
-                        Rdoc : docId,
-                        Rdoc_title : docTitle,
-                        count: 1 // Initialize count
+                        Rdoc: docId,
+                        Rdoc_title: docTitle,
+                        count: 1, // Initialize count
                     });
                     await noti.save();
-                    return {state: true, message:"created"};
+                    return { state: true, message: "created" };
                 }
-            }catch(e){
+            } catch (e) {
                 console.log(e);
-                return {state: false, message:"error"};
+                return { state: false, message: "error" };
             }
         },
-        Follower:async (Rnotifyusers_list, docId, docTitle, senderName, typeNum) => {
-            try{
+        Follower: async (
+            Rnotifyusers_list,
+            docId,
+            docTitle,
+            senderName,
+            typeNum
+        ) => {
+            try {
                 const updateData = {
                     Notifys_list: {
                         types: typeNum,
                         who_user: senderName,
                         time: Date.now(),
-                        Rdoc : docId,
-                        Rdoc_title : docTitle,
-                        count: 1 // Initialize count
-                    }
+                        Rdoc: docId,
+                        Rdoc_title: docTitle,
+                        count: 1, // Initialize count
+                    },
                 };
 
-                const getResult = await User.find({ _id: { $in: Rnotifyusers_list } });
-                const RnotifyArray = getResult.map(user => user.Rnotify); // Extract Rnotify values
+                const getResult = await User.find({
+                    _id: { $in: Rnotifyusers_list },
+                });
+                const RnotifyArray = getResult.map((user) => user.Rnotify); // Extract Rnotify values
                 const result = await Notify.updateMany(
                     { _id: { $in: RnotifyArray } }, // Filter to match user IDs
                     { $push: updateData } // Update operation
                 );
                 console.log(result);
-                return {state: true, message:"created"};
-            }catch(e){
+                return { state: true, message: "created" };
+            } catch (e) {
                 console.log(e);
-                return {state: false, message:"error"};
+                return { state: false, message: "error" };
             }
         },
-        Self:async (selfId, docId, docTitle, typeNum) => {
+        Self: async (selfId, docId, docTitle, typeNum) => {
             //뱃지 획득을 알림창에 띄워두는거
             const updateData = {
                 Notifys_list: {
                     types: typeNum,
                     who_user: "system",
                     time: Date.now(),
-                    Rdoc : docId,
-                    Rdoc_title : docTitle,
-                    count: 1 // Initialize count
-                }
+                    Rdoc: docId,
+                    Rdoc_title: docTitle,
+                    count: 1, // Initialize count
+                },
             };
 
-            try{
+            try {
                 const userNotify = await User.findById(selfId).Rnotify;
-                const noti = await Notify.updateOne({_id:userNotify}, {$push: updateData});
+                const noti = await Notify.updateOne(
+                    { _id: userNotify },
+                    { $push: updateData }
+                );
                 console.log(noti);
-            }catch(e){
+            } catch (e) {
                 console.log(e);
-                return {state: false, message:"error"};
+                return { state: false, message: "error" };
             }
-        }
-    }
+        },
+    };
 })();
 
-export {notify};
+export { notify };

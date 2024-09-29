@@ -3,7 +3,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import ExcelJS from "exceljs";
-import { Category, LowestCategory} from "../schemas/category.js";
+import { Category, LowestCategory } from "../schemas/category.js";
 import fs from "fs";
 import { QnaAnswers } from "../schemas/docs.js";
 
@@ -11,9 +11,9 @@ dotenv.config();
 const { MONGO_URI } = process.env;
 
 mongoose
-    .connect(MONGO_URI, {dbName: "root"})
-    .then(()=>console.log('Successfully connected to mongodb'))
-    .catch(e=>console.error(e));
+    .connect(MONGO_URI, { dbName: "root" })
+    .then(() => console.log("Successfully connected to mongodb"))
+    .catch((e) => console.error(e));
 
 // await Category.deleteMany({type:3})
 //      .then(()=>console.log("Successfully deleted"));
@@ -24,14 +24,11 @@ mongoose
 //         category.sub_category_list = new Array(0);
 //         console.log(category);
 //         // await category.save();
-        
+
 //         await category.save();
 //         console.log("done");
 //     }))
 //     .catch(e=>console.error(e));
-
-
-
 
 // const stringIds = [[
 //     "66cc5b3f27b5b4293a8598bd",
@@ -134,10 +131,66 @@ mongoose
 
 //Function to read Excel file and convert to JSON
 
-const l = ["글로벌미디어학부","전자정보공학부 전자공학전공","전자정보공학부 IT융합전공","컴퓨터학부","소프트웨어학부","AI융합학부","미디어경영학과","정보보호학과(계약학과)","화학공학과","신소재공학과","전기공학부","기계공학부","산업∙정보시스템공학과","건축학부 건축학부","건축학부 건축공학전공", "건축학부 건축학전공", "건축학부 실내건축전공"
-,"경영학부","회계학과","벤처중소기업학과","금융학부","혁신경영학과","벤처경영학과","복지경영학과","회계세무학과","경제학과","글로벌통상학과","금융경제학과","국제무역학과","통상산업학과","사회복지학부","행정학부","정치외교학과","정보사회학과","언론홍보학과","평생교육학과"
-,"법학과","국제법무학과","수학과","물리학과","화학과","정보·통계보험수리학과","의생명시스템학부"
-,"기독교학과","국어국문학과","영어영문학과","독어독문학과","불어불문학과","중어중문학과","일어일문학과","철학과","사학과","예술창작학부 문예창작전공","예술창작학부 영화예술전공", "스포츠학부 스포츠학부","스포츠학부 생활체육전공","스포츠학부 스포츠사이언스전공","융합특성화자유전공학부"];
+const l = [
+    "글로벌미디어학부",
+    "전자정보공학부 전자공학전공",
+    "전자정보공학부 IT융합전공",
+    "컴퓨터학부",
+    "소프트웨어학부",
+    "AI융합학부",
+    "미디어경영학과",
+    "정보보호학과(계약학과)",
+    "화학공학과",
+    "신소재공학과",
+    "전기공학부",
+    "기계공학부",
+    "산업∙정보시스템공학과",
+    "건축학부 건축학부",
+    "건축학부 건축공학전공",
+    "건축학부 건축학전공",
+    "건축학부 실내건축전공",
+    "경영학부",
+    "회계학과",
+    "벤처중소기업학과",
+    "금융학부",
+    "혁신경영학과",
+    "벤처경영학과",
+    "복지경영학과",
+    "회계세무학과",
+    "경제학과",
+    "글로벌통상학과",
+    "금융경제학과",
+    "국제무역학과",
+    "통상산업학과",
+    "사회복지학부",
+    "행정학부",
+    "정치외교학과",
+    "정보사회학과",
+    "언론홍보학과",
+    "평생교육학과",
+    "법학과",
+    "국제법무학과",
+    "수학과",
+    "물리학과",
+    "화학과",
+    "정보·통계보험수리학과",
+    "의생명시스템학부",
+    "기독교학과",
+    "국어국문학과",
+    "영어영문학과",
+    "독어독문학과",
+    "불어불문학과",
+    "중어중문학과",
+    "일어일문학과",
+    "철학과",
+    "사학과",
+    "예술창작학부 문예창작전공",
+    "예술창작학부 영화예술전공",
+    "스포츠학부 스포츠학부",
+    "스포츠학부 생활체육전공",
+    "스포츠학부 스포츠사이언스전공",
+    "융합특성화자유전공학부",
+];
 
 const readExcelFile = async (filePath) => {
     const workbook = new ExcelJS.Workbook();
@@ -145,58 +198,65 @@ const readExcelFile = async (filePath) => {
     const worksheet = workbook.worksheets[0];
     const jsonData = [];
     worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber > 1) { // Assuming the first row is the header
+        if (rowNumber > 1) {
+            // Assuming the first row is the header
             const rowData = {};
             row.eachCell((cell, colNumber) => {
                 const header = worksheet.getRow(1).getCell(colNumber).value;
-    
+
                 rowData[header] = cell.value == null ? "" : cell.value;
             });
             jsonData.push(rowData);
         }
     });
-    return jsonData;    
+    return jsonData;
 };
 
-for(let i=0; i<2; i++){
+for (let i = 0; i < 2; i++) {
     //const categoryData = readExcelFile("src/data/category.xlsx");
-    const lowestCategoryData = await readExcelFile(`C:/Users/cathy/Downloads/과목3/${i}.xlsx`);//
+    const lowestCategoryData = await readExcelFile(
+        `C:/Users/cathy/Downloads/과목3/${i}.xlsx`
+    ); //
     console.log(lowestCategoryData);
     const objID_list = [];
     const processedData = [];
-    for(const i of lowestCategoryData){
+    for (const i of lowestCategoryData) {
         const objID = new mongoose.Types.ObjectId();
         objID_list.push(objID);
         processedData.push({
-        _id:objID,
-        ...i,
-        type: 3,
-        Rqna_list:[],
-        Rpilgy_list:[],
-        Rtest_list:[],
-        Rhoney_list:[]
+            _id: objID,
+            ...i,
+            type: 3,
+            Rqna_list: [],
+            Rpilgy_list: [],
+            Rtest_list: [],
+            Rhoney_list: [],
         });
     }
 
     await LowestCategory.insertMany(processedData)
-        .then(()=>console.log("Successfully inserted lowest category data"))
-        .catch(e=>console.error(e));
-    
-    const ress = await Category.findOneAndUpdate({category_name:"차세대반도체학과"}, {$push:{sub_category_list: objID_list}}, {new: true});
-    console.log(ress);
-    }
+        .then(() => console.log("Successfully inserted lowest category data"))
+        .catch((e) => console.error(e));
 
-    // await Category.find({category_name:{$in:l}})
-    //     .then(async(results)=>{
-    //         for (const result of results) {
-    //             result.sub_category_list = [result.sub_category_list];
-    //             result.type = 2;
-    //             console.log(result);
-    //             await result.save();
-    //         }
-    //     })
-    //     .catch(e=>console.error(e));
-    //차세대반도체학과 66e4a951b989b32040e43877
+    const ress = await Category.findOneAndUpdate(
+        { category_name: "차세대반도체학과" },
+        { $push: { sub_category_list: objID_list } },
+        { new: true }
+    );
+    console.log(ress);
+}
+
+// await Category.find({category_name:{$in:l}})
+//     .then(async(results)=>{
+//         for (const result of results) {
+//             result.sub_category_list = [result.sub_category_list];
+//             result.type = 2;
+//             console.log(result);
+//             await result.save();
+//         }
+//     })
+//     .catch(e=>console.error(e));
+//차세대반도체학과 66e4a951b989b32040e43877
 // const categoryID = new mongoose.Types.ObjectId();
 // await Category.create({
 //     _id: categoryID,
@@ -210,9 +270,3 @@ for(let i=0; i<2; i++){
 //     type: 1,
 //     sub_category_list: [categoryID]
 // });
-
-
-
-
-
-

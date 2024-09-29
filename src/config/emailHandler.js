@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 dotenv.config();
 const { EMAIL_SERVICE, EMAIL_HOST, EMAIL_USER, EMAIL_PASS } = process.env;
 
@@ -13,15 +13,11 @@ const smtpTransport = nodemailer.createTransport({
     requireTLS: true,
     auth: {
         user: EMAIL_USER,
-        pass: EMAIL_PASS
+        pass: EMAIL_PASS,
     },
     tls: {
-        rejectUnauthorized: false
-    }
+        rejectUnauthorized: false,
+    },
 });
 
 export default smtpTransport;
-
-
-
-

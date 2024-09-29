@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const badgeSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
@@ -6,6 +6,6 @@ const badgeSchema = new mongoose.Schema({
     b_name: { type: String },
 });
 
-const Badge = mongoose.model('Badge', badgeSchema, 'Badge');
+const Badge = mongoose.model("Badge", badgeSchema, "Badge");
 
 export { Badge };
