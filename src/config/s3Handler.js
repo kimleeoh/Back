@@ -2,7 +2,6 @@ import { S3 } from "@aws-sdk/client-s3";
 
 const s3Handler = (() => {
     let currentFileNums = {
-<<<<<<< Updated upstream
         "profile": 0,
         "preview": 0,
         "files": 0,
@@ -10,15 +9,6 @@ const s3Handler = (() => {
         "A": 0,
         "confirm": 0,
         "badge": 0
-=======
-        profile: 0,
-        preview: 0,
-        files: 0,
-        Q: 0,
-        A: 0,
-        Confirm: 0,
-        badge: 0,
->>>>>>> Stashed changes
     };
 
     let S3client = 0;

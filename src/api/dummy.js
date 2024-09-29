@@ -61,7 +61,6 @@ const getCategory = async (req, res) => {
     if (req.body.id == "") {
         tar = "66f2bff07c788ef9a0347037";
     }
-<<<<<<< Updated upstream
     CommonCategory.findById(tar).then(async(result)=>{
         if(result.timeIcredit==undefined){
             let subCategoryIds;
@@ -78,30 +77,15 @@ const getCategory = async (req, res) => {
                     sub_category_list_id:subCategoryIds,
                     type:result.type
                     
-=======
-    CommonCategory.findById(tar)
-        .then(async (result) => {
-            if (result.timeIcredit == undefined) {
-                let subCategoryIds;
-                if (result.type == 2) {
-                    subCategoryIds = result.sub_category_list.map((sem) =>
-                        sem.map((id) => String(id))
-                    );
-                    subCategoryIds = subCategoryIds.flat();
-                } else {
-                    subCategoryIds = result.sub_category_list.map((id) =>
-                        String(id)
-                    );
->>>>>>> Stashed changes
                 }
-                const ss = await CommonCategory.find({
-                    _id: { $in: subCategoryIds },
-                });
-                const ress = {
-                    name: result.category_name,
-                    sub_category_list_name: ss.map((a) => a.category_name),
-                    sub_category_list_id: subCategoryIds,
-                };
+                // const ss = await CommonCategory.find({
+                //     _id: { $in: subCategoryIds },
+                // });
+                // const ress = {
+                //     name: result.category_name,
+                //     sub_category_list_name: ss.map((a) => a.category_name),
+                //     sub_category_list_id: subCategoryIds,
+                // };
                 res.status(200).json(ress);
             } else {
                 res.status(200).json(result);
