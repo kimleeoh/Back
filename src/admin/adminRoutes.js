@@ -91,9 +91,13 @@ const handleAdminRedis = async (req, res) => {
 // router.put('/admin/online/newData', async (req, res) => { 
 // });
 
-const handleAdminNewData = async (req, res) => {
-    io.emit('newData');
-    res.status(200).send('Success');
+const handleAdminNewData = (req, res) => {
+    try{
+        io.emit('newData');
+        res.status(200).send({message:'Success'});
+    }catch(e){
+        res.status(500).send(e);
+    }
 }
 
 // router.post('/admin/mongoose', async (req, res) => {

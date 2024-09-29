@@ -7,7 +7,7 @@ const s3Handler = (() => {
         "files": 0,
         "Q": 0,
         "A": 0,
-        "Confirm": 0,
+        "confirm": 0,
         "badge": 0
     };
 

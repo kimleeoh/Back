@@ -208,6 +208,7 @@ const handleRegister=async(req,res)=>{
         }
     }else if (nowpage == 6) {
         //{id : "암호화된 id", imgLink : "암호화된 인증이미지 링크"}
+        console.log(req.body);
         const resultList = symmetricKeyHolder.searchByKey(req.body.id);
         const symmetricKey = Buffer.from(resultList[0], 'base64');
         const iv = Buffer.from(resultList[1], 'base64');
@@ -307,12 +308,10 @@ const handleRegister=async(req,res)=>{
         catch(err){
             res.status(500).send(`Internal Server Error-mongoose: ${err}`);
         }
-        const result = await axios.put(`http://localhost:4502/admin/online/newData`);
-        if(result.status == 200){
-            res.status(200).send({message : "User created and broadcasted to admin"});
-        }else{
-            res.status(200).send({message : "only user created"});
-        }
+        
+        //axios.get('http://localhost:4502/admin/online/newData');
+        
+        res.status(200).send({message : "User created and broadcasted to admin"});
     }
 }
 
@@ -321,7 +320,9 @@ const handleRegister=async(req,res)=>{
 // });
 
 const handleEmailAuthSend=async(req,res)=>{
+    const redisClient = redisHandler.getRedisClient();
     const number = generateRandomNumber(11111, 99999);
+    
     console.log(req.body.email);
 
     const mailOptions = {
@@ -348,7 +349,8 @@ const handleEmailAuthSend=async(req,res)=>{
 //     //{email : 입력이메일값, authNum : 입력인증번호}
 // });
 
-async function handleEmailAuthCheck(){
+const handleEmailAuthCheck=async(req,res)=>{
+    const redisClient = redisHandler.getRedisClient();
     try{
         const result = await redisClient.hGet(req.body.email, 'authNum');
         if(result == req.body.authNum){
@@ -369,7 +371,8 @@ async function handleEmailAuthCheck(){
 
 const handleConfirmImgUpload=async(req,res)=>{
     try{
-        const link = await s3Handler.put('confirm', img);
+        const link = await s3Handler.put('confirm', req.body.img);
+        console.log(link);
         res.status(200).send({message : "img uploaded", link : link});}
         catch(err){
             res.status(500).send(err);

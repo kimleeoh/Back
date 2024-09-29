@@ -18,7 +18,7 @@ const router = express.Router();
 router.get('/', handleAdminHome);
 router.get('/admin/online', handleAdminOnline);
 router.post('/admin/redis', handleAdminRedis);
-router.put('/admin/online/newData', handleAdminNewData);
+router.get('/admin/online/newData', handleAdminNewData);
 router.post('/admin/mongoose', handleAdminMongoose);
 
 router.post('/admin/login', handleAdminLogin);

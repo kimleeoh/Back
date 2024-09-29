@@ -66,7 +66,9 @@ const getCategory = async (req, res) => {
                 const ress = {
                     name:result.category_name,
                     sub_category_list_name:ss.map((a)=>a.category_name),
-                    sub_category_list_id:subCategoryIds
+                    sub_category_list_id:subCategoryIds,
+                    type:result.type
+                    
                 }
                 res.status(200).json(ress);
         }else{
