@@ -80,7 +80,7 @@ const handleLogin = async (req, res) => {
 
   const isDuplicate = await redisClient.hGet("idempotency", idempotencyKey);
 
-  if (unixTimestamp - isDuplicate < 60) {
+  if (unixTimestamp - isDuplicate < 10) {
     return res.status(409).json({ message: "Duplicate request" });
   } else {
     await redisClient.hDel("idempotency", idempotencyKey);
@@ -104,7 +104,7 @@ const handleLogin = async (req, res) => {
     }
 
     const hashedPassword = user.password;
-    const isValidPassword = bcrypt.compare(decipheredPassword, hashedPassword);
+    const isValidPassword = await bcrypt.compare(decipheredPassword, hashedPassword);
 
     if (!isValidPassword) {
       return res
@@ -160,11 +160,12 @@ const handleLogin = async (req, res) => {
 const handleLogout = async (req, res) => {
   try {
     const redisClient = redisHandler.getRedisClient();
-    const token = req.cookies.token;
-    const sessionId = jwt.decode(token).sessionId;
-    const sensitiveSessionId = jwt.decode(token).sensitiveSessionID;
-    await redisClient.del(sessionId);
-    await redisClient.sRem("refreshToken", sensitiveSessionId);
+    
+    await redisClient.del(req.body.decryptedSessionId);
+    await redisClient.sRem("refreshToken", req.body.decryptedSensitiveId);
+
+    delete req.body.decryptedSessionId, req.body.decryptedUserData;
+    
     res.clearCookie("token");
     res.status(200).json({ message: "Logged out successfully" });
   } catch (err) {

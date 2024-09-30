@@ -26,7 +26,7 @@ const qnaSchema = new mongoose.Schema({
     views: { type: Number },
     time: { type: Date, index: true },
     warn: { type: Number },
-    warn_why_list: [{ type: Number }],
+    warn_list: [{ type: Number }],
 });
 const qnaAlreadySchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },

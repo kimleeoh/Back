@@ -35,7 +35,7 @@ const handleQnACreate = async(req, res)=>{
         data.now_category_list = nc;
         data.time = req.body.time;
         data.views = 0;
-        data.like = 0;
+        data.likes = 0;
         data.scrap = 0;
         data.warn = 0;
         data.Ruser = received._id;
@@ -49,11 +49,14 @@ const handleQnACreate = async(req, res)=>{
             const p = restricted_type.POINT - req.body.point;
             await mainInquiry.write({'POINT':p},req.body.decryptedSessionId);
         }
+        delete req.body.decryptedSessionId;
+        delete req.body.decryptedUserData;
         console.log(data);
         await data.save();
         const i = new mongoose.Types.ObjectId(received.Rdoc);
         const lastCheck = await UserDocs.findOneAndUpdate({_id:i},{$inc:{written:1}, $push:{Rqna_list:objId}},{new:true});
         console.log(lastCheck);
+        res.status(200).json({message:'Success'});
         
     }catch(e){
         console.error(e);
