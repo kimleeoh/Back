@@ -23,6 +23,28 @@ const publicKey = crypto.createPublicKey({
     type: "pkcs8",
 });
 
+const logoutMiddleware = async (req, res, next) => {
+    const token = req.cookies.token;
+    if (!token) return res.sendStatus(401);
+    jwt.verify(token, publicKey, async (err, decoded) => {
+        if (err) {
+            console.log(err);
+            return res.sendStatus(403);
+        }
+        const sessionId = decoded.sessionId;
+        let sensitiveSessionID = decoded.sensitiveSessionID;
+        const sensitiveSessionID_D = crypto
+            .publicDecrypt(publicKey, Buffer.from(sensitiveSessionID, "base64"))
+            .toString("hex");
+        const sessionId_D = crypto
+            .publicDecrypt(publicKey, Buffer.from(sessionId, "base64"))
+            .toString("utf-8");
+        req.body.decryptedSessionId = sessionId_D;
+        req.body.decryptedSensitiveId = sensitiveSessionID_D;});
+
+    next();
+};
+
 const myMiddleware = (req, res, next) => {
     const token = req.cookies.token;
     if (!token) return res.sendStatus(401);
@@ -95,4 +117,4 @@ const myMiddleware = (req, res, next) => {
     });
 };
 
-export default myMiddleware;
+export {myMiddleware, logoutMiddleware};

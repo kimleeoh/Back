@@ -1,5 +1,5 @@
 import express from 'express'
-import myMiddleware from '../config/jwtManageMiddleware.js'
+import {myMiddleware, logoutMiddleware} from '../config/jwtManageMiddleware.js'
 import { getQnaData, getTipData, getCategory } from '../api/dummy.js'
 import {
   handleLogin,
@@ -20,11 +20,11 @@ const router = express.Router()
 // Dummy 관련 라우터
 router.get('/dummy/testqna', getQnaData)
 router.get('/dummy/testtip', getTipData)
-router.get('/dummy/category', getCategory)
+router.post('/dummy/category', getCategory)
 
 // 로그인 관련 라우터
 router.post('/login', handleLogin)
-router.delete('/logout', handleLogout)
+router.delete('/logout',logoutMiddleware, handleLogout)
 router.post('/login/key', handleKeyRequest)
 
 // 회원가입 관련 라우터
