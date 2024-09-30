@@ -47,6 +47,7 @@ const qnaAlreadySchema = new mongoose.Schema({
     views: { type: Number },
     time: { type: Date },
     warn: { type: Number },
+    warn_why_list: [{ type: Number }],
 });
 
 const tipsSchema = new mongoose.Schema({
@@ -64,6 +65,7 @@ const tipsSchema = new mongoose.Schema({
     views: { type: Number },
     time: { type: Date, index: true },
     warn: { type: Number },
+    warn_why_list : [{ type: Number }],
 });
 
 const qnaAnswerSchema = new mongoose.Schema({
@@ -75,6 +77,7 @@ const qnaAnswerSchema = new mongoose.Schema({
     QNAcategory: { type: [String], required: true },
     Rqna: { type: mongoose.SchemaTypes.ObjectId },
     warn: { type: Number },
+    warn_why_list: [{ type: Number }],
 });
 
 const QnaAnswers = mongoose.model("QNA", qnaAnswerSchema, "QnaAnswers");

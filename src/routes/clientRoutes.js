@@ -13,7 +13,7 @@ import {
   handleEmailAuthCheck,
 } from '../api/Auth/register.js'
 import { handleQnACreate } from '../api/Board/QnA/createPage.js'
-import { testBoard } from '../api/Board/Tips/renderPage.js'
+import { loadBoardWithFilter } from '../api/Board/Tips/renderList.js'
 
 const router = express.Router()
 
@@ -37,6 +37,6 @@ router.post('/register/imgUpload', handleConfirmImgUpload)
 router.post('/qna/create/post', myMiddleware, handleQnACreate)
 
 // tips 관련 라우터
-router.get('/bulletin/test', testBoard)
+router.post('/bulletin/tips', loadBoardWithFilter)
 
 export default router

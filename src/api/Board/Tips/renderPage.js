@@ -1,32 +1,6 @@
-import mongoose from "mongoose";
-import { CommonCategory } from "../../../schemas/category.js"; // 경로는 환경에 맞게 설정하세요
-import { TestDocuments } from "../../../schemas/docs.js"; // 경로는 환경에 맞게 설정하세요
+// // 게시물 눌렀을 때 각 게시물 띄우는 페이지
+// 프론트가 백에 어느 종류 게시판인지 보내는 데이터에 넣어서 알려줘야함. ex)test - 0, pilgy -1, honey - 2
 
-const testBoard = async (req, res) => {
-  try {
-    // commonCategorySchema에서 Rtest_list의 마지막 20개 문서 추출
-    const category = await CommonCategory.findOne({})
-      .select("Rtest_list")
-      .lean();
+// doc id 통해서 값 불러오고, 그 값의 Rfile이 “”인지 값이 있는지 확인, 잇다면 그거를 AllFiles 콜렉션에 조회, Rpurchasedlist에 해당 유저의 _id가 있는지 조회, 있다면 파일 다운 상태로 해제(프론트 역할) 
 
-    if (!category || !category.Rtest_list) {
-      return res.status(404).json({ message: "Rtest_list not found" });
-    }
-
-    // Rtest_list에서 마지막 20개의 문서 ID 가져오기
-    const last20DocIds = category.Rtest_list.slice(-20);
-
-    // 해당 doc_id로 TestDocuments에서 필요한 정보 조회
-    const docs = await TestDocuments.find({ _id: { $in: last20DocIds } })
-      .select("_id title preview_img content name time views like point")
-      .lean();
-
-    // 결과 반환
-    res.json(docs);
-  } catch (error) {
-    console.error("Error fetching board data:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-export { testBoard };
+// 해당하는 콜렉션에 쿼리 후 조회수 1 늘리고(update, new 키워드 적용시 바뀐 데이터 자동으로 반환시켜줌) 반환되는 데이터 저장, 해당 doc 정보 담을(좋아요, 스크랩 등) 생성
