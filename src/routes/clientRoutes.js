@@ -13,7 +13,7 @@ import {
   handleEmailAuthCheck,
 } from '../api/Auth/register.js'
 import { handleQnACreate } from '../api/Board/QnA/createPage.js'
-import { testBoard } from '../api/Board/Tips/renderList.js'
+import { testBoard, pilgyBoard,honeyBoard } from '../api/Board/Tips/renderList.js'
 
 const router = express.Router()
 
@@ -38,5 +38,6 @@ router.post('/qna/create/post', myMiddleware, handleQnACreate)
 
 // tips 관련 라우터
 router.get('/bulletin/test', testBoard)
+router.get("/bulletin/pilgy", pilgyBoard);
 
 export default router
