@@ -13,7 +13,7 @@ import {
   handleEmailAuthCheck,
 } from '../api/Auth/register.js'
 import { handleQnACreate } from '../api/Board/QnA/createPage.js'
-import { testBoard } from '../api/Board/Tips/renderPage.js'
+import { testBoard } from '../api/Board/Tips/renderList.js'
 
 const router = express.Router()
 
