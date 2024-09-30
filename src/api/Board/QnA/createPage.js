@@ -35,7 +35,7 @@ const handleQnACreate = async(req, res)=>{
         data.now_category_list = nc;
         data.time = req.body.time;
         data.views = 0;
-        data.like = 0;
+        data.likes = 0;
         data.scrap = 0;
         data.warn = 0;
         data.Ruser = received._id;
