@@ -274,13 +274,17 @@ const handleRegister=async(req,res)=>{
 //     //{email : 입력이메일값}
 // });
 
-const handleEmailAuthSend=async(req,res)=>{
-    console.log(req.body.email);
+const handleCheckAlreadyEmail=async(req,res)=>{
     const isAlready = await User.findOne({email:req.body.email});
     if(isAlready){
         res.status(201).send({message : "Email already exists"});
-        return;
+    }else{
+        res.status(200).send({message : "Email not exists"});
     }
+}
+
+const handleEmailAuthSend=async(req,res)=>{
+    console.log(req.body.email);
     const redisClient = redisHandler.getRedisClient();
     const number = generateRandomNumber(11111, 99999);
     
@@ -316,7 +320,7 @@ const handleEmailAuthCheck=async(req,res)=>{
             await redisClient.del(req.body.email);
             res.status(200).send({message : "auth success"});
         }else{
-            res.status(401).send({message : "auth failed"});
+            res.status(201).send({message : "auth failed"});
         }
     }
     catch(err){
@@ -396,6 +400,6 @@ const handleFindPassword = async (req, res) => {
 
 export {
     decipherAES, cipherAES, hashPassword, //보안 관련
-    handleRegister, handleConfirmImgUpload, handleEmailAuthSend, handleEmailAuthCheck,  //라우터 관련
+    handleRegister, handleConfirmImgUpload, handleEmailAuthSend, handleEmailAuthCheck,handleCheckAlreadyEmail,  //라우터 관련
     handleFindPassword, handleAuthFindPassword, handleResetPassword //비밀번호 찾기 관련
 };

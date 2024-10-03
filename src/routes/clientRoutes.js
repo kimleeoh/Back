@@ -14,7 +14,8 @@ import {
   handleEmailAuthCheck,
   handleFindPassword,
   handleAuthFindPassword,
-  handleResetPassword
+  handleResetPassword,
+  handleCheckAlreadyEmail
 } from '../api/Auth/register.js'
 import { handleQnACreate } from '../api/Board/QnA/createPage.js'
 import { loadBoardWithFilter } from '../api/Board/Tips/renderList.js'
@@ -34,6 +35,7 @@ router.post('/login/key', handleKeyRequest)
 
 // 회원가입 관련 라우터
 router.post('/register/page/:page', handleRegister)
+router.post('/register/emailAlready', handleCheckAlreadyEmail)
 router.post('/register/email', handleEmailAuthSend)
 router.post('/register/emailAuthNum', handleEmailAuthCheck)
 router.post('/register/imgUpload', upload.single('img'), handleConfirmImgUpload)
