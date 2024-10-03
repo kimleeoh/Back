@@ -251,9 +251,6 @@ const handleRegister=async(req,res)=>{
             profile_img: ""
         });
 
-        
-
-
         try{
             await final.save();
             
@@ -343,7 +340,62 @@ const handleConfirmImgUpload=async(req,res)=>{
         }
 }
 
+const handleFindPassword = async (req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+      const number = generateRandomNumber(11111, 99999);
+      const redisClient = redisHandler.getRedisClient();
+      
+      const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: req.body.email,
+          subject: " [A-F Killer] 비밀번호 재설정 요청 인증.",
+          html: `<h1>아래 인증번호를 확인하여 10분 내로 이메일 인증을 완료해 주세요.</h1><br></br><b>${number}</b>`
+      };
+  
+      try{
+          await smtpTransport.sendMail(mailOptions);
+          await redisClient.hSet(email, 'authNum', number);
+          await redisClient.expire(email, 600);
+          smtpTransport.close();
+          res.status(200).send({message : "mail sent"});
+      }
+      catch(err){
+          res.status(500).send(err);
+          smtpTransport.close();
+      }
+  }
+  
+  const handleAuthFindPassword = async (req, res) => {
+      const { email, authNum } = req.body;
+      const redisClient = redisHandler.getRedisClient();
+      const number = await redisClient.hGet(email, 'authNum');
+      if(number !== authNum){
+          return res.status(401).json({ message: "Invalid authentication number" });
+      }
+      return res.status(200).send({message: "Authentication success"});
+  }
+  
+  const handleResetPassword = async (req, res) => {
+    //const salt = crypto.randomBytes(16);
+    const { email, newPassword, iv } = req.body;
+
+    const redisClient = redisHandler.getRedisClient();
+    const number = await redisClient.hGet(email, 'authNum');
+    
+    const key = crypto.pbkdf2Sync(email, iv, 100000, 32, 'sha256');
+    const ib = crypto.pbkdf2Sync(number, iv, 100000, 16, 'sha256');
+    const decipheredPassword = decipherAES(newPassword, key, ib);
+  
+    const hashedPassword = await hashPassword(decipheredPassword);
+    const user = await User.findOneAndUpdate({ email }, { password: hashedPassword });
+  }
+
 export {
     decipherAES, cipherAES, hashPassword, //보안 관련
-    handleRegister, handleConfirmImgUpload, handleEmailAuthSend, handleEmailAuthCheck  //라우터 관련
+    handleRegister, handleConfirmImgUpload, handleEmailAuthSend, handleEmailAuthCheck,  //라우터 관련
+    handleFindPassword, handleAuthFindPassword, handleResetPassword //비밀번호 찾기 관련
 };

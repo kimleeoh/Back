@@ -12,6 +12,9 @@ import {
   handleConfirmImgUpload,
   handleEmailAuthSend,
   handleEmailAuthCheck,
+  handleFindPassword,
+  handleAuthFindPassword,
+  handleResetPassword
 } from '../api/Auth/register.js'
 import { handleQnACreate } from '../api/Board/QnA/createPage.js'
 import { loadBoardWithFilter } from '../api/Board/Tips/renderList.js'
@@ -34,6 +37,11 @@ router.post('/register/page/:page', handleRegister)
 router.post('/register/email', handleEmailAuthSend)
 router.post('/register/emailAuthNum', handleEmailAuthCheck)
 router.post('/register/imgUpload', upload.single('img'), handleConfirmImgUpload)
+
+//비번찾기 관련 라우터
+router.post('/findPassword/email', handleFindPassword)
+router.post('/findPassword/emailAuthNum', handleAuthFindPassword)
+router.post('/findPassword/changePassword', handleResetPassword)
 
 // QnA 관련 라우터
 router.post('/qna/create/post', myMiddleware, handleQnACreate)

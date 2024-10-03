@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
-import express from "express";
 import bcrypt from "bcrypt";
 import { User } from "../../schemas/user.js";
 import fs from "fs";
@@ -19,6 +18,8 @@ const privateKey = crypto.createPrivateKey({
   format: "pem",
   type: "pkcs8",
 });
+
+
 
 const symmetricKeyHolder = () => {
   //이거는 데이터 암호화용 대칭키가 될 것.
@@ -165,7 +166,7 @@ const handleLogout = async (req, res) => {
     await redisClient.sRem("refreshToken", req.body.decryptedSensitiveId);
 
     delete req.body.decryptedSessionId, req.body.decryptedUserData;
-    
+
     res.clearCookie("token");
     res.status(200).json({ message: "Logged out successfully" });
   } catch (err) {
@@ -173,5 +174,6 @@ const handleLogout = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 export { handleKeyRequest, handleLogin, handleLogout };
