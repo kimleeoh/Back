@@ -1,19 +1,11 @@
 //추후 이거 통해서 몽고디비에 과목 관련 데이터 넣을 예정
 
 import mongoose from "mongoose";
-import dotenv from "dotenv";
+import connectDB from "./mongoDBconnect.js";
 import ExcelJS from "exceljs";
 import { Category, LowestCategory } from "../schemas/category.js";
 import fs from "fs";
-import { QnaAnswers } from "../schemas/docs.js";
 
-dotenv.config();
-const { MONGO_URI } = process.env;
-
-mongoose
-    .connect(MONGO_URI, { dbName: "root" })
-    .then(() => console.log("Successfully connected to mongodb"))
-    .catch((e) => console.error(e));
 
 // await Category.deleteMany({type:3})
 //      .then(()=>console.log("Successfully deleted"));
@@ -270,3 +262,4 @@ for (let i = 0; i < 2; i++) {
 //     type: 1,
 //     sub_category_list: [categoryID]
 // });
+

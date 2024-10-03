@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { CommonCategory } from "../../../schemas/category.js"; 
-import { TestDocuments } from "../../../schemas/docs.js"; 
+import { TestDocuments, PilgyDocuments, HoneyDocuments} from "../../../schemas/docs.js"; 
 
 // 사용자 과목 따라서 게시물불러오기 
 // 경우 1: 사용자가 필터를 선택하지 않았을 때 & 3개 선택했을 때 -> 각 4개씩 3세트 불러오기
@@ -9,13 +9,15 @@ import { TestDocuments } from "../../../schemas/docs.js";
 
 const loadBoardWithFilter = async (req, res) => {
     try {
-        const { filters } = req.body; // 프론트에서 받은 필터 배열
-        let documents = [];
+        const { filters } = req.body;
 
-        // 필터 배열의 길이에 따라 처리
+        // 필터 값이 없으면 오류 반환
         if (!filters || filters.length === 0) {
             return res.status(400).json({ message: "No filters selected" });
         }
+
+        // 필터를 기반으로 문서를 저장할 배열 선언
+        let documents = [];
 
         // 필터가 1개 선택되었을 때: 해당 필터에서 12개 가져오기
         if (filters.length === 1) {
@@ -24,24 +26,15 @@ const loadBoardWithFilter = async (req, res) => {
         }
         // 필터가 2개 선택되었을 때: 각 필터에서 6개씩 가져오기
         else if (filters.length === 2) {
-            const filter1 = filters[0];
-            const filter2 = filters[1];
-
-            const docsFilter1 = await getDocumentsByCategory(filter1, 6);
-            const docsFilter2 = await getDocumentsByCategory(filter2, 6);
-
+            const docsFilter1 = await getDocumentsByCategory(filters[0], 6);
+            const docsFilter2 = await getDocumentsByCategory(filters[1], 6);
             documents = [...docsFilter1, ...docsFilter2];
         }
-        // 필터가 3개 선택되었을 때: 각 필터에서 4개씩 가져오기
-        else if (filters.length === 3) {
-            const filter1 = filters[0];
-            const filter2 = filters[1];
-            const filter3 = filters[2];
-
-            const docsFilter1 = await getDocumentsByCategory(filter1, 4);
-            const docsFilter2 = await getDocumentsByCategory(filter2, 4);
-            const docsFilter3 = await getDocumentsByCategory(filter3, 4);
-
+        // 필터가 3&0개 선택되었을 때: 각 필터에서 4개씩 가져오기
+        else if (filters.length === 3 || filters.length === 0) {
+            const docsFilter1 = await getDocumentsByCategory(filters[0], 4);
+            const docsFilter2 = await getDocumentsByCategory(filters[1], 4);
+            const docsFilter3 = await getDocumentsByCategory(filters[2], 4);
             documents = [...docsFilter1, ...docsFilter2, ...docsFilter3];
         }
 
@@ -57,10 +50,10 @@ const loadBoardWithFilter = async (req, res) => {
 const getDocumentsByCategory = async (category, limit) => {
     let documents = [];
     let docList = [];
-
+    
     // 각 카테고리별로 문서를 조회
     if (category === "test") {
-        const categoryData = await CommonCategory.findOne({})
+        const categoryData = await CommonCategory.findOne({"type":3})
             .select("Rtest_list")
             .lean();
         if (categoryData && categoryData.Rtest_list) {
@@ -72,7 +65,7 @@ const getDocumentsByCategory = async (category, limit) => {
                 .lean();
         }
     } else if (category === "pilgy") {
-        const categoryData = await CommonCategory.findOne({})
+        const categoryData = await CommonCategory.findOne({"_id":"66e4c0be4a8e08f406fd8ba0"})
             .select("Rpilgy_list")
             .lean();
         if (categoryData && categoryData.Rpilgy_list) {
@@ -84,7 +77,7 @@ const getDocumentsByCategory = async (category, limit) => {
                 .lean();
         }
     } else if (category === "honey") {
-        const categoryData = await CommonCategory.findOne({})
+        const categoryData = await CommonCategory.findOne({"type":3})
             .select("Rhoney_list")
             .lean();
         if (categoryData && categoryData.Rhoney_list) {

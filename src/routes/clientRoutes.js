@@ -39,6 +39,7 @@ router.post('/register/imgUpload', upload.single('img'), handleConfirmImgUpload)
 router.post('/qna/create/post', myMiddleware, handleQnACreate)
 
 // tips 관련 라우터
-router.post('/bulletin/tips', loadBoardWithFilter)
+router.post('/bulletin/tips', loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
+
 
 export default router
