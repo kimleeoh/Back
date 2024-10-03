@@ -10,6 +10,7 @@ import {
     handleAdminRedis,
     handleAdminNewData,
     handleAdminMongoose,
+    handleAdminGetMongoose
 } from "../admin/adminRoutes.js";
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get('/admin/online', handleAdminOnline);
 router.post('/admin/redis', handleAdminRedis);
 router.get('/admin/online/newData', handleAdminNewData);
 router.post('/admin/mongoose', handleAdminMongoose);
+router.post("/admin/getM", handleAdminGetMongoose);
 
 router.post("/admin/login", handleAdminLogin);
 router.post("/admin/logout", handleAdminLogout);

@@ -15,11 +15,6 @@
       });
       $(adminWebSocketInit());
 
-function alertUserInfo(element){
-    //element.innerHTML
-        console.log('b');
-      }
-
     </script>
   </head>
   <body>
@@ -37,7 +32,7 @@ function alertUserInfo(element){
     <div class="listContainer" id="waitingUserList">
         <% if(waitingUser!=undefined&&selected!=undefined){waitingUser.forEach((Item, index) => { %>
           <div class="divItem" id="div1-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes(index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
-            <p class="userObjectID" onclick="alertUserInfo(this)" disabled><%= Item.Ruser %></p>
+            <p class="userObjectID" onclick=alertUserInfo(this) disabled><%= Item.Ruser %></p>
             <p class="imgLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.confirm_img%></p>
             <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>승인</button>
             <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>거부</button>

@@ -1,5 +1,3 @@
-import { type } from "jquery";
-
 function adminWebSocketInit(){ 
 
     window.addEventListener('beforeunload', () => {
@@ -144,10 +142,26 @@ function fireSelected(element){
 
 function openNewWindow(element){
     console.log(element.innerHTML);
-    window.open("https://d1bp3kp7g4awpu.cloudfront.net/test.png");
+    window.open(element.innerHTML);
 }
 
-module.exports={adminWebSocketInit, logout, fireSelected, confirmUser, rejectUser, openNewWindow};
+function alertUserInfo(element){
+    //element.innerHTML
+    console.log(element.innerHTML);
+    $.post('/admin/getM', {id: element.innerHTML}, (data,status) => {
+        if(status=='success'){
+            console.log(data);
+            const blob = new Blob([data], { type: 'text/html; charset=utf-8' });
+            // Create a URL for the Blob
+            const url = URL.createObjectURL(blob);
+            window.open(url);
+        }else{
+            alert('Failed to get user info, retry.');
+        }
+    });
+}
+
+module.exports={adminWebSocketInit, logout, fireSelected, confirmUser, rejectUser, openNewWindow, alertUserInfo};
 
 
 

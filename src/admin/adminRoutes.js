@@ -4,6 +4,7 @@ import redisHandler from '../config/redisHandler.js';
 import {User} from '../schemas/user.js';
 import mongoose, {SchemaTypes} from 'mongoose';
 import s3Handler from '../config/s3Handler.js';
+import {CustomBoardView, UserDocs, Score} from '../schemas/userRelated.js';
 
 // router.get('/', async (req, res) => {
 // });
@@ -119,7 +120,59 @@ const handleAdminMongoose = async (req, res) => {
         }).then(()=>{console.log("Deleted the complete request from MongoDB");});
         if(req.body.type=="confirm"){
             User.findOneAndUpdate({_id:idd},{confirmed:2},{new:true})
-            .then((result)=>{
+            .then(async(result)=>{
+                const myCustom = new CustomBoardView({
+                    _id: result.Rcustom_brd,
+                    Renrolled_list: [],
+                    Rbookmark_list: [],
+                    Rlistened_list: [],
+                });
+        
+                const myDoc = new UserDocs({
+                    _id: result.Rdoc,
+                    Rpilgy_list: [],
+                    Rhoney_list: [],
+                    Rtest_list: [],
+                    Rqna_list:[],
+                    Rreply_list: [],
+                    RmyLike: {
+                        Rqna_list: [],
+                        Rpilgy_list: [],
+                        Rhoney_list: [],
+                        Rtest_list: []
+                    },
+                    RmyScrap_list: {
+                        Rqna_list: [],
+                        Rpilgy_list: [],
+                        Rhoney_list:[],
+                        Rtest_list: []
+                    },
+                    Rnotify_list: [],
+                    final_views: 0,
+                    final_scraped: 0,
+                    final_liked: 0,
+                    last_up_time: new Date()    
+                });
+        
+                const myScore = new Score({
+                    _id: result.Rscore,
+                    Ruser: final._id,
+                    is_show: false,
+                    overA_subject_list: [],
+                    overA_type_list: [],
+                    semester_list: {
+                        subject_list: [],
+                        credit_list: [],
+                        grade_list: [],
+                        ismajor_list: []
+                    }
+                
+                });
+
+                await myCustom.save();
+                await myDoc.save();
+                await myScore.save();
+
                 if(result.confirmed==2)res.status(200).send('Success : set to confirmed');
             })
             .catch((err)=>{
@@ -152,8 +205,20 @@ const handleAdminMongoose = async (req, res) => {
     }
 }
 
+const handleAdminGetMongoose = async (req, res) => {
+    User.findById(req.body.id, {name:1, hakbu:1, hakbun:1, _id:1})
+    .then((result)=>{
+        console.log(result);
+        res.status(200).send(`<p>${result}</p>`);
+    })
+    .catch((err)=>{
+        console.error(err);
+        res.status(500).send('Internal Server Error-mongoose');
+    });
+}
+
 //router.post('/admin/return')
 
 
 
-export {handleAdminHome, handleAdminOnline, handleAdminRedis, handleAdminNewData, handleAdminMongoose};
+export {handleAdminHome, handleAdminOnline, handleAdminRedis, handleAdminNewData, handleAdminMongoose, handleAdminGetMongoose}; 

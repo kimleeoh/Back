@@ -2,12 +2,13 @@ import mongoose from "mongoose";
 import { CommonCategory } from "../../../schemas/category.js"; // 경로는 환경에 맞게 설정하세요
 import { QnaDocuments } from "../../../schemas/docs.js"; // 경로는 환경에 맞게 설정하세요
 
-//{type:'many'/'one', id:''}
+//{type:'many'/'one', id:[]}
 const testBoard = async (req, res) => {
+
   try {
     if(req.body.type=="one"){
     // commonCategorySchema에서 Rqna_list의 마지막 20개 문서 추출
-    const category = await CommonCategory.findOne({"_id":req.body.id})
+    const category = await CommonCategory.findOne({"_id":req.body.id[0]})
       .select("Rqna_list")
       .lean();
 
@@ -19,7 +20,7 @@ const testBoard = async (req, res) => {
     const last20DocIds = category.Rqna_list.slice(-20);
     }
     else if(req.body.type=="many"){
-        QnaDocuments.find()
+        QnaDocuments.find({'Rcategory':{$in:req.body.id}}).sort({time:-1}).limit(20)
     }
     // 해당 doc_id로 QnaDocuments에서 필요한 정보 조회
     const docs = await QnaDocuments.find({ _id: { $in: last20DocIds } })

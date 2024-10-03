@@ -78,6 +78,7 @@ class symmetricDataQueue {
 
 }
 
+
 const symmetricKeyHolder = new symmetricDataQueue();
 
 
@@ -163,6 +164,11 @@ const handleRegister=async(req,res)=>{
     else if (nowpage == 3) {
         //학번 입력
         //{id : "암호화된 id", hakbun : "학번"}
+        const isAlready = await User.findOne({hakbun:req.body.hakbun});
+        if(isAlready){
+            res.status(201).send({message : "Hakbun already exists"});
+            return;
+        }
         const resultList = symmetricKeyHolder.searchByKey(req.body.id);
         const symmetricKey = Buffer.from(resultList[0], 'base64');
         const iv = Buffer.from(resultList[1], 'base64');
@@ -245,60 +251,12 @@ const handleRegister=async(req,res)=>{
             profile_img: ""
         });
 
-        const myCustom = new CustomBoardView({
-            _id: custom,
-            Renrolled_list: [],
-            Rbookmark_list: [],
-            Rlistened_list: [],
-        });
-
-        const myDoc = new UserDocs({
-            _id: doc,
-            Rpilgy_list: [],
-            Rhoney_list: [],
-            Rtest_list: [],
-            Rqna_list:[],
-            Rreply_list: [],
-            RmyLike: {
-                Rqna_list: [],
-                Rpilgy_list: [],
-                Rhoney_list: [],
-                Rtest_list: []
-            },
-            RmyScrap_list: {
-                Rqna_list: [],
-                Rpilgy_list: [],
-                Rhoney_list:[],
-                Rtest_list: []
-            },
-            Rnotify_list: [],
-            final_views: 0,
-            final_scraped: 0,
-            final_liked: 0,
-            last_up_time: new Date()    
-        });
-
-        const myScore = new Score({
-            _id: score,
-            Ruser: final._id,
-            is_show: false,
-            overA_subject_list: [],
-            overA_type_list: [],
-            semester_list: {
-                subject_list: [],
-                credit_list: [],
-                grade_list: [],
-                ismajor_list: []
-            }
         
-        });
 
 
         try{
             await final.save();
-            await myCustom.save();
-            await myDoc.save();
-            await myScore.save();
+            
             //"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"
             await AdminConfirm.updateOne({_id:0}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:decryptedData2}}});//나중에 이미지 추가
             await AdminConfirm.updateOne({_id:2}, {$inc : {all_user_sum : 1}});
@@ -320,11 +278,15 @@ const handleRegister=async(req,res)=>{
 // });
 
 const handleEmailAuthSend=async(req,res)=>{
+    console.log(req.body.email);
+    const isAlready = await User.findOne({email:req.body.email});
+    if(isAlready){
+        res.status(201).send({message : "Email already exists"});
+        return;
+    }
     const redisClient = redisHandler.getRedisClient();
     const number = generateRandomNumber(11111, 99999);
     
-    console.log(req.body.email);
-
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: req.body.email,
@@ -371,7 +333,9 @@ const handleEmailAuthCheck=async(req,res)=>{
 
 const handleConfirmImgUpload=async(req,res)=>{
     try{
-        const link = await s3Handler.put('confirm', req.body.img);
+        const fileStream = fs.createReadStream(req.file.path);
+        const link = await s3Handler.put('confirm', fileStream);
+        fs.unlinkSync(req.file.path);
         console.log(link);
         res.status(200).send({message : "img uploaded", link : link});}
         catch(err){

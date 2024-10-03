@@ -1,4 +1,5 @@
 import express from 'express'
+import multer from 'multer'
 import {myMiddleware, logoutMiddleware} from '../config/jwtManageMiddleware.js'
 import { getQnaData, getTipData, getCategory } from '../api/dummy.js'
 import {
@@ -16,6 +17,7 @@ import { handleQnACreate } from '../api/Board/QnA/createPage.js'
 import { loadBoardWithFilter } from '../api/Board/Tips/renderList.js'
 
 const router = express.Router()
+const upload = multer({ dest: 'uploads/' }); 
 
 // Dummy 관련 라우터
 router.get('/dummy/testqna', getQnaData)
@@ -31,7 +33,7 @@ router.post('/login/key', handleKeyRequest)
 router.post('/register/page/:page', handleRegister)
 router.post('/register/email', handleEmailAuthSend)
 router.post('/register/emailAuthNum', handleEmailAuthCheck)
-router.post('/register/imgUpload', handleConfirmImgUpload)
+router.post('/register/imgUpload', upload.single('img'), handleConfirmImgUpload)
 
 // QnA 관련 라우터
 router.post('/qna/create/post', myMiddleware, handleQnACreate)
