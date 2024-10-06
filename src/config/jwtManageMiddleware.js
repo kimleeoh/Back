@@ -23,6 +23,25 @@ const publicKey = crypto.createPublicKey({
     type: "pkcs8",
 });
 
+// // 새로운 JWT 미들웨어 - 유저 ID를 추출하여 req.user에 저장
+// const jwtExtractUserMiddleware = (req, res, next) => {
+//     const token = req.cookies.token;
+//     if (!token) return res.sendStatus(401);  // JWT 토큰이 없을 때
+
+//     jwt.verify(token, publicKey, (err, decoded) => {
+//         if (err) {
+//             console.log("JWT verification error:", err);
+//             return res.sendStatus(403); // JWT 검증 실패
+//         }
+
+//         // JWT에서 유저 정보를 추출하여 req.user에 저장
+//         console.log("Decoded JWT:", decoded); // 해독된 JWT 정보 로그
+//         req.user = decoded.userData;
+
+//         next();
+//     });
+// };
+
 const logoutMiddleware = async (req, res, next) => {
     const token = req.cookies.token;
     if (!token) return res.sendStatus(401);
@@ -110,11 +129,13 @@ const myMiddleware = (req, res, next) => {
             secure: true,
             maxAge: 3600000,
         });
+        // 유저 캐시정보담겨있는 세션아이디
         req.body.decryptedSessionId = sessionId_D;
+        // 자주 쓰는 정보(덜민감한)
         req.body.decryptedUserData = decoded.userData;
 
         next();
     });
 };
 
-export {myMiddleware, logoutMiddleware};
+export { myMiddleware, logoutMiddleware};
