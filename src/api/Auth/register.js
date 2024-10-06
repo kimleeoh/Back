@@ -386,16 +386,22 @@ const handleFindPassword = async (req, res) => {
   const handleResetPassword = async (req, res) => {
     //const salt = crypto.randomBytes(16);
     const { email, newPassword, iv } = req.body;
-
     const redisClient = redisHandler.getRedisClient();
+    try{
     const number = await redisClient.hGet(email, 'authNum');
     
     const key = crypto.pbkdf2Sync(email, iv, 100000, 32, 'sha256');
     const ib = crypto.pbkdf2Sync(number, iv, 100000, 16, 'sha256');
+    
     const decipheredPassword = decipherAES(newPassword, key, ib);
   
     const hashedPassword = await hashPassword(decipheredPassword);
-    const user = await User.findOneAndUpdate({ email }, { password: hashedPassword });
+    await User.findOneAndUpdate({ email }, { password: hashedPassword });
+    await redisClient.del(email);
+    res.status(200).send({message : "Password changed"});
+    }catch(err){
+        res.status(500).send(err);
+    }
   }
 
 export {
