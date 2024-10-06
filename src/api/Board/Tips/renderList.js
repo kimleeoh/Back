@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { CommonCategory } from "../../../schemas/category.js"; 
 import { TestDocuments, PilgyDocuments, HoneyDocuments} from "../../../schemas/docs.js"; 
+import { User } from "../../../schemas/user.js"; 
 
 // 사용자 과목 따라서 게시물불러오기 
 // 경우 1: 사용자가 필터를 선택하지 않았을 때 & 3개 선택했을 때 -> 각 4개씩 3세트 불러오기
@@ -74,21 +75,30 @@ const getDocumentsByCategory = async (category, limit, categoryData) => {
         if (categoryData && categoryData.Rtest_list) {
             docList = categoryData.Rtest_list.sort({time:-1}).slice(-limit);
             documents = await TestDocuments.find({ _id: { $in: docList } })
-                .select("_id title preview_img content Ruser time views likes point")
+                .select(
+                    "_id title preview_img content Ruser time views likes point"
+                )
+                .populate({ path: "Ruser", model: User, select: "name" }) // Ruser에서 name 필드 가져오기
                 .lean();
         }
     } else if (category === "pilgy") {
         if (categoryData && categoryData.Rpilgy_list) {
             docList = categoryData.Rpilgy_list.sort({ time: -1 }).slice(-limit);
             documents = await PilgyDocuments.find({ _id: { $in: docList } })
-                .select("_id title preview_img content Ruser time views likes point")
+                .select(
+                    "_id title preview_img content Ruser time views likes point"
+                )
+                .populate({ path: "Ruser", model: User, select: "name" }) // Ruser에서 name 필드 가져오기
                 .lean();
         }
     } else if (category === "honey") {
         if (categoryData && categoryData.Rhoney_list) {
             docList = categoryData.Rhoney_list.sort({ time: -1 }).slice(-limit);
             documents = await HoneyDocuments.find({ _id: { $in: docList } })
-                .select("_id title preview_img content Ruser time views likes point")
+                .select(
+                    "_id title preview_img content Ruser time views likes point"
+                )
+                .populate({ path: "Ruser", model: User, select: "name" }) // Ruser에서 name 필드 가져오기
                 .lean();
         }
     }
