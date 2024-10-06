@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import connectDB from "./db.js"; // MongoDB 연결 가져오기
+import connectDB from "./mongoDBconnect.js"; // MongoDB 연결 가져오기
 import {
     HoneyDocuments,
     TestDocuments,
@@ -13,7 +13,7 @@ const insertTestData = async () => {
     const testData = [];
 
     // HoneyDocuments, TestDocuments, PilgyDocuments에 테스트 데이터를 생성 및 삽입
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 21; i <= 30; i++) {
         const data = {
             _id: new mongoose.Types.ObjectId(),
             Ruser: new mongoose.Types.ObjectId(),
