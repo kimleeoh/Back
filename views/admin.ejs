@@ -34,6 +34,7 @@
           <div class="divItem" id="div1-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes(index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
             <p class="userObjectID" onclick=alertUserInfo(this) disabled><%= Item.Ruser %></p>
             <p class="imgLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.confirm_img%></p>
+            <p><%=Item.time%></p>
             <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>승인</button>
             <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>거부</button>
           </div>

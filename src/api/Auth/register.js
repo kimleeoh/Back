@@ -253,9 +253,9 @@ const handleRegister=async(req,res)=>{
 
         try{
             await final.save();
-            
+            const n = new Date().toLocaleString('ko-KR');
             //"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"
-            await AdminConfirm.updateOne({_id:0}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:decryptedData2}}});//나중에 이미지 추가
+            await AdminConfirm.updateOne({_id:0}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:decryptedData2, time:n}}});//나중에 이미지 추가
             await AdminConfirm.updateOne({_id:2}, {$inc : {all_user_sum : 1}});
             console.log("new user created");
 
