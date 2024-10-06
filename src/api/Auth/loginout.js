@@ -36,23 +36,46 @@ let instance = null;
 // });
 
 const handleKeyRequest = async (req, res) => {
-  try {
-    instance = symmetricKeyHolder();
-    console.log("Instance initialized:", instance);
-    const { symmetricKey, iv } = instance;
-    const pub = crypto.createPublicKey(req.body.pub);
-    //이 두 정보는 퍼블릭 키로 암호화됨.
-    const encryptedIV = crypto.publicEncrypt(pub, iv);
-    const encryptedSymmetricKey = crypto.publicEncrypt(pub, symmetricKey);
-    res.status(200).send({
-      message: "Success",
-      iv: encryptedIV,
-      key: encryptedSymmetricKey,
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
+    try {
+        // 대칭키와 IV 생성 및 저장 (symmetricKeyHolder 함수 호출)
+        instance = symmetricKeyHolder();
+
+        // 로그로 instance가 초기화되었는지 확인
+        if (!instance) {
+            console.error("Instance is null: Key generation failed.");
+            return res.status(500).json({ message: "Key generation failed." });
+        }
+
+        console.log("Instance initialized:", instance); // 대칭키와 IV가 생성되었는지 확인
+        const { symmetricKey, iv } = instance;
+
+        // 클라이언트로부터 받은 공개키가 PEM 형식인지 확인하고 보정
+        let pubKey = req.body.pub;
+
+        // 줄바꿈이 제대로 처리되지 않았을 경우 PEM 형식으로 수정
+        pubKey = pubKey.replace(/\\n/g, "\n");
+
+        if (!pubKey.includes("-----BEGIN PUBLIC KEY-----")) {
+            pubKey = `-----BEGIN PUBLIC KEY-----\n${pubKey}\n-----END PUBLIC KEY-----`;
+        }
+
+        console.log("Processed public key:", pubKey);
+
+        // 공개키로 대칭키 및 IV 암호화
+        const pub = crypto.createPublicKey(pubKey); // PEM 형식의 공개키 사용
+        const encryptedIV = crypto.publicEncrypt(pub, iv);
+        const encryptedSymmetricKey = crypto.publicEncrypt(pub, symmetricKey);
+
+        // 성공적인 응답
+        res.status(200).send({
+            message: "Success",
+            iv: encryptedIV,
+            key: encryptedSymmetricKey,
+        });
+    } catch (err) {
+        console.error("Error during key request:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
 };
 
 // router.post('/api/login', async (req, res) => {
