@@ -52,6 +52,7 @@ const getDocumentsByCategory = async (category, limit) => {
     let docList = [];
     
     // 각 카테고리별로 문서를 조회
+    // 과목선택 중복을 해결해야 
     if (category === "test") {
         const categoryData = await CommonCategory.findOne({"type":3})
             .select("Rtest_list")

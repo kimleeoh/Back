@@ -103,107 +103,103 @@ const handleAdminNewData = (req, res) => {
 
 // router.post('/admin/mongoose', async (req, res) => {
 // });
-
 const handleAdminMongoose = async (req, res) => {
     const idd = new mongoose.Types.ObjectId(req.body.id, "hex");
     console.log(idd);
-    if(req.body.where=="confirmU"){
-        AdminConfirm.updateOne({
-            _id: "0"
-        },
-        {
-            "$pull": {
-            "unconfirmed_list": {
-                "Ruser": idd
+    if (req.body.where == "confirmU") {
+        AdminConfirm.updateOne(
+            {
+                _id: "0",
+            },
+            {
+                $pull: {
+                    unconfirmed_list: {
+                        Ruser: idd,
+                    },
+                },
             }
-            }
-        }).then(()=>{console.log("Deleted the complete request from MongoDB");});
-        if(req.body.type=="confirm"){
-            User.findOneAndUpdate({_id:idd},{confirmed:2},{new:true})
-            .then(async(result)=>{
-                const myCustom = new CustomBoardView({
-                    _id: result.Rcustom_brd,
-                    Renrolled_list: [],
-                    Rbookmark_list: [],
-                    Rlistened_list: [],
-                });
-        
-                const myDoc = new UserDocs({
-                    _id: result.Rdoc,
-                    Rpilgy_list: [],
-                    Rhoney_list: [],
-                    Rtest_list: [],
-                    Rqna_list:[],
-                    Rreply_list: [],
-                    RmyLike: {
-                        Rqna_list: [],
+        ).then(() => {
+            console.log("Deleted the complete request from MongoDB");
+        });
+
+        if (req.body.type == "confirm") {
+            User.findOneAndUpdate({ _id: idd }, { confirmed: 2 }, { new: true })
+                .then(async (result) => {
+                    const myCustom = new CustomBoardView({
+                        _id: result.Rcustom_brd,
+                        Renrolled_list: [],
+                        Rbookmark_list: [],
+                        Rlistened_list: [],
+                    });
+
+                    const myDoc = new UserDocs({
+                        _id: result.Rdoc,
                         Rpilgy_list: [],
                         Rhoney_list: [],
-                        Rtest_list: []
-                    },
-                    RmyScrap_list: {
+                        Rtest_list: [],
                         Rqna_list: [],
-                        Rpilgy_list: [],
-                        Rhoney_list:[],
-                        Rtest_list: []
-                    },
-                    Rnotify_list: [],
-                    final_views: 0,
-                    final_scraped: 0,
-                    final_liked: 0,
-                    last_up_time: new Date()    
-                });
-        
-                const myScore = new Score({
-                    _id: result.Rscore,
-                    Ruser: final._id,
-                    is_show: false,
-                    overA_subject_list: [],
-                    overA_type_list: [],
-                    semester_list: {
-                        subject_list: [],
-                        credit_list: [],
-                        grade_list: [],
-                        ismajor_list: []
-                    }
-                
-                });
+                        Rreply_list: [],
+                        RmyLike: {
+                            Rqna_list: [],
+                            Rpilgy_list: [],
+                            Rhoney_list: [],
+                            Rtest_list: [],
+                        },
+                        RmyScrap_list: {
+                            Rqna_list: [],
+                            Rpilgy_list: [],
+                            Rhoney_list: [],
+                            Rtest_list: [],
+                        },
+                        Rnotify_list: [],
+                        final_views: 0,
+                        final_scraped: 0,
+                        final_liked: 0,
+                        last_up_time: new Date(),
+                    });
 
-                await myCustom.save();
-                await myDoc.save();
-                await myScore.save();
+                    // 여기에서 final 변수를 result로 수정
+                    const myScore = new Score({
+                        _id: result.Rscore,
+                        Ruser: result._id, // final._id 대신 result._id 사용
+                        is_show: false,
+                        overA_subject_list: [],
+                        overA_type_list: [],
+                        semester_list: {
+                            subject_list: [],
+                            credit_list: [],
+                            grade_list: [],
+                            ismajor_list: [],
+                        },
+                    });
 
-                if(result.confirmed==2)res.status(200).send('Success : set to confirmed');
-            })
-            .catch((err)=>{
-                console.error(err);
-                res.status(500).send('Internal Server Error-mongoose');
-            });
-        }else if(req.body.type=="unconfirm"){
-            User.findOneAndUpdate({_id:idd},{confirmed:0},{new:true})
-            .then((result)=>{
-                if(result.confirmed==0) res.status(200).send('Success : set to rejected');
-            })
-            .catch((err)=>{
-                console.error(err);
-                res.status(500).send('Internal Server Error-mongoose');1
-            });
+                    await myCustom.save();
+                    await myDoc.save();
+                    await myScore.save();
+
+                    if (result.confirmed == 2)
+                        res.status(200).send("Success : set to confirmed");
+                })
+                .catch((err) => {
+                    console.error(err);
+                    res.status(500).send("Internal Server Error-mongoose");
+                });
+        } else if (req.body.type == "unconfirm") {
+            User.findOneAndUpdate({ _id: idd }, { confirmed: 0 }, { new: true })
+                .then((result) => {
+                    if (result.confirmed == 0)
+                        res.status(200).send("Success : set to rejected");
+                })
+                .catch((err) => {
+                    console.error(err);
+                    res.status(500).send("Internal Server Error-mongoose");
+                });
         }
-    }
-    else if(req.body.where=="warnU"){
+    } else if (req.body.where == "warnU") {
         console.log("not developed yet since lack of data.");
-        /*if(req.body.type=="warn"){
-            User.findOneAndUpdate({_id:idd},{warned:true},{new:true})
-            .then((result)=>{
-                if(result.warned==true) res.status(200).send('Success');
-            })
-            .catch((err)=>{
-                console.error(err);
-                res.status(500).send('Internal Server Error-mongoose');
-            })
-        }  */ 
     }
-}
+};
+
 
 const handleAdminGetMongoose = async (req, res) => {
     User.findById(req.body.id, {name:1, hakbu:1, hakbun:1, _id:1})
