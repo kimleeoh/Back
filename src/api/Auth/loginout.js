@@ -115,7 +115,7 @@ const handleLogin = async (req, res) => {
 
     const sessionId = uuidv4();
     const sensitiveSessionID = crypto.randomBytes(16);
-    console.log(sessionId);
+    console.log("세션아이디:", sessionId);
     console.log(sensitiveSessionID.toString("hex"));
     const sessionId_E = crypto
       .privateEncrypt(privateKey, Buffer.from(sessionId))
