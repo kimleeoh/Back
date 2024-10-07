@@ -5,7 +5,6 @@ const qnaSchema = new mongoose.Schema({
     restricted_type: { type: Boolean },
     user_main: { type: String },
     user_img: { type: String },
-
     Ruser: { type: mongoose.SchemaTypes.ObjectId },
     answer_list: [
         {

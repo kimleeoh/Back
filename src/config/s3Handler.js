@@ -1,4 +1,5 @@
 import { S3 } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 
 const s3Handler = (() => {
     let currentFileNums = {
@@ -42,16 +43,30 @@ const s3Handler = (() => {
             );
         },
         put: async (fileDestination, img) => {
-            await S3client.putObject({
-                Bucket: bucketName,
-                Key:
-                    fileDestination +
-                    "/" +
-                    currentFileNums[fileDestination] +
-                    ".jpg",
-                Body: img,
+            const u = new Upload({
+                client: S3client,
+                params: {
+                    Bucket: bucketName,
+                    Key:
+                        fileDestination +
+                        "/" +
+                        currentFileNums[fileDestination] +
+                        ".jpg",
+                    Body: img,
+                },
             });
-            const link = `https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/${currentFileNums[fileDestination]}.jpg`;
+
+            await u.done();
+            // await S3client.putObject({
+            //     Bucket: bucketName,
+            //     Key:
+            //         fileDestination +
+            //         "/" +
+            //         currentFileNums[fileDestination] +
+            //         ".jpg",
+            //     Body: img,
+            // });
+            const link = `https://d1bp3kp7g4awpu.cloudfront.net/confirm/${currentFileNums[fileDestination]}.jpg`;
             currentFileNums[fileDestination]++;
             return link;
         },

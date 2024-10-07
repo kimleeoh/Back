@@ -78,6 +78,7 @@ class symmetricDataQueue {
 
 }
 
+
 const symmetricKeyHolder = new symmetricDataQueue();
 
 
@@ -163,6 +164,11 @@ const handleRegister=async(req,res)=>{
     else if (nowpage == 3) {
         //학번 입력
         //{id : "암호화된 id", hakbun : "학번"}
+        const isAlready = await User.findOne({hakbun:req.body.hakbun});
+        if(isAlready){
+            res.status(201).send({message : "Hakbun already exists"});
+            return;
+        }
         const resultList = symmetricKeyHolder.searchByKey(req.body.id);
         const symmetricKey = Buffer.from(resultList[0], 'base64');
         const iv = Buffer.from(resultList[1], 'base64');
@@ -245,62 +251,11 @@ const handleRegister=async(req,res)=>{
             profile_img: ""
         });
 
-        const myCustom = new CustomBoardView({
-            _id: custom,
-            Renrolled_list: [],
-            Rbookmark_list: [],
-            Rlistened_list: [],
-        });
-
-        const myDoc = new UserDocs({
-            _id: doc,
-            Rpilgy_list: [],
-            Rhoney_list: [],
-            Rtest_list: [],
-            Rqna_list:[],
-            Rreply_list: [],
-            RmyLike: {
-                Rqna_list: [],
-                Rpilgy_list: [],
-                Rhoney_list: [],
-                Rtest_list: []
-            },
-            RmyScrap_list: {
-                Rqna_list: [],
-                Rpilgy_list: [],
-                Rhoney_list:[],
-                Rtest_list: []
-            },
-            Rnotify_list: [],
-            final_views: 0,
-            final_scraped: 0,
-            final_liked: 0,
-            last_up_time: new Date()    
-        });
-
-        const myScore = new Score({
-            _id: score,
-            Ruser: final._id,
-            is_show: false,
-            overA_subject_list: [],
-            overA_type_list: [],
-            semester_list: {
-                subject_list: [],
-                credit_list: [],
-                grade_list: [],
-                ismajor_list: []
-            }
-        
-        });
-
-
         try{
             await final.save();
-            await myCustom.save();
-            await myDoc.save();
-            await myScore.save();
+            const n = new Date().toLocaleString('ko-KR');
             //"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"
-            await AdminConfirm.updateOne({_id:0}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:decryptedData2}}});//나중에 이미지 추가
+            await AdminConfirm.updateOne({_id:0}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:decryptedData2, time:n}}});//나중에 이미지 추가
             await AdminConfirm.updateOne({_id:2}, {$inc : {all_user_sum : 1}});
             console.log("new user created");
 
@@ -319,12 +274,20 @@ const handleRegister=async(req,res)=>{
 //     //{email : 입력이메일값}
 // });
 
+const handleCheckAlreadyEmail=async(req,res)=>{
+    const isAlready = await User.findOne({email:req.body.email});
+    if(isAlready){
+        res.status(201).send({message : "Email already exists"});
+    }else{
+        res.status(200).send({message : "Email not exists"});
+    }
+}
+
 const handleEmailAuthSend=async(req,res)=>{
+    console.log(req.body.email);
     const redisClient = redisHandler.getRedisClient();
     const number = generateRandomNumber(11111, 99999);
     
-    console.log(req.body.email);
-
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: req.body.email,
@@ -357,7 +320,7 @@ const handleEmailAuthCheck=async(req,res)=>{
             await redisClient.del(req.body.email);
             res.status(200).send({message : "auth success"});
         }else{
-            res.status(401).send({message : "auth failed"});
+            res.status(201).send({message : "auth failed"});
         }
     }
     catch(err){
@@ -371,7 +334,9 @@ const handleEmailAuthCheck=async(req,res)=>{
 
 const handleConfirmImgUpload=async(req,res)=>{
     try{
-        const link = await s3Handler.put('confirm', req.body.img);
+        const fileStream = fs.createReadStream(req.file.path);
+        const link = await s3Handler.put('confirm', fileStream);
+        fs.unlinkSync(req.file.path);
         console.log(link);
         res.status(200).send({message : "img uploaded", link : link});}
         catch(err){
@@ -379,7 +344,68 @@ const handleConfirmImgUpload=async(req,res)=>{
         }
 }
 
+const handleFindPassword = async (req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+      if (!user) {
+          return res.status(201).json({ message: "User not found" });
+      }
+      const number = generateRandomNumber(11111, 99999);
+      const redisClient = redisHandler.getRedisClient();
+      
+      const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: req.body.email,
+          subject: " [A-F Killer] 비밀번호 재설정 요청 인증.",
+          html: `<h1>아래 인증번호를 확인하여 10분 내로 이메일 인증을 완료해 주세요.</h1><br></br><b>${number}</b>`
+      };
+  
+      try{
+          await smtpTransport.sendMail(mailOptions);
+          await redisClient.hSet(email, 'authNum', number);
+          await redisClient.expire(email, 600);
+          smtpTransport.close();
+          res.status(200).send({message : "mail sent"});
+      }
+      catch(err){
+          res.status(500).send(err);
+          smtpTransport.close();
+      }
+  }
+  
+  const handleAuthFindPassword = async (req, res) => {
+      const { email, authNum } = req.body;
+      const redisClient = redisHandler.getRedisClient();
+      const number = await redisClient.hGet(email, 'authNum');
+      if(number !== authNum){
+          return res.status(401).json({ message: "Invalid authentication number" });
+      }
+      return res.status(200).send({message: "Authentication success"});
+  }
+  
+  const handleResetPassword = async (req, res) => {
+    //const salt = crypto.randomBytes(16);
+    const { email, newPassword, iv } = req.body;
+    const redisClient = redisHandler.getRedisClient();
+    try{
+    const number = await redisClient.hGet(email, 'authNum');
+    
+    const key = crypto.pbkdf2Sync(email, iv, 100000, 32, 'sha256');
+    const ib = crypto.pbkdf2Sync(number, iv, 100000, 16, 'sha256');
+    
+    const decipheredPassword = decipherAES(newPassword, key, ib);
+  
+    const hashedPassword = await hashPassword(decipheredPassword);
+    await User.findOneAndUpdate({ email }, { password: hashedPassword });
+    await redisClient.del(email);
+    res.status(200).send({message : "Password changed"});
+    }catch(err){
+        res.status(500).send(err);
+    }
+  }
+
 export {
     decipherAES, cipherAES, hashPassword, //보안 관련
-    handleRegister, handleConfirmImgUpload, handleEmailAuthSend, handleEmailAuthCheck  //라우터 관련
+    handleRegister, handleConfirmImgUpload, handleEmailAuthSend, handleEmailAuthCheck,handleCheckAlreadyEmail,  //라우터 관련
+    handleFindPassword, handleAuthFindPassword, handleResetPassword //비밀번호 찾기 관련
 };
