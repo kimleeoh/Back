@@ -1,47 +1,61 @@
 import mongoose from "mongoose";
 import connectDB from "./mongoDBconnect.js"; // MongoDB 연결 가져오기
+import { CommonCategory } from "../schemas/category.js"; // CommonCategory 스키마 추가
 import {
-    HoneyDocuments,
-    TestDocuments,
+    QnaDocuments,
     PilgyDocuments,
-} from "../schemas/docs.js";
+    TestDocuments,
+    HoneyDocuments,
+} from "../schemas/docs.js"; // 관련 문서 스키마들
 
 // MongoDB에 연결하고 데이터 삽입하는 함수
 const insertTestData = async () => {
     await connectDB(); // MongoDB 연결
 
-    const testData = [];
-
-    // HoneyDocuments, TestDocuments, PilgyDocuments에 테스트 데이터를 생성 및 삽입
-    for (let i = 21; i <= 30; i++) {
-        const data = {
-            _id: new mongoose.Types.ObjectId(),
-            Ruser: new mongoose.Types.ObjectId(),
-            // now_category: `카테고리${i}`,
-            title: `테스트 타이틀 ${i}`,
-            content: `테스트 내용 ${i}`,
-            preview_img: `https://cdn.pixabay.com/photo/2023/03/04/20/07/coffee-7830087_1280.jpg`,
-            likes: Math.floor(Math.random() * 100),
-            point: Math.floor(Math.random() * 500),
-            Rfile: new mongoose.Types.ObjectId(),
-            views: Math.floor(Math.random() * 1000),
-            time: new Date(),
-            warn: 0,
-            warn_why_list: [],
-        };
-
-        testData.push(data);
-    }
-
     try {
-        await HoneyDocuments.insertMany(testData);
-        console.log("HoneyDocuments에 데이터 삽입 완료");
+        // 이미 삽입된 문서들의 ObjectId를 가져와 CommonCategory 업데이트
+        const honeyIds = await mongoose
+            .model("HoneyDocuments")
+            .find()
+            .limit(10)
+            .select("_id")
+            .lean();
+        const testIds = await mongoose
+            .model("TestDocuments")
+            .find()
+            .limit(10)
+            .select("_id")
+            .lean();
+        const pilgyIds = await mongoose
+            .model("PilgyDocuments")
+            .find()
+            .limit(10)
+            .select("_id")
+            .lean();
 
-        await TestDocuments.insertMany(testData);
-        console.log("TestDocuments에 데이터 삽입 완료");
+        // ObjectId 배열 추출
+        const honeyList = honeyIds.map((doc) => doc._id);
+        const testList = testIds.map((doc) => doc._id);
+        const pilgyList = pilgyIds.map((doc) => doc._id);
 
-        await PilgyDocuments.insertMany(testData);
-        console.log("PilgyDocuments에 데이터 삽입 완료");
+        const testCategoryId = new mongoose.Types.ObjectId(
+            "651bcb601f5df96c0e8b4567"
+        ); // 프론트엔드 카테고리 ID
+
+        // 2. CommonCategory 업데이트
+        await CommonCategory.updateOne(
+            { _id: testCategoryId },
+            {
+                $set: {
+                    category_name: "frontend",
+                    Rtest_list: testList, // TestDocuments ID 추가
+                    Rpilgy_list: pilgyList, // PilgyDocuments ID 추가
+                    Rhoney_list: honeyList, // HoneyDocuments ID 추가
+                },
+            },
+            { upsert: true } // 데이터가 없으면 생성, 있으면 업데이트
+        );
+        console.log("CommonCategory 업데이트 완료");
     } catch (err) {
         console.error("데이터 삽입 중 오류 발생:", err);
     } finally {

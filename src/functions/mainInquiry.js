@@ -14,8 +14,23 @@ const mainInquiry = (() => {
         },
 
         read: async (paramList, redisId) => {
+            // redisId가 문자열로 전달되도록 보장
+            if (typeof redisId !== "string") {
+                redisId = String(redisId);
+            }
             const stringfiedJSON = await redisClient.get(redisId);
+            // Redis에서 데이터가 없을 때 예외 처리 추가
+            if (!stringfiedJSON) {
+                throw new Error(
+                    "No data found in Redis for the given session ID"
+                );
+            }
             const userInfo = JSON.parse(stringfiedJSON);
+            // userInfo가 유효한지 확인 (예외 처리 추가)
+            if (!userInfo || !userInfo._id) {
+                throw new Error("Invalid user data found in Redis");
+            }
+
             let returnParam = Object.create(null);
             // Add multiple fields to returnParam
             paramList.forEach((param) => {
