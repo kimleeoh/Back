@@ -55,7 +55,6 @@ const handleKeyRequest = async (req, res) => {
 
 // router.post('/api/login', async (req, res) => {
 // });
-
 const handleLogin = async (req, res) => {
     console.log("Instance during login:", instance);
     const { symmetricKey, iv } = instance;
@@ -68,11 +67,9 @@ const handleLogin = async (req, res) => {
     const unixTimestamp = Math.floor(Date.now() / 1000);
 
     if (!instance) {
-        return res
-            .status(400)
-            .json({
-                message: "Key not initialized. Please request a key first.",
-            });
+        return res.status(400).json({
+            message: "Key not initialized. Please request a key first.",
+        });
     }
 
     if (!idempotencyKey) {
@@ -102,7 +99,7 @@ const handleLogin = async (req, res) => {
                     "승인 요청이 관리자에 의해 반려되었습니다. 다시 가입해주세요.",
             });
         } else if (user.confirmed == 1) {
-            return res.status(401).json({ message: "승인 대기중입니다." });
+            return res.status(401).json({ message: "승인 대기중인 유저입니다." });
         }
 
         const hashedPassword = user.password;
@@ -128,7 +125,12 @@ const handleLogin = async (req, res) => {
             .privateEncrypt(privateKey, Buffer.from(sensitiveSessionID))
             .toString("base64");
 
-        const userData = { name: user.name, profile: user.profile_img };
+        // 유저의 MongoDB _id도 추가하여 나중에 조회 가능하도록 함
+        const userData = {
+            // id: user._id,
+            name: user.name,
+            profile: user.profile_img,
+        };
         const payload = {
             sessionId: sessionId_E,
             sensitiveSessionID: sensitiveSessionID_E,
@@ -142,7 +144,6 @@ const handleLogin = async (req, res) => {
             "refreshToken",
             sensitiveSessionID.toString("hex")
         );
-        //to reconvert to object, use JSON.parse
         // Create JWT with a 1-hour expiration
         const token = jwt.sign(payload, privateKey, {
             expiresIn: "1h",

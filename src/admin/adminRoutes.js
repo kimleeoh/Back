@@ -162,14 +162,15 @@ const handleAdminMongoose = async (req, res) => {
                     const myScore = new Score({
                         _id: result.Rscore,
                         Ruser: result._id, // final._id 대신 result._id 사용
-                        is_show: false,
                         overA_subject_list: [],
                         overA_type_list: [],
                         semester_list: {
+                            Rcategory_list: [],
                             subject_list: [],
                             credit_list: [],
                             grade_list: [],
                             ismajor_list: [],
+                            is_show_list: [],
                         },
                     });
 

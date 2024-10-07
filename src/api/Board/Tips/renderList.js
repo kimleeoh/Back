@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
-import { CommonCategory } from "../../../schemas/category.js"; 
-import { TestDocuments, PilgyDocuments, HoneyDocuments} from "../../../schemas/docs.js"; 
+import { CommonCategory } from "../../../schemas/category.js";
+import {
+    TestDocuments,
+    PilgyDocuments,
+    HoneyDocuments,
+} from "../../../schemas/docs.js";
+import mainInquiry from "../../../functions/mainInquiry.js"; // mainInquiry 사용
+import { Score } from "../../../schemas/userRelated.js"; // Score schema 추가
 
-// 사용자 과목 따라서 게시물불러오기 
-// 경우 1: 사용자가 필터를 선택하지 않았을 때 & 3개 선택했을 때 -> 각 4개씩 3세트 불러오기
-// 경우 2: 사용자가 필터를 1개 선택했을 때 -> 12개 1세트 불러오기
-// 경우 3: 사용자가 필터를 2개 선택했을 때 -> 6개 2세트 불러오기
-
+// 사용자 과목에 따른 게시물 불러오기 로직
 const loadBoardWithFilter = async (req, res) => {
     try {
         const { filters } = req.body;
@@ -16,26 +18,66 @@ const loadBoardWithFilter = async (req, res) => {
             return res.status(400).json({ message: "No filters selected" });
         }
 
-        // 필터를 기반으로 문서를 저장할 배열 선언
+        // 1. mainInquiry의 read를 통해 사용자 score 정보 조회
+        if (mainInquiry.isNotRedis()) {
+            const redisClient = redisHandler.getRedisClient();
+            mainInquiry.inputRedisClient(redisClient);
+        }
+
+        // Redis에서 사용자 정보를 가져옴 (decryptedSessionId로 사용자 식별)
+        const userInfo = await mainInquiry.read(
+            ["_id"],
+            req.body.decryptedSessionId
+        );
+
+        // 2. 사용자 score 정보에서 Rcategory_list 가져오기
+        const userScore = await Score.findOne({ Ruser: userInfo._id })
+            .select("semester_list.Rcategory_list")
+            .lean();
+        if (!userScore) {
+            return res.status(404).json({ message: "User score not found" });
+        }
+
+        const categoryIds = userScore.semester_list.Rcategory_list; // Rcategory_list (과목 ID)
+
+        // 3. CommonCategory에서 해당 과목 ID의 Rpilgy_list, Rtest_list, Rhoney_list 가져오기
+        const categories = await CommonCategory.find({
+            _id: { $in: categoryIds },
+        })
+            .select("Rtest_list Rpilgy_list Rhoney_list")
+            .lean();
+
+        if (!categories || categories.length === 0) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
         let documents = [];
 
-        // 필터가 1개 선택되었을 때: 해당 필터에서 12개 가져오기
-        if (filters.length === 1) {
-            const filter = filters[0];
-            documents = await getDocumentsByCategory(filter, 12);
-        }
-        // 필터가 2개 선택되었을 때: 각 필터에서 6개씩 가져오기
-        else if (filters.length === 2) {
-            const docsFilter1 = await getDocumentsByCategory(filters[0], 6);
-            const docsFilter2 = await getDocumentsByCategory(filters[1], 6);
-            documents = [...docsFilter1, ...docsFilter2];
-        }
-        // 필터가 3&0개 선택되었을 때: 각 필터에서 4개씩 가져오기
-        else if (filters.length === 3 || filters.length === 0) {
-            const docsFilter1 = await getDocumentsByCategory(filters[0], 4);
-            const docsFilter2 = await getDocumentsByCategory(filters[1], 4);
-            const docsFilter3 = await getDocumentsByCategory(filters[2], 4);
-            documents = [...docsFilter1, ...docsFilter2, ...docsFilter3];
+        // 필터링된 과목 목록에 따라 문서를 가져오는 로직
+        for (const filter of filters) {
+            const category = categories.find((cat) => cat._id.equals(filter));
+
+            if (!category) continue;
+
+            // 과목의 3가지 카테고리에서 게시물을 필터에 맞게 가져옴
+            const docsTest = await getDocumentsByCategory(
+                "test",
+                category,
+                filters.length
+            );
+            const docsPilgy = await getDocumentsByCategory(
+                "pilgy",
+                category,
+                filters.length
+            );
+            const docsHoney = await getDocumentsByCategory(
+                "honey",
+                category,
+                filters.length
+            );
+
+            // 결과 배열에 각 카테고리별 문서를 추가
+            documents.push(...docsTest, ...docsPilgy, ...docsHoney);
         }
 
         // 결과 반환
@@ -47,46 +89,53 @@ const loadBoardWithFilter = async (req, res) => {
 };
 
 // 특정 카테고리에서 지정된 수만큼 문서를 가져오는 함수
-const getDocumentsByCategory = async (category, limit) => {
+const getDocumentsByCategory = async (
+    categoryType,
+    categoryData,
+    filterCount
+) => {
     let documents = [];
     let docList = [];
-    
-    // 각 카테고리별로 문서를 조회
-    // 과목선택 중복을 해결해야 
-    if (category === "test") {
-        const categoryData = await CommonCategory.findOne({"type":3})
-            .select("Rtest_list")
-            .lean();
-        if (categoryData && categoryData.Rtest_list) {
-            docList = categoryData.Rtest_list.slice(-limit);
+
+    // 필터에 따라 가져올 개수 결정
+    let limit;
+    if (filterCount === 1) {
+        limit = 12; // 필터가 1개일 경우 12개씩
+    } else if (filterCount === 2) {
+        limit = 6; // 필터가 2개일 경우 6개씩
+    } else if (filterCount === 3 || filterCount === 0) {
+        limit = 4; // 필터가 0개 또는 3개일 경우 4개씩
+    }
+
+    // 카테고리별로 게시물 가져오기
+    if (categoryType === "test") {
+        if (categoryData.Rtest_list) {
+            docList = categoryData.Rtest_list.slice(0, limit);
             documents = await TestDocuments.find({ _id: { $in: docList } })
                 .select(
                     "_id title preview_img content Ruser time views likes point"
                 )
+                .populate({ path: "Ruser", model: User, select: "name" })
                 .lean();
         }
-    } else if (category === "pilgy") {
-        const categoryData = await CommonCategory.findOne({"_id":"66e4c0be4a8e08f406fd8ba0"})
-            .select("Rpilgy_list")
-            .lean();
-        if (categoryData && categoryData.Rpilgy_list) {
-            docList = categoryData.Rpilgy_list.slice(-limit);
+    } else if (categoryType === "pilgy") {
+        if (categoryData.Rpilgy_list) {
+            docList = categoryData.Rpilgy_list.slice(0, limit);
             documents = await PilgyDocuments.find({ _id: { $in: docList } })
                 .select(
                     "_id title preview_img content Ruser time views likes point"
                 )
+                .populate({ path: "Ruser", model: User, select: "name" })
                 .lean();
         }
-    } else if (category === "honey") {
-        const categoryData = await CommonCategory.findOne({"type":3})
-            .select("Rhoney_list")
-            .lean();
-        if (categoryData && categoryData.Rhoney_list) {
-            docList = categoryData.Rhoney_list.slice(-limit);
+    } else if (categoryType === "honey") {
+        if (categoryData.Rhoney_list) {
+            docList = categoryData.Rhoney_list.slice(0, limit);
             documents = await HoneyDocuments.find({ _id: { $in: docList } })
                 .select(
                     "_id title preview_img content Ruser time views likes point"
                 )
+                .populate({ path: "Ruser", model: User, select: "name" })
                 .lean();
         }
     }

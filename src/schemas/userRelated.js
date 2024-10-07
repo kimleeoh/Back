@@ -10,14 +10,15 @@ const customBoardSchema = new mongoose.Schema({
 const scoreSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     Ruser: { type: mongoose.SchemaTypes.ObjectId, required: true },
-    is_show: { type: Boolean, required: true },
     overA_subject_list: { type: [String] },
     overA_type_list: { type: [Number] },
     semester_list: {
-        subject_list: { type: [String] },
+        Rcategory_list: { type: [mongoose.SchemaTypes.ObjectId] }, // 참조할 과목 id 
+        subject_list: { type: [String] }, // 과목이름
         credit_list: { type: [Number] },
         grade_list: { type: [Number] },
         ismajor_list: { type: [Boolean] },
+        is_show_list: { type: [Boolean] },
     },
 });
 

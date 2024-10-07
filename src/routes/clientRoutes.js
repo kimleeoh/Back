@@ -19,8 +19,7 @@ import {
 } from '../api/Auth/register.js'
 import { handleQnACreate } from '../api/Board/QnA/createPage.js'
 import { loadBoardWithFilter } from '../api/Board/Tips/renderList.js'
-import { updateUserProfile } from '../api/User/myPage.js'
-
+// import { handleUserProfile, updateUserProfile } from '../api/User/myPage.js'
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
 
@@ -52,8 +51,9 @@ router.post('/qna/create/post', myMiddleware, handleQnACreate)
 // tips 관련 라우터
 router.post('/bulletin/tips', loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
 
-// 마이페이지 관련 라우터
-router.post('/update-profile', updateUserProfile)
+// // 마이페이지 관련 라우터
+// router.get('/mypage', myMiddleware, handleUserProfile)
+// router.post('/update-profile', updateUserProfile)
 
 
 export default router
