@@ -46,7 +46,7 @@ const handleQnACreate = async(req, res)=>{
         data.answer_list = [];  
         data.restricted_type = req.body.limit;
         if(data.restricted_type==true){
-            const p = restricted_type.POINT - req.body.point;
+            const p = received.POINT - req.body.point;
             await mainInquiry.write({'POINT':p},req.body.decryptedSessionId);
         }
         delete req.body.decryptedSessionId;
