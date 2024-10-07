@@ -1,5 +1,17 @@
 import mongoose from "mongoose";
 
+const AllFilesSchema = new mongoose.Schema({
+    file_link: { type: String, required: true }, // S3에 저장된 파일 링크
+    preview_img: { type: String }, // 미리보기 이미지 (선택 사항)
+    file_type: { type: String, enum: ["image", "pdf"], required: true }, // 파일 타입
+    Ruser: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    }, // 파일 업로드한 사용자
+    time: { type: Date, default: Date.now }, // 업로드 시간
+});
+
 const qnaSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     restricted_type: { type: Boolean },
@@ -79,6 +91,7 @@ const qnaAnswerSchema = new mongoose.Schema({
     warn_why_list: [{ type: Number }],
 });
 
+const AllFiles = mongoose.model("AllFiles", AllFilesSchema);
 const QnaAnswers = mongoose.model("QNA", qnaAnswerSchema, "QnaAnswers");
 const QnaAlready = mongoose.model(
     "QnaAlready",
@@ -104,6 +117,7 @@ const HoneyDocuments = mongoose.model(
 );
 
 export {
+    AllFiles,
     QnaDocuments,
     PilgyDocuments,
     TestDocuments,
