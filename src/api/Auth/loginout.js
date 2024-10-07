@@ -99,7 +99,7 @@ const handleLogin = async (req, res) => {
                     "승인 요청이 관리자에 의해 반려되었습니다. 다시 가입해주세요.",
             });
         } else if (user.confirmed == 1) {
-            return res.status(401).json({ message: "승인 대기중입니다." });
+            return res.status(401).json({ message: "승인 대기중인 유저입니다." });
         }
 
         const hashedPassword = user.password;

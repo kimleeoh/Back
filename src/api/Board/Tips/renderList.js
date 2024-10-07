@@ -1,8 +1,3 @@
-import mongoose from "mongoose";
-import { CommonCategory } from "../../../schemas/category.js"; 
-import { TestDocuments, PilgyDocuments, HoneyDocuments} from "../../../schemas/docs.js"; 
-import { User } from "../../../schemas/user.js"; 
-
 // 사용자 과목 따라서 게시물불러오기 
 // 경우 1: 사용자가 필터를 선택하지 않았을 때 & 3개 선택했을 때 -> 각 4개씩 3세트 불러오기
 // 경우 2: 사용자가 필터를 1개 선택했을 때 -> 12개 1세트 불러오기
@@ -20,7 +15,7 @@ import { User } from "../../../schemas/user.js";
 // 사용자 과목에 따른 게시물 불러오기 로직
 const loadBoardWithFilter = async (req, res) => {
     try {
-        const { filters, type, id } = req.body;
+        const { filters, id } = req.body;
 
         // 필터 값이 없으면 오류 반환
         if (!filters || filters.length === 0) {
