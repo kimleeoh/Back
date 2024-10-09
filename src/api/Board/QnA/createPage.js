@@ -27,7 +27,7 @@ const handleQnACreate = async(req, res)=>{
             linkList.push(await s3Handler.put(a,'/Q'));
         }
         const objId = new mongoose.Types.ObjectId();
-        const nc = req.body.board.map((a)=>a['value']);
+        const nc = req.body.board;
         data._id = objId;
         data.title = req.body.title;
         data.content = req.body.content;

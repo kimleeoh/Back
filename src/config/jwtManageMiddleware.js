@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import fs from "fs";
 import crypto from "crypto";
 import redisHandler from "./redisHandler.js";
+import {Mutex} from "async-mutex";
 
 const privateKeyPem = fs.readFileSync(
     "./src/config/afkiller_private_key.pem",
@@ -23,24 +24,7 @@ const publicKey = crypto.createPublicKey({
     type: "pkcs8",
 });
 
-// // 새로운 JWT 미들웨어 - 유저 ID를 추출하여 req.user에 저장
-// const jwtExtractUserMiddleware = (req, res, next) => {
-//     const token = req.cookies.token;
-//     if (!token) return res.sendStatus(401);  // JWT 토큰이 없을 때
-
-//     jwt.verify(token, publicKey, (err, decoded) => {
-//         if (err) {
-//             console.log("JWT verification error:", err);
-//             return res.sendStatus(403); // JWT 검증 실패
-//         }
-
-//         // JWT에서 유저 정보를 추출하여 req.user에 저장
-//         console.log("Decoded JWT:", decoded); // 해독된 JWT 정보 로그
-//         req.user = decoded.userData;
-
-//         next();
-//     });
-// };
+const mutex = new Mutex();
 
 const logoutMiddleware = async (req, res, next) => {
     const token = req.cookies.token;
@@ -64,7 +48,8 @@ const logoutMiddleware = async (req, res, next) => {
     next();
 };
 
-const myMiddleware = (req, res, next) => {
+const myMiddleware = async(req, res, next) => {
+    
     const token = req.cookies.token;
     if (!token) return res.sendStatus(401);
 
@@ -81,6 +66,7 @@ const myMiddleware = (req, res, next) => {
         const sessionId_D = crypto
             .publicDecrypt(publicKey, Buffer.from(sessionId, "base64"))
             .toString("utf-8");
+
         const redisClient = redisHandler.getRedisClient();
         try {
             const sessionExists = await redisClient.exists(sessionId_D);
@@ -89,7 +75,8 @@ const myMiddleware = (req, res, next) => {
                 "refreshToken",
                 sensitiveSessionID_D
             );
-
+  
+            console.log(sensitiveSessionExists);
             if (sessionExists != 1 && sensitiveSessionExists == false)
                 return res
                     .status(403)
@@ -111,6 +98,7 @@ const myMiddleware = (req, res, next) => {
         // Reset the expiration time of the session data in Redis to 1 hour
         await redisClient.expire(sessionId_D, 3600);
         const newSensitiveSessionID = crypto.randomBytes(16);
+        await redisClient.sAdd("refreshToken", newSensitiveSessionID.toString("hex"));
         sensitiveSessionID = crypto
             .privateEncrypt(privateKey, newSensitiveSessionID)
             .toString("base64");

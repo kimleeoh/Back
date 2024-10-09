@@ -25,7 +25,7 @@ const qnaSchema = new mongoose.Schema({
             user_grade: { type: String },
         },
     ],
-    now_category_list: [{ type: String }],
+    now_category_list: [],
     title: { type: String },
     content: { type: String },
     preview_content: { type: String },
@@ -77,7 +77,7 @@ const tipsSchema = new mongoose.Schema({
     time: { type: Date, index: true },
     warn: { type: Number },
     warn_why_list : [{ type: Number }],
-});
+},{versionKey:false});
 
 const qnaAnswerSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
