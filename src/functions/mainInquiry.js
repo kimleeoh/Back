@@ -25,9 +25,11 @@ const mainInquiry = (() => {
                     "No data found in Redis for the given session ID"
                 );
             }
+            console.log("Raw data from Redis:", stringfiedJSON); // Redis에서 가져온 데이터 로그 출력
             const userInfo = JSON.parse(stringfiedJSON);
             // userInfo가 유효한지 확인 (예외 처리 추가)
             if (!userInfo || !userInfo._id) {
+                console.error("Invalid user data:", userInfo); // 유효하지 않은 사용자 데이터 로그 출력
                 throw new Error("Invalid user data found in Redis");
             }
 
@@ -37,13 +39,33 @@ const mainInquiry = (() => {
                 returnParam[param] = userInfo[param];
             });
             return returnParam;
+            // return keys.reduce((result, key) => {
+            //     if (userInfo.hasOwnProperty(key)) {
+            //         result[key] = userInfo[key];
+            //     }
+            //     return result;
+            // }, {});
         },
         write: async (paramObject, redisId) => {
+            const stringfiedJSON = await redisClient.get(redisId); // Redis에서 기존 데이터 가져오기
+            if (!stringfiedJSON) {
+                throw new Error(
+                    "No data found in Redis for the given session ID"
+                );
+            }
+            const userInfo = JSON.parse(stringfiedJSON); // 사용자 정보 파싱
+
+            // Redis에서 가져온 userInfo가 유효하지 않을 경우 예외 처리
+            if (!userInfo || !userInfo._id) {
+                throw new Error("Invalid user data found in Redis");
+            }
+
             let stringChunk = {};
             let listChunk = {};
             let numChunk = {};
             let updateObject = {};
 
+            // 전달된 paramObject에 따라 적절한 Chunk로 분리
             Object.keys(paramObject).forEach((key) => {
                 if (stringFields.includes(key)) {
                     stringChunk[key] = paramObject[key];
@@ -64,14 +86,33 @@ const mainInquiry = (() => {
                 updateObject.$inc = numChunk;
             }
 
+            // MongoDB에서 사용자 정보 업데이트
             if (Object.keys(updateObject).length > 0) {
-                const result = await User.updateOne(
-                    { _id: userInfo._id },
-                    updateObject,
-                    { new: true }
-                );
+                try {
+                    // MongoDB에서 사용자 정보 업데이트
+                    await User.updateOne(
+                        { _id: userInfo._id }, // userInfo의 _id를 사용하여 업데이트
+                        updateObject,
+                        { new: true }
+                    );
+
+                    // 사용자 정보가 업데이트된 후 다시 가져옴
+                    const updatedUserInfo = await User.findById(userInfo._id);
+
+                    // 업데이트된 사용자 정보를 Redis에 다시 저장
+                    await redisClient.set(
+                        redisId,
+                        JSON.stringify(updatedUserInfo),
+                        "EX",
+                        3600
+                    ); // 사용자 정보로 Redis에 저장
+                } catch (err) {
+                    console.error("Error updating MongoDB:", err);
+                    throw new Error("Failed to update user in MongoDB");
+                }
+            } else {
+                console.log("No updates needed for this user.");
             }
-            await redisClient.set(redisId, JSON.stringify(result), "EX", 3600);
         },
     };
 })();
