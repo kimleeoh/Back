@@ -153,20 +153,17 @@ const s3Handler = (() => {
             );
         },
         put: async (fileDestination, img) => {
+            const mimeType = img.type || "image/jpeg"; // MIME 타입이 없으면 기본적으로 image/jpeg 사용
+            const extension = mimeType.split("/")[1]; // 확장자 추출 (예: "png")
+
             const u = new Upload({
                 client: S3client,
                 params: {
                     Bucket: bucketName,
-                    Key:
-                        fileDestination +
-                        "/" +
-                        currentFileNums[fileDestination] +
-                        ".jpg",
+                    Key: `${fileDestination}/${currentFileNums[fileDestination]}.${extension}`, // 확장자를 동적으로 설정
                     Body: img,
                 },
             });
-
-            await u.done();
             // await S3client.putObject({
             //     Bucket: bucketName,
             //     Key:
@@ -176,7 +173,8 @@ const s3Handler = (() => {
             //         ".jpg",
             //     Body: img,
             // });
-            const link = `https://d1bp3kp7g4awpu.cloudfront.net/confirm/${currentFileNums[fileDestination]}.jpg`;
+            await u.done();
+            const link = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}.${extension}`;
             currentFileNums[fileDestination]++;
             return link;
         },

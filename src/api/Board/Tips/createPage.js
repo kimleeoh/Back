@@ -40,11 +40,11 @@ const handleTipsCreate = async (req, res) => {
         const linkList = [];
         let preview_img = ""; // 미리보기 이미지 초기화
         for (let i = 0; i < req.body.images.length; i++) {
-            const imgLink = await s3Handler.put(req.body.images[i], "/files");
+            console.log("Image info:", req.body.images[i]); // 이미지 정보 로그로 출력
+            const imgLink = await s3Handler.put("/files", req.body.images[i]); // 이미지 업로드
             linkList.push(imgLink);
-            if (i === 0) preview_img = imgLink; // 첫 번째 이미지는 preview로 설정
+            if (i === 0) preview_img = imgLink; // 첫 번째 이미지를 미리보기로 설정
         }
-
         // PDF 파일 처리 (첫 페이지 변환)
         if (req.body.fileType === "pdf") {
             const previewImage = await pdf2pic(req.body.images[0].path);
