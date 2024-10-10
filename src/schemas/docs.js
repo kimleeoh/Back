@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const AllFilesSchema = new mongoose.Schema({
     file_link: { type: String, required: true }, // S3에 저장된 파일 링크
     preview_img: { type: String }, // 미리보기 이미지 (선택 사항)
-    file_type: { type: String, enum: ["image", "pdf"], required: true }, // 파일 타입
+    // file_type: { type: String, enum: ["image", "pdf"], required: true }, // 파일 타입
     Ruser: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -69,7 +69,7 @@ const tipsSchema = new mongoose.Schema({
     content: { type: String },
     preview_img: { type: String },
     likes: { type: Number },
-    point: { type: Number },
+    purchase_point: { type: Number },
     Rfile: { type: mongoose.SchemaTypes.ObjectId },
     Rnotifyusers_list: [{ type: mongoose.SchemaTypes.ObjectId }],
     scrap: { type: Number },
