@@ -52,7 +52,7 @@ router.post('/qna/create/post', myMiddleware, handleQnACreate)
 
 // tips 관련 라우터
 router.post('/bulletin/tips', loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
-router.post('/add-tips', handleTipsCreate) // 게시판 작성
+router.post('/tips/create/post', handleTipsCreate) // 게시판 작성
 
 // 포인트 관련 라우터
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회

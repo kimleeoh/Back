@@ -69,7 +69,7 @@ const tipsSchema = new mongoose.Schema({
     content: { type: String },
     preview_img: { type: String },
     likes: { type: Number },
-    point: { type: Number },
+    purchase_point: { type: Number },
     Rfile: { type: mongoose.SchemaTypes.ObjectId },
     Rnotifyusers_list: [{ type: mongoose.SchemaTypes.ObjectId }],
     scrap: { type: Number },
