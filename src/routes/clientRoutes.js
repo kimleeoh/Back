@@ -1,7 +1,8 @@
 import express from 'express'
 import multer from 'multer'
 import {myMiddleware, logoutMiddleware} from '../config/jwtManageMiddleware.js'
-import { getQnaData, getTipData, getCategory } from '../api/dummy.js'
+import { getQnaData, getTipData } from '../api/dummy.js'
+import { getCategory } from '../api/Category/selectCategory.js'
 import {
   handleLogin,
   handleLogout,
@@ -28,7 +29,9 @@ const upload = multer({ dest: 'uploads/' });
 // Dummy 관련 라우터
 router.get('/dummy/testqna', getQnaData)
 router.get('/dummy/testtip', getTipData)
-router.post('/dummy/category', getCategory)
+
+// 카테고리 관련 라우터
+router.post('/category', getCategory)
 
 // 로그인 관련 라우터
 router.post('/login', handleLogin)

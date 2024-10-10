@@ -390,8 +390,8 @@ const handleFindPassword = async (req, res) => {
     try{
     const number = await redisClient.hGet(email, 'authNum');
     
-    const key = crypto.pbkdf2Sync(email, iv, 100000, 32, 'sha256');
-    const ib = crypto.pbkdf2Sync(number, iv, 100000, 16, 'sha256');
+    const key = crypto.pbkdf2Sync(email, iv, 1000, 32, 'sha256');
+    const ib = crypto.pbkdf2Sync(number, iv, 1000, 16, 'sha256');
     
     const decipheredPassword = decipherAES(newPassword, key, ib);
   
