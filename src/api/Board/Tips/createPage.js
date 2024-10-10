@@ -7,6 +7,7 @@ import {
 } from "../../../schemas/docs.js"; // 스키마 가져오기
 import { UserDocs } from "../../../schemas/userRelated.js"; // UserDocs 스키마
 import s3Handler from "../../../config/s3Handler.js"; // S3 파일 처리
+import redisHandler from "../../../config/redisHandler.js"; // S3 파일 처리
 import mainInquiry from "../../../functions/mainInquiry.js"; // 사용자 정보 처리
 
 const handleTipsCreate = async (req, res) => {
@@ -20,6 +21,12 @@ const handleTipsCreate = async (req, res) => {
             ["_id", "hakbu", "POINT", "Rdoc"],
             req.body.decryptedSessionId
         );
+         // 세션 정보가 없을 때
+         if (!received) {
+            return res
+                .status(400)
+                .send("Error: No data found in Redis for the given session ID");
+        }
 
         // 이미지 처리
         const linkList = [];
