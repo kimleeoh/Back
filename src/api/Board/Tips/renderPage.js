@@ -1,13 +1,3 @@
-// // 게시물 눌렀을 때 각 게시물 띄우는 페이지
-// 프론트가 백에 어느 종류 게시판인지 보내는 데이터에 넣어서 알려줘야함. ex)test - 0, pilgy -1, honey - 2
-
-// doc id 통해서 값 불러오고, 
-// 그 값의 Rfile이 “”인지 값이 있는지 확인
-// 잇다면 그거를 AllFiles 콜렉션에 조회
-// Rpurchasedlist에 해당 유저의 _id가 있는지 조회, 있다면 파일 다운 상태로 해제(프론트 역할) 
-
-// 해당하는 콜렉션에 쿼리 후 조회수 1 늘리고(update, new 키워드 적용시 바뀐 데이터 자동으로 반환시켜줌) 반환되는 데이터 저장, 해당 doc 정보 담을(좋아요, 스크랩 등) 생성
-
 import { UserDocs } from "../../../schemas/userRelated.js"; // 사용자 관련 문서 모델
 import mainInquiry from "../../../functions/mainInquiry.js"; // Redis 사용자 세션 관리
 
@@ -54,7 +44,7 @@ const downloadFileWithCheck = async (req, res) => {
     try {
         const { documentId, type } = req.params; // 문서 ID와 문서 타입
         const { decryptedSessionId } = req.body; // 세션 ID
-        const downloadCost = 10; // 포인트 차감 비용 (예시)
+        const downloadCost = req.body.purchase_price; // 포인트 차감 비용 (예시)
 
         // Redis에서 사용자 정보 조회
         const redisClient = mainInquiry.getRedisClient();
