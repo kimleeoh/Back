@@ -20,7 +20,7 @@ import {
 import { handleQnACreate } from '../api/Board/QnA/createPage.js'
 import { loadBoardWithFilter } from '../api/Board/Tips/renderList.js'
 import { handlePointRead } from '../api/User/point.js'
-// import { handleTipCreate } from "../api/Board/Tips/createPage.js";
+import { handleTipsCreate } from "../api/Board/Tips/createPage.js";
 // import { handleUserProfile, updateUserProfile } from '../api/User/myPage.js'
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -52,11 +52,11 @@ router.post('/qna/create/post', myMiddleware, handleQnACreate)
 
 // tips 관련 라우터
 router.post('/bulletin/tips', loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
+router.post('/add-tips', handleTipsCreate) // 게시판 작성
 
 // 포인트 관련 라우터
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
 
-// router.post('/add-article', handleTipCreate) // 게시판 작성
 
 // // 마이페이지 관련 라우터
 // router.get('/mypage', myMiddleware, handleUserProfile)
