@@ -106,7 +106,7 @@ const handleTipsCreate = async (req, res) => {
 
         // 문서 저장 및 사용자 문서 리스트 업데이트
         await doc.save();
-        await UserDocs.findOneAndUpdate(
+        const updatedUserDocs = await UserDocs.findOneAndUpdate(
             { _id: received.Rdoc },
             {
                 $inc: { written: 1 },
@@ -114,7 +114,7 @@ const handleTipsCreate = async (req, res) => {
             },
             { new: true }
         );
-
+        console.log("updated:",updatedUserDocs);
         res.status(200).json({ message: "Success" });
     } catch (e) {
         console.error(e);
