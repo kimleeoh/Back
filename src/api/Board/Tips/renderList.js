@@ -158,7 +158,7 @@ const getDocumentsByCategory = async (
 
     // 카테고리별로 게시물 가져오기
     if (categoryType === "test") {
-        docList = categoryData.Rtest_list.slice(0, limit);
+        docList = categoryData.Rtest_list.slice().reverse().slice(0, limit); 
         documents = await TestDocuments.find({ _id: { $in: docList } })
             .select(
                 "_id title preview_img content Ruser time views likes point"
@@ -166,7 +166,7 @@ const getDocumentsByCategory = async (
             .populate({ path: "Ruser", model: User, select: "name" })
             .lean();
     } else if (categoryType === "pilgy") {
-        docList = categoryData.Rpilgy_list.slice(0, limit);
+        docList = categoryData.Rpilgy_list.slice().reverse().slice(0, limit); 
         documents = await PilgyDocuments.find({ _id: { $in: docList } })
             .select(
                 "_id title preview_img content Ruser time views likes point"
@@ -174,7 +174,7 @@ const getDocumentsByCategory = async (
             .populate({ path: "Ruser", model: User, select: "name" })
             .lean();
     } else if (categoryType === "honey") {
-        docList = categoryData.Rhoney_list.slice(0, limit);
+        docList = categoryData.Rhoney_list.slice().reverse().slice(0, limit); 
         documents = await HoneyDocuments.find({ _id: { $in: docList } })
             .select(
                 "_id title preview_img content Ruser time views likes point"
