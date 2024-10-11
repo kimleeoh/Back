@@ -10,12 +10,11 @@ import mainInquiry from "../../../functions/mainInquiry.js";
 import { User } from "../../../schemas/user.js";
 import { CustomBoardView } from "../../../schemas/userRelated.js";
 
-// 사용자 과목에 따른 게시물 불러오기 로직
 const loadBoardWithFilter = async (req, res) => {
     try {
-        const { filters } = req.body;
+        let { filters } = req.body;
 
-        // 필터 값이 없으면 기본 필터 ["test", "pilgy", "honey"] 사용
+        // 필터 값이 없으면 기본적으로 3개의 필터 적용 (test, pilgy, honey)
         if (!filters || filters.length === 0) {
             filters = ["test", "pilgy", "honey"];
         }
@@ -28,27 +27,53 @@ const loadBoardWithFilter = async (req, res) => {
 
         const decryptedSessionId = String(req.body.decryptedSessionId);
 
+        // paramList 및 Redis에서 가져올 필드 설정
+        const paramList = ["_id", "Rcustom_brd"];
+        console.log("Requested params:", paramList);
+
         let userInfo;
         try {
-            userInfo = await mainInquiry.read(
-                ["_id, Rcustom_brd"],
-                decryptedSessionId
-            );
+            // Redis에서 _id와 Rcustom_brd를 가져옴
+            userInfo = await mainInquiry.read(paramList, decryptedSessionId);
+            console.log("User info from Redis:", userInfo);
         } catch (error) {
             return res.status(500).json({
                 message: "Failed to retrieve user information from Redis",
             });
         }
 
-        // Rcustom_brd를 사용하여 CustomBoardView 조회
-        const customBoard = await CustomBoardView.findOne({
-            _id: userInfo.Rcustom_brd,
-        })
-            .select("Renrolled_list Rbookmark_list Rlistened_list")
-            .lean();
+        // 여기에 customBoard 변수를 try-catch 밖에서 선언
+        let customBoard;
 
-        if (!customBoard) {
-            return res.status(404).json({ message: "Custom board not found" });
+        try {
+            // Rcustom_brd 값 로그 출력 (디버깅용)
+            console.log("Rcustom_brd:", userInfo.Rcustom_brd);
+
+            // Rcustom_brd가 없는 경우 에러 반환
+            if (!userInfo.Rcustom_brd) {
+                return res
+                    .status(400)
+                    .json({ message: "Rcustom_brd not set for the user" });
+            }
+
+            // Rcustom_brd를 사용하여 CustomBoardView 조회
+            customBoard = await CustomBoardView.findOne({
+                _id: userInfo.Rcustom_brd,
+            })
+                .select("Renrolled_list Rbookmark_list Rlistened_list")
+                .lean();
+
+            // Custom board가 없는 경우 에러 반환
+            if (!customBoard) {
+                return res
+                    .status(404)
+                    .json({ message: "Custom board not found" });
+            }
+
+            console.log("Custom board found:", customBoard); // 디버깅용 로그 추가
+        } catch (error) {
+            console.error("Error retrieving custom board:", error);
+            return res.status(500).json({ message: "Internal server error" });
         }
 
         // 중복 제거하여 과목 ID 리스트 생성
