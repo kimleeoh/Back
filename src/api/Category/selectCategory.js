@@ -1,4 +1,4 @@
-import { CommonCategory } from "../schemas/category.js";
+import { CommonCategory } from "../../schemas/category.js";
 
 const getCategory = async (req, res) => {
     //ex) {id:''}

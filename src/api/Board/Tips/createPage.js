@@ -8,7 +8,6 @@ import {
 import { UserDocs } from "../../../schemas/userRelated.js"; // UserDocs 스키마
 import s3Handler from "../../../config/s3Handler.js"; // S3 파일 처리
 import redisHandler from "../../../config/redisHandler.js"; // S3 파일 처리
-import redisHandler from "../../../config/redisHandler.js";
 import mainInquiry from "../../../functions/mainInquiry.js"; // 사용자 정보 처리
 
 const handleTipsCreate = async (req, res) => {
@@ -18,7 +17,14 @@ const handleTipsCreate = async (req, res) => {
         if (!req.body.decryptedSessionId) {
             return res.status(400).send("세션 ID가 없습니다.");
         }
-        // Redis 클라이언트 설정 및 사용자 정보 가져오기
+
+        // 여기서 데이터가 유효한지 확인하고, 문제시 로그 출력
+        if (!req.body.title || !req.body.content) {
+            console.error("Missing required fields: title or content");
+            return res.status(400).send("Missing required fields");
+        }
+
+        // Redis에서 사용자 정보 가져오기
         if (mainInquiry.isNotRedis()) {
             const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
@@ -28,7 +34,6 @@ const handleTipsCreate = async (req, res) => {
             req.body.decryptedSessionId
         );
 
-        // 세션 정보가 없을 때
         if (!received) {
             console.log("Invalid session ID:", req.body.decryptedSessionId);
             return res
@@ -36,61 +41,56 @@ const handleTipsCreate = async (req, res) => {
                 .send("Error: No data found in Redis for the given session ID");
         }
 
-        // 이미지 처리
+        // 이미지 관련 로직: 이미지가 없을 경우에도 처리되도록 수정
         const linkList = [];
-        let preview_img = ""; // 미리보기 이미지 초기화
-        for (let i = 0; i < req.body.images.length; i++) {
-            console.log("Image info:", req.body.images[i]); // 이미지 정보 로그로 출력
-            const imgLink = await s3Handler.put("/files", req.body.images[i]); // 이미지 업로드
-            linkList.push(imgLink);
-            if (i === 0) preview_img = imgLink; // 첫 번째 이미지를 미리보기로 설정
-        }
-        // PDF 파일 처리 (첫 페이지 변환)
-        if (req.body.fileType === "pdf") {
-            const previewImage = await pdf2pic(req.body.images[0].path);
-            preview_img = await s3Handler.put(previewImage, "/preview");
-        }
+        let preview_img = "";
 
-        // AllFiles에 파일 저장
-        const allFiles = new AllFiles({
-            file_link: linkList[0], // 첫 번째 파일 링크
-            // file_type: req.body.fileType,
-            Ruser: received._id,
-        });
-        await allFiles.save();
+        if (req.files && req.files.length > 0) {
+            // 이미지가 있는 경우 처리
+            for (let i = 0; i < req.files.length; i++) {
+                const imgLink = await s3Handler.put(
+                    "/files",
+                    req.files[i].buffer
+                ); // S3에 파일 업로드
+                linkList.push(imgLink);
+                if (i === 0) preview_img = imgLink; // 첫 번째 이미지를 미리보기로 설정
+            }
+        } else {
+            console.log("No images received, proceeding without images.");
+        }
 
         // 문서 유형에 따라 Pilgy, Test, Honey 선택
         let DocumentsModel;
-        let userListField; // 사용자 문서 리스트 필드 (Rpilgy_list, Rtest_list, Rhoney_list)
+        let userListField;
         switch (req.body.type) {
             case "pilgy":
                 DocumentsModel = PilgyDocuments;
-                userListField = "Rpilgy_list"; // Pilgy 문서 리스트
+                userListField = "Rpilgy_list";
                 break;
             case "test":
                 DocumentsModel = TestDocuments;
-                userListField = "Rtest_list"; // Test 문서 리스트
+                userListField = "Rtest_list";
                 break;
             case "honey":
                 DocumentsModel = HoneyDocuments;
-                userListField = "Rhoney_list"; // Honey 문서 리스트
+                userListField = "Rhoney_list";
                 break;
             default:
                 return res.status(400).send("Invalid document type");
         }
 
-        // 새로운 문서 생성 (구매 포인트 포함)
+        // 새로운 문서 생성
         const doc = new DocumentsModel({
             _id: new mongoose.Types.ObjectId(),
             title: req.body.title,
             content: req.body.content,
-            img_list: linkList,
+            img_list: linkList, // 이미지가 없으면 빈 배열로 처리됨
             now_category_list: req.body.board,
             time: req.body.time,
             Ruser: received._id,
             user_main: `${received.hakbu} ${req.body.decryptedUserData.name}`,
             user_img: req.body.decryptedUserData.profile_img,
-            preview_img,
+            preview_img, // 미리보기 이미지가 없으면 빈 값으로 설정됨
             views: 0,
             likes: 0,
             scrap: 0,
@@ -106,16 +106,14 @@ const handleTipsCreate = async (req, res) => {
 
         // 문서 저장 및 사용자 문서 리스트 업데이트
         await doc.save();
-        // 사용자 문서 리스트 업데이트 (type에 따라 다르게 추가)
-        const lastCheck = await UserDocs.findOneAndUpdate(
+        await UserDocs.findOneAndUpdate(
             { _id: received.Rdoc },
             {
-                $inc: { written: 1 }, // 작성 문서 수 증가
-                $push: { [userListField]: doc._id }, // 유형에 따른 리스트에 추가 (Rpilgy_list, Rtest_list, Rhoney_list)
+                $inc: { written: 1 },
+                $push: { [userListField]: doc._id },
             },
             { new: true }
         );
-        console.log("UserDocs updated:", lastCheck);
 
         res.status(200).json({ message: "Success" });
     } catch (e) {

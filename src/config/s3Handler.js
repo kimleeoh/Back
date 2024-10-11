@@ -153,7 +153,7 @@ const s3Handler = (() => {
             );
         },
         put: async (fileDestination, img) => {
-            const mimeType = img.type || "image/jpeg"; // MIME 타입이 없으면 기본적으로 image/jpeg 사용
+            const mimeType = img.mimetype || "image/jpeg";  // MIME 타입이 없으면 기본적으로 image/jpeg 사용
             const extension = mimeType.split("/")[1]; // 확장자 추출 (예: "png")
 
             const u = new Upload({
@@ -161,7 +161,7 @@ const s3Handler = (() => {
                 params: {
                     Bucket: bucketName,
                     Key: `${fileDestination}/${currentFileNums[fileDestination]}.${extension}`, // 확장자를 동적으로 설정
-                    Body: img,
+                    Body: img, 
                 },
             });
             // await S3client.putObject({
