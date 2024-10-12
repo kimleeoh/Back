@@ -7,7 +7,6 @@ import {
 } from "../../../schemas/docs.js"; // 스키마 가져오기
 import { UserDocs } from "../../../schemas/userRelated.js"; // UserDocs 스키마
 import s3Handler from "../../../config/s3Handler.js"; // S3 파일 처리
-import redisHandler from "../../../config/redisHandler.js"; // S3 파일 처리
 import redisHandler from "../../../config/redisHandler.js";
 import mainInquiry from "../../../functions/mainInquiry.js"; // 사용자 정보 처리
 
