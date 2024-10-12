@@ -85,16 +85,54 @@ const loadBoardWithFilter = async (req, res) => {
 
         const uniqueSubjectIds = [...new Set(allSubjectIds)]; // 중복 제거
 
-        // CommonCategory에서 해당 과목 ID의 Rtest_list, Rpilgy_list, Rhoney_list 가져오기
+        // uniqueSubjectIds가 null 또는 빈 배열일 경우 처리
+        if (!uniqueSubjectIds || uniqueSubjectIds.length === 0) {
+            return res
+                .status(200)
+                .json({ message: "uniqueSubjectIds is null or empty" });
+        }
+
+        // 필터에 맞게 조회할 필드 설정
+        let selectFields = "";
+        if (filters.includes("test")) selectFields += " Rtest_list";
+        if (filters.includes("pilgy")) selectFields += " Rpilgy_list";
+        if (filters.includes("honey")) selectFields += " Rhoney_list";
+
+        // 필터에 맞춰 해당 리스트만 조회
         const categories = await CommonCategory.find({
             _id: { $in: uniqueSubjectIds },
         })
-            .select("Rtest_list Rpilgy_list Rhoney_list")
+            .select(selectFields.trim()) // 필요한 필드만 조회
             .lean();
 
         if (!categories || categories.length === 0) {
             return res.status(404).json({ message: "Category not found" });
         }
+
+        // 모든 카테고리의 목록이 필터에 맞는 값에 대해 null인지 확인
+        const emptyLists = categories.every((category) => {
+            if (filters.includes("test") && !category.Rtest_list) return true;
+            if (filters.includes("pilgy") && !category.Rpilgy_list) return true;
+            if (filters.includes("honey") && !category.Rhoney_list) return true;
+            return false;
+        });
+
+        if (emptyLists) {
+            return res
+                .status(200)
+                .json({ message: "Filtered category lists are null" });
+        }
+
+        // // CommonCategory에서 해당 과목 ID의 Rtest_list, Rpilgy_list, Rhoney_list 가져오기
+        // const categories = await CommonCategory.find({
+        //     _id: { $in: uniqueSubjectIds },
+        // })
+        //     .select("Rtest_list Rpilgy_list Rhoney_list")
+        //     .lean();
+
+        // if (!categories || categories.length === 0) {
+        //     return res.status(404).json({ message: "Category not found" });
+        // }
 
         let documents = [];
 
