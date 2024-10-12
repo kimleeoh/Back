@@ -17,7 +17,7 @@ const handleUserProfile = async (req, res) => {
         const decryptedSessionId = String(req.body.decryptedSessionId);
 
         // paramList 및 Redis에서 가져올 필드 설정
-        const paramList = ["_id", "name", "intro", "level", "Rdoc"];
+        const paramList = ["_id", "name", "intro", "level", "Rdoc", "hakbu"];
         console.log("Requested params:", paramList);
         
         let userInfo;
@@ -64,6 +64,7 @@ const handleUserProfile = async (req, res) => {
         // 3. 클라이언트에 전달할 데이터
         res.status(200).json({
             name,
+            hakbu,
             level,
             intro,
             tipsCount,
