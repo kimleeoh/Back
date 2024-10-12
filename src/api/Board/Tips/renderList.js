@@ -163,7 +163,7 @@ const getDocumentsByCategory = async (
             .select(
                 "_id title preview_img content Ruser time views likes point"
             )
-            .populate({ path: "Ruser", model: User, select: "name" })
+            .populate({ path: "Ruser", model: User, select: "name hakbu" })
             .lean();
     } else if (categoryType === "pilgy") {
         docList = categoryData.Rpilgy_list.slice().reverse().slice(0, limit); 
@@ -171,7 +171,7 @@ const getDocumentsByCategory = async (
             .select(
                 "_id title preview_img content Ruser time views likes point"
             )
-            .populate({ path: "Ruser", model: User, select: "name" })
+            .populate({ path: "Ruser", model: User, select: "name hakbu" })
             .lean();
     } else if (categoryType === "honey") {
         docList = categoryData.Rhoney_list.slice().reverse().slice(0, limit); 
@@ -179,7 +179,7 @@ const getDocumentsByCategory = async (
             .select(
                 "_id title preview_img content Ruser time views likes point"
             )
-            .populate({ path: "Ruser", model: User, select: "name" })
+            .populate({ path: "Ruser", model: User, select: "name hakbu" })
             .lean();
     }
 

@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import { CommonCategory } from "../../../schemas/category.js"; // 경로는 환경에 맞게 설정하세요
 import { QnaDocuments } from "../../../schemas/docs.js"; // 경로는 환경에 맞게 설정하세요
 
-//{type:'many'/'one', id:[]}
 const qnaBoard = async (req, res) => {
 
   try {
