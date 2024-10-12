@@ -48,6 +48,35 @@ const logoutMiddleware = async (req, res, next) => {
     next();
 };
 
+// const myMiddleware = async (req, res, next) => {
+//     const token = req.cookies.token; // 쿠키에서 JWT 토큰을 가져옴
+//     if (!token) return res.status(401).send("No token provided");
+
+//     jwt.verify(token, publicKey, async (err, decoded) => {
+//         if (err) {
+//             console.error("JWT verification error:", err);
+//             return res.status(403).send("Invalid token");
+//         }
+
+//         const sessionId_D = crypto
+//             .publicDecrypt(publicKey, Buffer.from(decoded.sessionId, "base64"))
+//             .toString("utf-8");
+
+//         const redisClient = redisHandler.getRedisClient();
+//         const sessionExists = await redisClient.exists(sessionId_D);
+
+//         if (!sessionExists) {
+//             return res
+//                 .status(403)
+//                 .send("Invalid session. Please log in again.");
+//         }
+
+//         req.body.decryptedSessionId = sessionId_D; // 세션 ID 설정
+//         req.body.decryptedUserData = decoded.userData; // 유저 데이터 설정
+
+//         next();
+//     });
+// };
 const myMiddleware = async(req, res, next) => {
     
     const token = req.cookies.token;
@@ -56,7 +85,7 @@ const myMiddleware = async(req, res, next) => {
     jwt.verify(token, publicKey, async (err, decoded) => {
         if (err) {
             console.log(err);
-            return res.sendStatus(403);
+            return res.sendStatus(403).send("No token provided");;
         }
         const sessionId = decoded.sessionId;
         let sensitiveSessionID = decoded.sensitiveSessionID;
