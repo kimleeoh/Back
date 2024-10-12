@@ -22,7 +22,8 @@ import { handleQnACreate } from '../api/Board/QnA/createPage.js'
 import { loadBoardWithFilter } from '../api/Board/Tips/renderList.js'
 import { handlePointRead } from '../api/User/point.js'
 import { handleTipsCreate } from "../api/Board/Tips/createPage.js";
-// import { handleUserProfile, updateUserProfile } from '../api/User/myPage.js'
+import { handleUserProfile, updateUserProfile } from '../api/User/myPage.js'
+
 const router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() }); 
 
@@ -61,9 +62,9 @@ router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTip
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
 
 
-// // 마이페이지 관련 라우터
-// router.get('/mypage', myMiddleware, handleUserProfile)
-// router.post('/update-profile', updateUserProfile)
+// 마이페이지 관련 라우터
+router.get('/mypage/profile', myMiddleware, handleUserProfile); // 마이페이지 기본값 조회
+router.post('/update-profile', myMiddleware, updateUserProfile); // 마이페이지 수정
 
 
 export default router
