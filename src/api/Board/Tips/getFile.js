@@ -5,7 +5,7 @@ import mainInquiry from "../../../functions/mainInquiry.js"; // Redis 사용자 
 const checkPurchaseAndGetFiles = async (req, res) => {
     try {
         const { documentId, type } = req.params; // 문서 ID와 문서 타입
-        const { decryptedSessionId } = req.body; // 세션 ID
+        const { decryptedSessionId } = req; // 세션 ID
 
         // Redis에서 사용자 정보 조회
         const redisClient = mainInquiry.getRedisClient();
@@ -43,7 +43,7 @@ const checkPurchaseAndGetFiles = async (req, res) => {
 const downloadFileWithCheck = async (req, res) => {
     try {
         const { documentId, type } = req.params; // 문서 ID와 문서 타입
-        const { decryptedSessionId } = req.body; // 세션 ID
+        const { decryptedSessionId } = req; // 세션 ID
         const downloadCost = req.body.purchase_price; // 포인트 차감 비용 (예시)
 
         // Redis에서 사용자 정보 조회
