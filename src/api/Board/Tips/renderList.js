@@ -10,6 +10,8 @@ import mainInquiry from "../../../functions/mainInquiry.js";
 import { User } from "../../../schemas/user.js";
 import { CustomBoardView } from "../../../schemas/userRelated.js";
 
+
+
 const loadBoardWithFilter = async (req, res) => {
     try {
         let { filters } = req.body;
@@ -93,12 +95,12 @@ const loadBoardWithFilter = async (req, res) => {
         }
 
         // 필터에 맞게 조회할 필드 설정
-        let selectFields = "";
+        let selectFields = "category_name"; // category_name 추가
         if (filters.includes("test")) selectFields += " Rtest_list";
         if (filters.includes("pilgy")) selectFields += " Rpilgy_list";
         if (filters.includes("honey")) selectFields += " Rhoney_list";
 
-        // 필터에 맞춰 해당 리스트만 조회
+        // 필터에 맞춰 해당 리스트만 조회, category_name도 추가
         const categories = await CommonCategory.find({
             _id: { $in: uniqueSubjectIds },
         })
@@ -122,21 +124,9 @@ const loadBoardWithFilter = async (req, res) => {
                 .status(200)
                 .json({ message: "Filtered category lists are null" });
         }
-
-        // // CommonCategory에서 해당 과목 ID의 Rtest_list, Rpilgy_list, Rhoney_list 가져오기
-        // const categories = await CommonCategory.find({
-        //     _id: { $in: uniqueSubjectIds },
-        // })
-        //     .select("Rtest_list Rpilgy_list Rhoney_list")
-        //     .lean();
-
-        // if (!categories || categories.length === 0) {
-        //     return res.status(404).json({ message: "Category not found" });
-        // }
-
         let documents = [];
 
-        // 필터 값에 따른 카테고리 처리 (test, pilgy, honey를 필터로 사용)
+        // 필터 값에 따른 카테고리 처리 및 category_name, category_type 추가
         for (const filter of filters) {
             if (filter === "test") {
                 for (const category of categories) {
@@ -145,6 +135,11 @@ const loadBoardWithFilter = async (req, res) => {
                         category,
                         filters.length
                     );
+                    // 각 문서에 category_name, category_type 추가
+                    docsTest.forEach((doc) => {
+                        doc.category_name = category.category_name;
+                        doc.category_type = "test";
+                    });
                     documents.push(...docsTest);
                 }
             } else if (filter === "pilgy") {
@@ -154,6 +149,11 @@ const loadBoardWithFilter = async (req, res) => {
                         category,
                         filters.length
                     );
+                    // 각 문서에 category_name, category_type 추가
+                    docsPilgy.forEach((doc) => {
+                        doc.category_name = category.category_name;
+                        doc.category_type = "pilgy";
+                    });
                     documents.push(...docsPilgy);
                 }
             } else if (filter === "honey") {
@@ -163,6 +163,11 @@ const loadBoardWithFilter = async (req, res) => {
                         category,
                         filters.length
                     );
+                    // 각 문서에 category_name, category_type 추가
+                    docsHoney.forEach((doc) => {
+                        doc.category_name = category.category_name;
+                        doc.category_type = "honey";
+                    });
                     documents.push(...docsHoney);
                 }
             }
@@ -199,7 +204,7 @@ const getDocumentsByCategory = async (
         docList = categoryData.Rtest_list.slice().reverse().slice(0, limit); 
         documents = await TestDocuments.find({ _id: { $in: docList } })
             .select(
-                "_id title preview_img content Ruser time views likes purchase_price"
+                "_id title preview_img Ruser time views likes purchase_price"
             )
             .populate({ path: "Ruser", model: User, select: "name hakbu" })
             .lean();
@@ -207,7 +212,7 @@ const getDocumentsByCategory = async (
         docList = categoryData.Rpilgy_list.slice().reverse().slice(0, limit); 
         documents = await PilgyDocuments.find({ _id: { $in: docList } })
             .select(
-                "_id title preview_img content Ruser time views likes purchase_price"
+                "_id title preview_img Ruser time views likes purchase_price"
             )
             .populate({ path: "Ruser", model: User, select: "name hakbu" })
             .lean();
@@ -215,7 +220,7 @@ const getDocumentsByCategory = async (
         docList = categoryData.Rhoney_list.slice().reverse().slice(0, limit); 
         documents = await HoneyDocuments.find({ _id: { $in: docList } })
             .select(
-                "_id title preview_img content Ruser time views likes purchase_price"
+                "_id title preview_img Ruser time views likes purchase_price"
             )
             .populate({ path: "Ruser", model: User, select: "name hakbu" })
             .lean();
