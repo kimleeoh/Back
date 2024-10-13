@@ -204,7 +204,7 @@ const getDocumentsByCategory = async (
         docList = categoryData.Rtest_list.slice().reverse().slice(0, limit); 
         documents = await TestDocuments.find({ _id: { $in: docList } })
             .select(
-                "_id title preview_img Ruser time views likes purchase_price"
+                "_id title preview_img target Ruser time views likes purchase_price"
             )
             .populate({ path: "Ruser", model: User, select: "name hakbu" })
             .lean();
@@ -212,7 +212,7 @@ const getDocumentsByCategory = async (
         docList = categoryData.Rpilgy_list.slice().reverse().slice(0, limit); 
         documents = await PilgyDocuments.find({ _id: { $in: docList } })
             .select(
-                "_id title preview_img Ruser time views likes purchase_price"
+                "_id title preview_img target Ruser time views likes purchase_price"
             )
             .populate({ path: "Ruser", model: User, select: "name hakbu" })
             .lean();
@@ -220,7 +220,7 @@ const getDocumentsByCategory = async (
         docList = categoryData.Rhoney_list.slice().reverse().slice(0, limit); 
         documents = await HoneyDocuments.find({ _id: { $in: docList } })
             .select(
-                "_id title preview_img Ruser time views likes purchase_price"
+                "_id title preview_img target Ruser time views likes purchase_price"
             )
             .populate({ path: "Ruser", model: User, select: "name hakbu" })
             .lean();
