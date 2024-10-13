@@ -1,96 +1,125 @@
-// import { User } from "../../schemas/user.js"; // 유저 스키마
-// import { UserDocs } from "../../schemas/userRelated.js"; // 유저 스키마
-// // import {}
-// import redisHandler from "../../config/redisHandler.js"; // Redis 핸들러
+import { User } from "../../schemas/user.js"; // 유저 스키마
+import { UserDocs } from "../../schemas/userRelated.js"; // 유저 스키마
+// import {}
+import redisHandler from "../../config/redisHandler.js"; // Redis 핸들러
+import mainInquiry from "../../functions/mainInquiry.js";
 
-// // 1. 미들웨어에서 decodedSessionId를 받아서 
-// // 2. isnotRedis가 true일때 redisHandler.getRedisClient()로 클라이언트 가져오기
-// // 3. mainInquiry.Read로 유저 정보 가져오기
 
-// // GET /api/mypage
-// const handleUserProfile = async (req, res) => {
-//     try {
-//         // req.user가 제대로 존재하는지 먼저 확인
-//         if (!req.body.user) {
-//             console.log("req.user is undefined:", req.user);
-//             return res.status(400).json({ message: "유저 정보가 없습니다." });
-//         }
+const handleUserProfile = async (req, res) => {
+    try {
+        if (mainInquiry.isNotRedis()) {
+            const redisClient = redisHandler.getRedisClient();
+            mainInquiry.inputRedisClient(redisClient);
+        }
 
-//         // 1. User 스키마에서 name, exp, intro 가져오기
-//         const user = await User.findById(req.body.user.id);
-//         console.log("Fetched user:", user);
-//         if (!user) {
-//             return res
-//                 .status(404)
-//                 .json({ message: "유저를 찾을 수 없습니다." });
-//         }
+        const decryptedSessionId = String(req.body.decryptedSessionId);
+        const paramList = ["_id", "name", "intro", "level", "Rdoc", "hakbu"];
+        console.log("Requested params:", paramList);
 
-//         const name = user.name || "Unknown"; // 기본값 설정
-//         const exp = user.exp || 0; // 기본값 0 설정
-//         const intro = user.intro || "소개가 없습니다"; // 기본값 설정
+        let userInfo;
+        try {
+            userInfo = await mainInquiry.read(paramList, decryptedSessionId);
+            console.log("User info from Redis:", userInfo);
+        } catch (error) {
+            return res.status(500).json({
+                message: "Failed to retrieve user information from Redis",
+            });
+        }
 
-//         // 2. UserDocs 스키마에서 Rpilgy_list, Rhoney_list, Rtest_list, Rreply_list 가져오기
-//         const userDocs = await UserDocs.findOne({ _id: req.user.id });
-//         console.log("Fetched userDocs:", userDocs);
-//         if (!userDocs) {
-//             return res
-//                 .status(404)
-//                 .json({ message: "유저의 문서를 찾을 수 없습니다." });
-//         }
+        // Redis에서 가져온 데이터 중 값이 없는 경우 기존 값을 유지
+        const level =
+            userInfo.level !== undefined
+                ? userInfo.level
+                : previousUserInfo.level;
+        const Rdoc =
+            userInfo.Rdoc !== undefined ? userInfo.Rdoc : previousUserInfo.Rdoc;
+        const hakbu =
+            userInfo.hakbu !== undefined
+                ? userInfo.hakbu
+                : previousUserInfo.hakbu;
 
-//         const tipsCount =
-//             userDocs.Rpilgy_list.length +
-//             userDocs.Rhoney_list.length +
-//             userDocs.Rtest_list.length;
+        const name = userInfo.name || "Unknown";
+        const intro = userInfo.intro || "소개가 없습니다";
 
-//         const replyCount = userDocs.Rreply_list.length;
+        // UserDocs 조회
+        const userDocs = await UserDocs.findOne({ _id: Rdoc });
+        if (!userDocs) {
+            return res
+                .status(404)
+                .json({ message: "유저의 문서를 찾을 수 없습니다." });
+        }
 
-//         // 3. 클라이언트에 전달할 데이터
-//         res.status(200).json({
-//             name,
-//             exp,
-//             intro,
-//             tipsCount,
-//             replyCount,
-//         });
-//     } catch (error) {
-//         console.error("Error fetching user profile:", error);
-//         res.status(500).json({ message: "서버 오류가 발생했습니다." });
-//     }
-// };
+        const tipsCount =
+            userDocs.Rpilgy_list.length +
+            userDocs.Rhoney_list.length +
+            userDocs.Rtest_list.length;
+        const replyCount = userDocs.Rreply_list.length;
 
-// // 회원 정보 수정 비즈니스 로직
-// const updateUserProfile = async (sessionId, updatedData) => {
-//     try {
-//         // Redis에서 세션 정보로 유저 정보 가져오기
-//         const redisUser = await redisHandler.get(sessionId);
+        res.status(200).json({
+            name,
+            hakbu,
+            level,
+            intro,
+            tipsCount,
+            replyCount,
+        });
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    }
+};
 
-//         if (!redisUser) {
-//             throw new Error("Invalid session");
-//         }
+// 사용자 프로필 수정
+const updateUserProfile = async (req, res) => {
+    const { decryptedSessionId, name, intro } = req.body;
 
-//         // MongoDB에서 유저 _id 가져오기
-//         const userId = redisUser._id;
+    if (!decryptedSessionId) {
+        return res.status(400).json({ message: "세션 ID가 없습니다." });
+    }
 
-//         // MongoDB에서 유저 정보 업데이트
-//         const updatedUser = await User.findByIdAndUpdate(
-//             userId,
-//             { $set: updatedData },
-//             { new: true } // 업데이트 후 변경된 데이터 반환
-//         );
+    try {
+        // Redis 클라이언트 설정
+        if (mainInquiry.isNotRedis()) {
+            const redisClient = redisHandler.getRedisClient();
+            mainInquiry.inputRedisClient(redisClient);
+        }
 
-//         if (!updatedUser) {
-//             throw new Error("Failed to update user information");
-//         }
+        // Redis에서 사용자 정보 가져오기
+        const userInfo = await mainInquiry.read(["_id"], decryptedSessionId);
+        if (!userInfo || !userInfo._id) {
+            return res.status(400).json({ message: "유효하지 않은 세션입니다." });
+        }
 
-//         // Redis 캐시에 업데이트된 유저 정보 저장
-//         await redisHandler.set(sessionId, updatedUser);
+        const userId = userInfo._id;
+        
+        // MongoDB에서 사용자 정보 업데이트
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: { name, intro } }, // name과 intro 업데이트
+            { new: true }
+        );
 
-//         return updatedUser;
-//     } catch (error) {
-//         console.error("Error updating user profile:", error);
-//         throw error;
-//     }
-// };
+        if (!updatedUser) {
+            return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+        }
 
-// export { handleUserProfile, updateUserProfile };
+        // // Redis 캐시에 업데이트된 정보 반영
+        // await redisHandler.set(decryptedSessionId, { ...userInfo, name, intro });
+
+        // res.status(200).json({
+        //     message: "프로필이 성공적으로 업데이트되었습니다.",
+        //     user: updatedUser,
+        // });
+        res.status(200).json({
+            message: "프로필이 성공적으로 업데이트되었습니다.",
+            user: updatedUser,
+        });
+
+    } catch (error) {
+        console.error("Error updating user profile:", error);
+        res.status(500).json({ message: "프로필 업데이트 중 오류가 발생했습니다." });
+    }
+};
+
+
+export { handleUserProfile, updateUserProfile };
