@@ -62,6 +62,7 @@ const handleUserProfile = async (req, res) => {
             intro,
             tipsCount,
             replyCount,
+            profile: req.decryptedUserData.profile,
         });
     } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -71,7 +72,8 @@ const handleUserProfile = async (req, res) => {
 
 // 사용자 프로필 수정
 const updateUserProfile = async (req, res) => {
-    const { decryptedSessionId, name, intro } = req.body;
+    const { name, intro } = req.body;
+    const decryptedSessionId = String(req.decryptedSessionId);
 
     if (!decryptedSessionId) {
         return res.status(400).json({ message: "세션 ID가 없습니다." });
