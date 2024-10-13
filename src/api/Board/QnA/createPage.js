@@ -5,6 +5,7 @@ import mainInquiry from '../../../functions/mainInquiry.js';
 import redisHandler from '../../../config/redisHandler.js';
 import s3Handler from '../../../config/s3Handler.js';
 import { UserDocs } from '../../../schemas/userRelated.js';
+import fs from 'fs';
 
 //decryptedSessionId: sessionId_D, 이건 해독된 세션아이디
 //decryptedUserData: decoded.userData -> 이건 이름이랑 프로필 사진만 가지고 있음
@@ -19,12 +20,16 @@ const handleQnACreate = async(req, res)=>{
             const a=redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(a);
         }
-    
-        const received = await mainInquiry.read(['_id','hakbu','POINT','Rdoc'], req.body.decryptedSessionId);
+        console.log("Decrypted Session ID in handleQnACreate:",req.decryptedSessionId);
+        const received = await mainInquiry.read(['_id','hakbu','POINT','Rdoc'], req.decryptedSessionId);
         console.log(received);
         const linkList = [];
-        for (const a in req.body.images){
-            linkList.push(await s3Handler.put(a,'/Q'));
+        console.log(req.files);
+        for (const a of req.files){
+            const fileStream = fs.createReadStream(a.path);
+            const imgLink = await s3Handler.put('Q', fileStream)
+            linkList.push(imgLink);
+            fs.unlinkSync(a.path)
         }
         const objId = new mongoose.Types.ObjectId();
         const nc = req.body.board;
@@ -39,8 +44,8 @@ const handleQnACreate = async(req, res)=>{
         data.scrap = 0;
         data.warn = 0;
         data.Ruser = received._id;
-        data.user_main = `${received.hakbu} ${req.body.decryptedUserData.name}`;
-        data.user_img = req.body.decryptedUserData.profile_img;
+        data.user_main = `${received.hakbu} ${req.decryptedUserData.name}`;
+        data.user_img = req.decryptedUserData.profile_img;
         data.preview_content = req.body.content.slice(0,100);
         data.picked_index = 0;
         data.answer_list = [];  
@@ -48,10 +53,10 @@ const handleQnACreate = async(req, res)=>{
         if(data.restricted_type==true){
             const p = received.POINT - req.body.point;
             if(p<0) res.status(400).send('Not enough points');
-            else await mainInquiry.write({'POINT':p},req.body.decryptedSessionId);
+            else await mainInquiry.write({'POINT':p},req.decryptedSessionId);
         }
-        delete req.body.decryptedSessionId;
-        delete req.body.decryptedUserData;
+        delete req.decryptedSessionId;
+        delete req.decryptedUserData;
         console.log(data);
         await data.save();
         const i = new mongoose.Types.ObjectId(received.Rdoc);

@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import fs from "fs";
 import crypto from "crypto";
 import redisHandler from "./redisHandler.js";
-import {Mutex} from "async-mutex";
+//import {Mutex} from "async-mutex";
 
 const privateKeyPem = fs.readFileSync(
     "./src/config/afkiller_private_key.pem",
@@ -24,7 +24,7 @@ const publicKey = crypto.createPublicKey({
     type: "pkcs8",
 });
 
-const mutex = new Mutex();
+//const mutex = new Mutex();
 
 const logoutMiddleware = async (req, res, next) => {
     const token = req.cookies.token;
@@ -42,7 +42,7 @@ const logoutMiddleware = async (req, res, next) => {
         const sessionId_D = crypto
             .publicDecrypt(publicKey, Buffer.from(sessionId, "base64"))
             .toString("utf-8");
-        req.body.decryptedSessionId = sessionId_D;
+        req.decryptedSessionId = sessionId_D;
         req.body.decryptedSensitiveId = sensitiveSessionID_D;});
 
     next();
@@ -71,8 +71,8 @@ const logoutMiddleware = async (req, res, next) => {
 //                 .send("Invalid session. Please log in again.");
 //         }
 
-//         req.body.decryptedSessionId = sessionId_D; // 세션 ID 설정
-//         req.body.decryptedUserData = decoded.userData; // 유저 데이터 설정
+//         req.decryptedSessionId = sessionId_D; // 세션 ID 설정
+//         req.decryptedUserData = decoded.userData; // 유저 데이터 설정
 
 //         next();
 //     });
@@ -85,7 +85,7 @@ const myMiddleware = async(req, res, next) => {
     jwt.verify(token, publicKey, async (err, decoded) => {
         if (err) {
             console.log(err);
-            return res.sendStatus(403).send("No token provided");;
+            return res.sendStatus(403).send("No token provided");
         }
         const sessionId = decoded.sessionId;
         let sensitiveSessionID = decoded.sensitiveSessionID;
@@ -95,6 +95,7 @@ const myMiddleware = async(req, res, next) => {
         const sessionId_D = crypto
             .publicDecrypt(publicKey, Buffer.from(sessionId, "base64"))
             .toString("utf-8");
+        console.log(sessionId_D);
 
         const redisClient = redisHandler.getRedisClient();
         try {
@@ -126,6 +127,7 @@ const myMiddleware = async(req, res, next) => {
 
         // Reset the expiration time of the session data in Redis to 1 hour
         await redisClient.expire(sessionId_D, 3600);
+        console.log("Session ID:", sessionId_D);
         const newSensitiveSessionID = crypto.randomBytes(16);
         await redisClient.sAdd("refreshToken", newSensitiveSessionID.toString("hex"));
         sensitiveSessionID = crypto
@@ -147,9 +149,10 @@ const myMiddleware = async(req, res, next) => {
             maxAge: 3600000,
         });
         // 유저 캐시정보담겨있는 세션아이디
-        req.body.decryptedSessionId = sessionId_D;
+        req.decryptedSessionId = sessionId_D;
+        console.log("Session ID:", req.decryptedSessionId);
         // 자주 쓰는 정보(덜민감한)
-        req.body.decryptedUserData = decoded.userData;
+        req.decryptedUserData = decoded.userData;
 
         next();
     });

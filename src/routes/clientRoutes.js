@@ -25,7 +25,7 @@ import { handleTipsCreate } from "../api/Board/Tips/createPage.js";
 import { handleUserProfile, updateUserProfile } from '../api/User/myPage.js'
 
 const router = express.Router()
-const upload = multer({ storage: multer.memoryStorage() }); 
+const upload = multer({ dest: 'uploads/' }); 
 
 // Dummy 관련 라우터
 router.get('/dummy/testqna', getQnaData)
@@ -52,7 +52,7 @@ router.post('/findPassword/emailAuthNum', handleAuthFindPassword)
 router.post('/findPassword/changePassword', handleResetPassword)
 
 // QnA 관련 라우터
-router.post('/qna/create/post', myMiddleware, handleQnACreate)
+router.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate)
 
 // tips 관련 라우터
 router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링

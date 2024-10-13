@@ -27,7 +27,7 @@ const loadBoardWithFilter = async (req, res) => {
             mainInquiry.inputRedisClient(redisClient);
         }
 
-        const decryptedSessionId = String(req.body.decryptedSessionId);
+        const decryptedSessionId = String(req.decryptedSessionId);
 
         // paramList 및 Redis에서 가져올 필드 설정
         const paramList = ["_id", "Rcustom_brd"];

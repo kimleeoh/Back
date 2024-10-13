@@ -12,7 +12,7 @@ const handleUserProfile = async (req, res) => {
             mainInquiry.inputRedisClient(redisClient);
         }
 
-        const decryptedSessionId = String(req.body.decryptedSessionId);
+        const decryptedSessionId = String(req.decryptedSessionId);
         const paramList = ["_id", "name", "intro", "level", "Rdoc", "hakbu"];
         console.log("Requested params:", paramList);
 

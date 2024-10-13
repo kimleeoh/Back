@@ -170,10 +170,10 @@ const handleLogout = async (req, res) => {
     try {
         const redisClient = redisHandler.getRedisClient();
 
-        await redisClient.del(req.body.decryptedSessionId);
+        await redisClient.del(req.decryptedSessionId);
         await redisClient.sRem("refreshToken", req.body.decryptedSensitiveId);
 
-        delete req.body.decryptedSessionId, req.body.decryptedUserData;
+        delete req.decryptedSessionId, req.decryptedUserData;
 
         res.clearCookie("token");
         res.status(200).json({ message: "Logged out successfully" });

@@ -10,11 +10,12 @@ import s3Handler from "../../../config/s3Handler.js"; // S3 파일 처리
 import redisHandler from "../../../config/redisHandler.js"; // S3 파일 처리
 import mainInquiry from "../../../functions/mainInquiry.js"; // 사용자 정보 처리
 import { CommonCategory } from "../../../schemas/category.js";
+import fs from "fs";
 
 const handleTipsCreate = async (req, res) => {
     try {
-        console.log("Session ID from client:", req.body.decryptedSessionId);
-        if (!req.body.decryptedSessionId) {
+        console.log("Session ID from client:", req.decryptedSessionId);
+        if (!req.decryptedSessionId) {
             return res.status(400).send("세션 ID가 없습니다.");
         }
 
@@ -30,11 +31,11 @@ const handleTipsCreate = async (req, res) => {
 
         const received = await mainInquiry.read(
             ["_id", "hakbu", "POINT", "Rdoc"],
-            req.body.decryptedSessionId
+            req.decryptedSessionId
         );
 
         if (!received) {
-            console.log("Invalid session ID:", req.body.decryptedSessionId);
+            console.log("Invalid session ID:", req.decryptedSessionId);
             return res
                 .status(400)
                 .send("Error: No data found in Redis for the given session ID");
@@ -42,12 +43,15 @@ const handleTipsCreate = async (req, res) => {
 
         const linkList = [];
         let preview_img = "";
+        
         if (req.files && req.files.length > 0) {
-            for (let i = 0; i < req.files.length; i++) {
+            for (const file of req.files) {
+                const fileStream = fs.createReadStream(file.path);
                 const imgLink = await s3Handler.put(
-                    "/files",
-                    req.files[i].buffer
+                    "files",
+                    fileStream
                 );
+                fs.unlinkSync(file.path)
                 linkList.push(imgLink);
                 if (i === 0) preview_img = imgLink;
             }
@@ -89,8 +93,8 @@ const handleTipsCreate = async (req, res) => {
             now_category_list: req.body.board, // 문서가 속한 카테고리
             time: req.body.time,
             Ruser: received._id,
-            user_main: `${received.hakbu} ${req.body.decryptedUserData.name}`,
-            user_img: req.body.decryptedUserData.profile_img,
+            user_main: `${received.hakbu} ${req.decryptedUserData.name}`,
+            user_img: req.decryptedUserData.profile_img,
             preview_img,
             views: 0,
             likes: 0,
@@ -101,7 +105,7 @@ const handleTipsCreate = async (req, res) => {
 
         await mainInquiry.write(
             { POINT: received.POINT + 100 },
-            req.body.decryptedSessionId
+            req.decryptedSessionId
         );
 
         // 문서 저장 및 사용자 문서 리스트 업데이트
