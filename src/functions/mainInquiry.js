@@ -89,15 +89,12 @@ const mainInquiry = (() => {
             // MongoDB에서 사용자 정보 업데이트
             if (Object.keys(updateObject).length > 0) {
                 try {
-                    // MongoDB에서 사용자 정보 업데이트
-                    await User.updateOne(
+                    // MongoDB에서 사용자 정보 업데이트 및 새 정보 반환
+                    const updatedUserInfo = await User.updateOne(
                         { _id: userInfo._id }, // userInfo의 _id를 사용하여 업데이트
                         updateObject,
                         { new: true }
                     );
-
-                    // 사용자 정보가 업데이트된 후 다시 가져옴
-                    const updatedUserInfo = await User.findById(userInfo._id);
 
                     // 업데이트된 사용자 정보를 Redis에 다시 저장
                     await redisClient.set(
