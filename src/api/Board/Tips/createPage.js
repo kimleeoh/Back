@@ -84,6 +84,7 @@ const handleTipsCreate = async (req, res) => {
             _id: new mongoose.Types.ObjectId(),
             title: req.body.title,
             content: req.body.content,
+            target: req.body.target,
             img_list: linkList,
             now_category_list: req.body.board, // 문서가 속한 카테고리
             time: req.body.time,

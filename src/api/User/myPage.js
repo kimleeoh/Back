@@ -5,21 +5,17 @@ import redisHandler from "../../config/redisHandler.js"; // Redis 핸들러
 import mainInquiry from "../../functions/mainInquiry.js";
 
 
-// GET /api/mypage
 const handleUserProfile = async (req, res) => {
     try {
-        // Redis에서 사용자 정보를 가져옴
         if (mainInquiry.isNotRedis()) {
             const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
 
         const decryptedSessionId = String(req.body.decryptedSessionId);
-
-        // paramList 및 Redis에서 가져올 필드 설정
         const paramList = ["_id", "name", "intro", "level", "Rdoc", "hakbu"];
         console.log("Requested params:", paramList);
-        
+
         let userInfo;
         try {
             userInfo = await mainInquiry.read(paramList, decryptedSessionId);
@@ -30,42 +26,35 @@ const handleUserProfile = async (req, res) => {
             });
         }
 
-        // req.user가 제대로 존재하는지 먼저 확인
-        if (!decryptedSessionId && !userInformation) {
-            console.log("req.user is undefined:", req.user);
-            return res.status(400).json({ message: "유저 정보가 없습니다." });
-        }
+        // Redis에서 가져온 데이터 중 값이 없는 경우 기존 값을 유지
+        const level =
+            userInfo.level !== undefined
+                ? userInfo.level
+                : previousUserInfo.level;
+        const Rdoc =
+            userInfo.Rdoc !== undefined ? userInfo.Rdoc : previousUserInfo.Rdoc;
+        const hakbu =
+            userInfo.hakbu !== undefined
+                ? userInfo.hakbu
+                : previousUserInfo.hakbu;
 
-        // const name = userInfo.name || "Unknown"; // 기본값 설정
-        // const level = userInfo.exp || 0; // 기본값 0 설정
-        // const intro = userInfo.intro || "소개가 없습니다"; // 기본값 설정
-                const {
-                    name = "Unknown",
-                    intro = "소개가 없습니다",
-                    level = 0,
-                    hakbu = "",
-                } = userInfo;
+        const name = userInfo.name || "Unknown";
+        const intro = userInfo.intro || "소개가 없습니다";
 
-
-        // 2. UserDocs 스키마에서 Rpilgy_list, Rhoney_list, Rtest_list, Rreply_list 가져오기
-        const userDocs = await UserDocs.findOne({ _id: userInfo.Rdoc });
-        console.log("Fetched userDocs:", userDocs);
+        // UserDocs 조회
+        const userDocs = await UserDocs.findOne({ _id: Rdoc });
         if (!userDocs) {
             return res
                 .status(404)
                 .json({ message: "유저의 문서를 찾을 수 없습니다." });
         }
 
-        // 작성한 팁 수
         const tipsCount =
             userDocs.Rpilgy_list.length +
             userDocs.Rhoney_list.length +
             userDocs.Rtest_list.length;
-
-        // 작성한 답변 수
         const replyCount = userDocs.Rreply_list.length;
 
-        // 3. 클라이언트에 전달할 데이터
         res.status(200).json({
             name,
             hakbu,
@@ -114,17 +103,17 @@ const updateUserProfile = async (req, res) => {
             return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
         }
 
-        // Redis 캐시에 업데이트된 정보 반영
-        await redisHandler.set(decryptedSessionId, { ...userInfo, name, intro });
+        // // Redis 캐시에 업데이트된 정보 반영
+        // await redisHandler.set(decryptedSessionId, { ...userInfo, name, intro });
 
-        res.status(200).json({
-            message: "프로필이 성공적으로 업데이트되었습니다.",
-            user: updatedUser,
-        });
         // res.status(200).json({
         //     message: "프로필이 성공적으로 업데이트되었습니다.",
         //     user: updatedUser,
         // });
+        res.status(200).json({
+            message: "프로필이 성공적으로 업데이트되었습니다.",
+            user: updatedUser,
+        });
 
     } catch (error) {
         console.error("Error updating user profile:", error);
