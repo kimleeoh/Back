@@ -62,7 +62,7 @@ router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTip
 // 포인트 관련 라우터
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
 
-router.get('/warn', myMiddleware, handleWarn); // 경고 조회
+router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 
 
 // 마이페이지 관련 라우터
