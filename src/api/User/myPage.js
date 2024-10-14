@@ -70,7 +70,6 @@ const handleUserProfile = async (req, res) => {
     }
 };
 
-// 사용자 프로필 수정
 const updateUserProfile = async (req, res) => {
     const { name, intro } = req.body;
     const decryptedSessionId = String(req.decryptedSessionId);
@@ -87,41 +86,54 @@ const updateUserProfile = async (req, res) => {
         }
 
         // Redis에서 사용자 정보 가져오기
-        const userInfo = await mainInquiry.read(["_id"], decryptedSessionId);
+        const userInfo = await mainInquiry.read(
+            ["_id", "level", "Rdoc", "hakbu"],
+            decryptedSessionId
+        );
         if (!userInfo || !userInfo._id) {
-            return res.status(400).json({ message: "유효하지 않은 세션입니다." });
+            return res
+                .status(400)
+                .json({ message: "유효하지 않은 세션입니다." });
         }
 
         const userId = userInfo._id;
-        
+
         // MongoDB에서 사용자 정보 업데이트
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             { $set: { name, intro } }, // name과 intro 업데이트
             { new: true }
         );
-
+        
         if (!updatedUser) {
-            return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+            return res
+                .status(404)
+                .json({ message: "사용자를 찾을 수 없습니다." });
         }
 
-        // // Redis 캐시에 업데이트된 정보 반영
-        // await redisHandler.set(decryptedSessionId, { ...userInfo, name, intro });
+        // Redis 캐시에 업데이트된 정보 반영
+        await mainInquiry.write(
+            {
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                intro: updatedUser.intro,
+                level: updatedUser.level,
+                Rdoc: updatedUser.Rdoc,
+                hakbu: updatedUser.hakbu,
+            },
+            decryptedSessionId
+        );
 
-        // res.status(200).json({
-        //     message: "프로필이 성공적으로 업데이트되었습니다.",
-        //     user: updatedUser,
-        // });
         res.status(200).json({
             message: "프로필이 성공적으로 업데이트되었습니다.",
             user: updatedUser,
         });
-
     } catch (error) {
         console.error("Error updating user profile:", error);
-        res.status(500).json({ message: "프로필 업데이트 중 오류가 발생했습니다." });
+        res.status(500).json({
+            message: "프로필 업데이트 중 오류가 발생했습니다.",
+        });
     }
 };
-
 
 export { handleUserProfile, updateUserProfile };

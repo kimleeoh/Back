@@ -4,7 +4,7 @@ import mainInquiry from "../../../functions/mainInquiry.js"; // Redis 사용자 
 // 파일 구매전적 조회 및 Boolean 반환
 const checkPurchaseAndGetFiles = async (req, res) => {
     try {
-        const { documentId, type } = req.params; // 문서 ID와 문서 타입
+        const { documentId, categoryType } = req.params; // 문서 ID와 문서 타입
         const { decryptedSessionId } = req; // 세션 ID
 
         // Redis에서 사용자 정보 조회
