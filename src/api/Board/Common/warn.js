@@ -5,6 +5,7 @@ import { HoneyDocuments, PilgyDocuments, QnaAnswers, QnaDocuments, TestDocuments
 
 //{filters:'', warn_why: boolean[]}
 const handleWarn = async(req, res) => {    
+    console.log(req.body.id);
     if(mainInquiry.isNotRedis()){
         const redisClient = redisHandler.getRedisClient();
         mainInquiry.inputRedisClient(redisClient);
