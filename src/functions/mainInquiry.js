@@ -64,7 +64,6 @@ const mainInquiry = (() => {
         },
         write: async (paramObject, redisId) => {
             const stringfiedJSON = await redisClient.get(redisId); // Redis에서 기존 데이터 가져오기
-            console.log("Raw data from Redis:", stringfiedJSON); // 데이터 출력
             if (!stringfiedJSON) {
                 throw new Error(
                     "No data found in Redis for the given session ID"
@@ -89,10 +88,14 @@ const mainInquiry = (() => {
                     stringChunk[key] = paramObject[key];
                 } else if (key === "Rbadge_list") {
                     listChunk[key] = paramObject[key];
-                } else if (typeof paramObject[key] === "number") {
+                } else if (
+                    typeof paramObject[key] === "number" &&
+                    key !== "level"
+                ) {
+                    // level에는 $inc 적용하지 않음
                     numChunk[key] = paramObject[key];
                 } else {
-                    stringChunk[key] = paramObject[key]; // 숫자가 아닌 필드는 $set으로 처리
+                    stringChunk[key] = paramObject[key]; // $set으로 처리
                 }
             });
 
@@ -104,7 +107,7 @@ const mainInquiry = (() => {
                 updateObject.$push = listChunk;
             }
             if (Object.keys(numChunk).length > 0) {
-                updateObject.$inc = numChunk;
+                updateObject.$inc = numChunk; // level 제외한 숫자 필드만 증가
             }
 
             // MongoDB에서 사용자 정보 업데이트
@@ -123,7 +126,7 @@ const mainInquiry = (() => {
                     // MongoDB에서 업데이트된 사용자 정보 다시 조회
                     const updatedUserInfo = await User.findById(
                         userInfo._id
-                    ).lean(); // lean()으로 단순 객체 반환
+                    ).lean();
 
                     // 업데이트된 사용자 정보를 Redis에 다시 저장
                     await redisClient.set(
