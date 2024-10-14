@@ -23,6 +23,7 @@ import { loadBoardWithFilter } from '../api/Board/Tips/renderList.js'
 import { handlePointRead } from '../api/User/point.js'
 import { handleTipsCreate } from "../api/Board/Tips/createPage.js";
 import { handleUserProfile, updateUserProfile } from '../api/User/myPage.js'
+import { handleWarn } from '../api/Board/Common/warn.js'
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -60,6 +61,8 @@ router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTip
 
 // 포인트 관련 라우터
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
+
+router.get('/warn', myMiddleware, handleWarn); // 경고 조회
 
 
 // 마이페이지 관련 라우터

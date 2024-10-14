@@ -152,7 +152,7 @@ const s3Handler = (() => {
                 }
             );
         },
-        put: async (fileDestination, img) => {
+         put: async (fileDestination, img) => {
             
             const mimeType = img.mimetype || "image/jpeg";  // MIME 타입이 없으면 기본적으로 image/jpeg 사용
             const extension = mimeType.split("/")[1]; // 확장자 추출 (예: "png")

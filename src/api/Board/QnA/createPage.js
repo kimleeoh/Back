@@ -50,11 +50,9 @@ const handleQnACreate = async(req, res)=>{
         data.picked_index = 0;
         data.answer_list = [];  
         data.restricted_type = req.body.limit;
-        if(data.restricted_type==true){
-            const p = received.POINT - req.body.point;
-            if(p<0) res.status(400).send('Not enough points');
-            else await mainInquiry.write({'POINT':p},req.decryptedSessionId);
-        }
+        const p = received.POINT - req.body.point;
+        if(p<0) res.status(400).send('Not enough points');
+        else await mainInquiry.write({'POINT':p},req.decryptedSessionId);
         delete req.decryptedSessionId;
         delete req.decryptedUserData;
         console.log(data);
