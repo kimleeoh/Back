@@ -100,6 +100,7 @@ const handleTipsCreate = async (req, res) => {
             likes: 0,
             scrap: 0,
             warn: 0,
+            warn_why_list: [0, 0, 0, 0, 0, 0, 0,0],
             purchase_price: req.body.purchase_price,
         });
 
