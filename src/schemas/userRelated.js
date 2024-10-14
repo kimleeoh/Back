@@ -32,7 +32,7 @@ const userDocSchema = new mongoose.Schema({
     Rtest_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rqna_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rreply_list: { type: [mongoose.SchemaTypes.ObjectId] },
-    RmyLike: {
+    RmyLike_list: {
         Rqna_list: { type: [mongoose.SchemaTypes.ObjectId] },
         Rpilgy_list: { type: [mongoose.SchemaTypes.ObjectId] },
         Rhoney_list: { type: [mongoose.SchemaTypes.ObjectId] },
