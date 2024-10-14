@@ -25,11 +25,11 @@ const mainInquiry = (() => {
                 console.log(redisId);
                 stringfiedJSON = await redisClient.get(redisId);
                 if (!stringfiedJSON) {
-                throw new Error(
-                    "No data found in Redis for the given session ID"
-                );
+                    throw new Error(
+                        "No data found in Redis for the given session ID"
+                    );
+                }
             }
-        }
             console.log("Raw data from Redis:", stringfiedJSON); // Redis에서 가져온 데이터 로그 출력
             const userInfo = JSON.parse(stringfiedJSON);
             // userInfo가 유효한지 확인 (예외 처리 추가)
@@ -38,11 +38,22 @@ const mainInquiry = (() => {
                 throw new Error("Invalid user data found in Redis");
             }
 
-            let returnParam = Object.create(null);
-            // Add multiple fields to returnParam
+            // let returnParam = Object.create(null);
+            // // Add multiple fields to returnParam
+            // paramList.forEach((param) => {
+            //     returnParam[param] = userInfo[param];
+            // });
+            // return returnParam;
+
+            // 요청된 필드만 반환
+            let returnParam = {};
             paramList.forEach((param) => {
-                returnParam[param] = userInfo[param];
+                if (userInfo[param] !== undefined) {
+                    returnParam[param] = userInfo[param];
+                }
             });
+
+            console.log("User info from Redis:", returnParam); // 반환될 사용자 정보 출력
             return returnParam;
             // return keys.reduce((result, key) => {
             //     if (userInfo.hasOwnProperty(key)) {
@@ -53,11 +64,13 @@ const mainInquiry = (() => {
         },
         write: async (paramObject, redisId) => {
             const stringfiedJSON = await redisClient.get(redisId); // Redis에서 기존 데이터 가져오기
+            console.log("Raw data from Redis:", stringfiedJSON); // 데이터 출력
             if (!stringfiedJSON) {
                 throw new Error(
                     "No data found in Redis for the given session ID"
                 );
             }
+
             const userInfo = JSON.parse(stringfiedJSON); // 사용자 정보 파싱
 
             // Redis에서 가져온 userInfo가 유효하지 않을 경우 예외 처리
@@ -74,13 +87,16 @@ const mainInquiry = (() => {
             Object.keys(paramObject).forEach((key) => {
                 if (stringFields.includes(key)) {
                     stringChunk[key] = paramObject[key];
-                } else if (key == "Rbadge_list") {
+                } else if (key === "Rbadge_list") {
                     listChunk[key] = paramObject[key];
-                } else {
+                } else if (typeof paramObject[key] === "number") {
                     numChunk[key] = paramObject[key];
+                } else {
+                    stringChunk[key] = paramObject[key]; // 숫자가 아닌 필드는 $set으로 처리
                 }
             });
 
+            // MongoDB 업데이트용 updateObject 구성
             if (Object.keys(stringChunk).length > 0) {
                 updateObject.$set = stringChunk;
             }
@@ -94,20 +110,28 @@ const mainInquiry = (() => {
             // MongoDB에서 사용자 정보 업데이트
             if (Object.keys(updateObject).length > 0) {
                 try {
-                    // MongoDB에서 사용자 정보 업데이트 및 새 정보 반환
-                    const updatedUserInfo = await User.updateOne(
+                    // MongoDB에서 사용자 정보 업데이트
+                    const result = await User.updateOne(
                         { _id: userInfo._id }, // userInfo의 _id를 사용하여 업데이트
-                        updateObject,
-                        { new: true }
+                        updateObject
                     );
+
+                    if (result.matchedCount === 0) {
+                        throw new Error("Failed to update user in MongoDB");
+                    }
+
+                    // MongoDB에서 업데이트된 사용자 정보 다시 조회
+                    const updatedUserInfo = await User.findById(
+                        userInfo._id
+                    ).lean(); // lean()으로 단순 객체 반환
 
                     // 업데이트된 사용자 정보를 Redis에 다시 저장
                     await redisClient.set(
                         redisId,
                         JSON.stringify(updatedUserInfo),
                         "EX",
-                        3600
-                    ); // 사용자 정보로 Redis에 저장
+                        3600 // 1시간 동안 Redis에 저장
+                    );
                 } catch (err) {
                     console.error("Error updating MongoDB:", err);
                     throw new Error("Failed to update user in MongoDB");
