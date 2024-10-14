@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { getCategoryDocuments } from "../../functions/documnentHelpers.js";
+import { getCategoryTipsDocuments } from "../../functions/documnentHelpers.js";
 import redisHandler from "../../../config/redisHandler.js";
 import mainInquiry from "../../../functions/mainInquiry.js";
 
@@ -46,21 +46,21 @@ const handleUserScrapList = async (req, res) => {
                     .lean();
                 documents.push(...qnaDocs);
             } else if (filter === "test") {
-                const testDocs = await getCategoryDocuments(
+                const testDocs = await getCategoryTipsDocuments(
                     "test",
                     RscrapList.Rtest_list,
                     limitPerCategory
                 );
                 documents.push(...testDocs);
             } else if (filter === "pilgy") {
-                const pilgyDocs = await getCategoryDocuments(
+                const pilgyDocs = await getCategoryTipsDocuments(
                     "pilgy",
                     RscrapList.Rpilgy_list,
                     limitPerCategory
                 );
                 documents.push(...pilgyDocs);
             } else if (filter === "honey") {
-                const honeyDocs = await getCategoryDocuments(
+                const honeyDocs = await getCategoryTipsDocuments(
                     "honey",
                     RscrapList.Rhoney_list,
                     limitPerCategory
