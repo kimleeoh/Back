@@ -77,7 +77,7 @@ const notify = (() => {
                             count: 1 // Initialize count
                         });
                         await noti.save();
-                        return {state: true, message:"created"};
+                        return {state: true, message:"created", };
                     }
                 }else{
                     authorTimestamp = Date.now();

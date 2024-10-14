@@ -11,7 +11,7 @@ const handleWarn = async(req, res) => {
     }
     
     const updateDocument = async (Document) => {
-        const r = await Document.findById(req.session.currentDocs.id);
+        const r = await Document.findById(req.body.id);
         r.warn += 1;
         for(let i = 0; i < 8; i++) {
             if(req.body.warn_why[i]) {
@@ -27,7 +27,7 @@ const handleWarn = async(req, res) => {
             } else {
                 await mainInquiry.write({warned:1}, req.decryptedSessionId);
             }
-            await AdminWarn.create({Rdoc:req.session.currentDocs.id, count:r.warn, why_list:r.warn_why_list});
+            await AdminWarn.create({Rdoc:req.body.id, count:r.warn, why_list:r.warn_why_list});
         }
         
         return r;
