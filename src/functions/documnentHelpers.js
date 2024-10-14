@@ -5,7 +5,7 @@ import {
 } from "../schemas/docs.js";
 import { User } from "../schemas/user.js";
 
-const getCategoryDocuments = async (categoryType, categoryData, limit) => {
+const getCategoryTipsDocuments = async (categoryType, categoryData, limit) => {
     let model;
     let docList;
 
@@ -39,4 +39,4 @@ const getCategoryDocuments = async (categoryType, categoryData, limit) => {
     return documents;
 };
 
-export { getCategoryDocuments };
+export { getCategoryTipsDocuments };

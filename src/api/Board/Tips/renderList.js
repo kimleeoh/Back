@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { CommonCategory } from "../../../schemas/category.js";
-import { getCategoryDocuments } from  "../../../functions/documnentHelpers.js" // 모듈에서 함수 가져오기
+import { getCategoryTipsDocuments } from  "../../../functions/documnentHelpers.js" // 모듈에서 함수 가져오기
 import redisHandler from "../../../config/redisHandler.js";
 import mainInquiry from "../../../functions/mainInquiry.js";
 import { CustomBoardView } from "../../../schemas/userRelated.js";
