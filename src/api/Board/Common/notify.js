@@ -1,5 +1,6 @@
-import mainInquiry from "../../../functions/mainInquiry";
-import { Notify } from "../../../schemas/notify";
+import mainInquiry from "../../../functions/mainInquiry.js";
+import { Notify } from "../../../schemas/notify.js";
+import redisHandler from "../../../config/redisHandler.js";
 
 const handleNotify = async (req, res) => {  
     try{
