@@ -69,6 +69,13 @@ const handleUserScrapList = async (req, res) => {
             }
         }
 
+        // documents가 빈 배열이면 메시지와 함께 응답
+        if (documents.length === 0) {
+            return res.status(200).json({
+                message: "No documents found." // 프론트에 전달할 메시지
+            });
+        }
+
         // 클라이언트로 결과 반환
         res.status(200).json({
             userId: userInfo._id,
