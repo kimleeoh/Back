@@ -5,15 +5,14 @@ import { User } from "../../../schemas/user.js";
 const qnaPage = async(req, res)=>{
     try{
     const doc = await QnaDocuments.findById(req.body.id);
-    req.session.currentDocs = {
-        category: "QnA",
+    req.session.currentDocs =
+        {category: "QnA",
         like: 0,
         scrap:0,
         title: doc.title,
         writer:doc.user_main,
         answer_like_list : Array(size).fill(0),
-        view:1
-    };
+        view:1};
     req.session.recentDocs.enqueue({
         category: "QnA",
         _id: doc._id,

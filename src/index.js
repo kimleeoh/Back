@@ -24,15 +24,16 @@ const {
     ADMIN_PORT,
     CLIENT_PORT,
     REDIS_URL,
-    SESSION_SECRET,
+    ADMIN_SESSION_SECRET,
+    CLIENT_SESSION_SECRET,
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY,
     AWS_S3_REGION,
     AWS_S3_BUCKET,
 } = process.env;
 
-const sessionMiddleware = session({
-    secret: SESSION_SECRET,
+const adminSessionMiddleware = session({
+    secret: ADMIN_SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -40,6 +41,18 @@ const sessionMiddleware = session({
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 2 * 60 * 60 * 1000, // 2 시간
+    },
+});
+
+const clientSessionMiddleware = session({
+    secret: CLIENT_SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000, // 24 시간
     },
 });
 
@@ -54,12 +67,13 @@ s3Handler.create([
 //adminApp.set('views', 'src/admin/views');
 adminApp.set("view engine", "ejs");
 adminApp.use("/admin", express.static("src/admin/"));
-adminApp.use(sessionMiddleware);
+adminApp.use(adminSessionMiddleware);
 adminApp.use(express.urlencoded({ extended: true }));
 adminApp.use(express.json());
 
 //clientApp.use('/schemas', express.static('src/schemas'));
 clientApp.use(express.urlencoded({ extended: true }));
+clientApp.use(clientSessionMiddleware);
 clientApp.use(cookieParser());
 clientApp.use(express.json());
 clientApp.use(rateLimiter);
