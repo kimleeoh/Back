@@ -99,7 +99,7 @@ const loadBoardWithFilter = async (req, res) => {
                     filters.length === 1 ? 12 : filters.length === 2 ? 6 : 4;
 
                 // 카테고리별로 문서를 가져오고, category_name 및 category_type 추가
-                const docs = await getCategoryDocuments(
+                const docs = await getCategoryTipsDocuments(
                     filter,
                     category,
                     limit

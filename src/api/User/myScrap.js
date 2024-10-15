@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { getCategoryTipsDocuments } from "../../functions/documnentHelpers.js";
-import redisHandler from "../../../config/redisHandler.js";
-import mainInquiry from "../../../functions/mainInquiry.js";
+import redisHandler from "../../config/redisHandler.js";
+import mainInquiry from "../../functions/mainInquiry.js";
 
 const handleUserScrapList = async (req, res) => {
     const decryptedSessionId = String(req.decryptedSessionId);
