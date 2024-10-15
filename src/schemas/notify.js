@@ -10,7 +10,7 @@ const notifySchema = new mongoose.Schema({
     checked: { type: Boolean },
 });
 
-//notifySchema.index({ "Notifys_list.time": -1 });
+notifySchema.index({ "time": -1 });
 
 const Notify = mongoose.model("AllNotify", notifySchema, "AllNotify");
 

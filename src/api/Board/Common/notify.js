@@ -9,7 +9,9 @@ const handleNotify = async (req, res) => {
         mainInquiry.inputRedisClient(redisClient);
     }
     const r = await mainInquiry.read(['Rnotify_list'], req.decryptedSessionId);
-    const notifyList = await Notify.find({ _id: { $in: r.Rnotify_list } }).lean();
+    console.log(r);
+    const notifyList = await Notify.find({ _id: { $in: r.Rnotify_list } });
+    console.log(notifyList);
     res.status(200).json({ notifyList });}
     catch(e){
         console.error(e);
