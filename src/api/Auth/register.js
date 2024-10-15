@@ -21,34 +21,44 @@ class symmetricDataQueue {
 
     // Add an element to the end of the queue
     // 30분 이상된 데이터는 삭제
-    async enqueue(element,iv,id){
-        this.#times.push([Date.now(), id]);
-        const data = [element,iv];
-        this.#items.set(id,data);
-        if(this.#times[0][0] < Date.now()-1800000){
-            this.#items.remove(this.#times[0][1]);
-            this.#times.shift();
-        }
-        return;
+    async enqueue(element, iv, id) {
+        const now = Date.now();
+        this.#times.push([now, id]);
+        const data = [element, iv];
+        this.#items.set(id, data);
+
+        // Remove expired elements
+        this.#removeExpired(now);
+
+        // Schedule removal of this element after 30 minutes
+        setTimeout(() => this.deleteByKey(id), 1800000);
     }
 
-    searchByKey(key){
-        const index = this.#items.has(key);
-        if(index == false){
+    // Remove elements that have been in the queue for more than 30 minutes
+    #removeExpired(currentTime) {
+        const thirtyMinutesAgo = currentTime - 1800000;
+        while (this.#times.length > 0 && this.#times[0][0] < thirtyMinutesAgo) {
+            const [, id] = this.#times.shift();
+            this.#items.delete(id);
+        }
+    }
+
+    searchByKey(key) {
+        if (!this.#items.has(key)) {
             return -1;
         }
         console.log(this.#items.get(key));
         return this.#items.get(key);
     }
 
-    deleteByKey(key){
-        const index = this.#items.has(key);
-        if(index == false){
+    deleteByKey(key) {
+        if (!this.#items.has(key)) {
             return -1;
         }
         this.#items.delete(key);
         return 1;
     }
+}
 
     // Remove an element from the front of the queue
     // dequeue() {
@@ -76,11 +86,10 @@ class symmetricDataQueue {
     //     return this.items.length;
     // }
 
-}
+
 
 
 const symmetricKeyHolder = new symmetricDataQueue();
-
 
 function decipherAES(target, symmetricKey, iv){
     const decipher = crypto.createDecipheriv('aes-256-cbc', symmetricKey, iv);

@@ -7,6 +7,7 @@ import crypto from "crypto";
 import redisHandler from "../../config/redisHandler.js";
 import { decipherAES, hashPassword } from "./register.js";
 import { timeStamp } from "console";
+import { Queue } from "../zOther/recentPageClass.js";
 
 //이거는 jwt인증용 rsa키가 될 것.
 const privateKeyPem = fs.readFileSync(
@@ -137,6 +138,7 @@ const handleLogin = async (req, res) => {
             userData,
         };
 
+        req.session.recentDocs = new Queue();
         // Store session data in Redis with a 1-hour expiration
         const temp = user.toJSON();
         await redisClient.set(sessionId, JSON.stringify(temp), "EX", 3600);
