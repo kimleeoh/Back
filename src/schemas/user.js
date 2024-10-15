@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema({
     intro: { type: String },
     warned: { type: Number },
     profile_img: { type: String },
+    newNotify: { type: Boolean },
 }, { versionKey: false });
 
 const User = mongoose.model("User", userSchema, "User");

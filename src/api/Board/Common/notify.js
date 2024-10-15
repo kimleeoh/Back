@@ -27,7 +27,29 @@ const handleNotifyCheck = async (req, res) => {
     }
 }
 
-export { handleNotify, handleNotifyCheck };
+const handleNewNotify = async (req, res) => {
+    //{send:true}로 요청 시 새로운 알림이 없음을 알림
+    try{
+        if(mainInquiry.isNotRedis()){
+            const redisClient = redisHandler.getRedisClient();
+            mainInquiry.inputRedisClient(redisClient);
+        }
+        if(req.body.send){
+            const r = await mainInquiry.write({'newNotify':false}, req.decryptedSessionId);
+            res.status(200).send(r);
+        }
+        else{
+            const r = await mainInquiry.read(['newNotify'], req.decryptedSessionId);
+            res.status(200).send(r);
+        }
+    }
+    catch(e){
+        console.error(e);
+        res.status(500).send("Internal Server Error");
+    }
+}
+
+export { handleNotify, handleNotifyCheck, handleNewNotify };
 
 
     

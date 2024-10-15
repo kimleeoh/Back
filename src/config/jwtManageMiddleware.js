@@ -89,6 +89,7 @@ const myMiddleware = async(req, res, next) => {
         }
         const sessionId = decoded.sessionId;
         let sensitiveSessionID = decoded.sensitiveSessionID;
+
         const sensitiveSessionID_D = crypto
             .publicDecrypt(publicKey, Buffer.from(sensitiveSessionID, "base64"))
             .toString("hex");
@@ -100,18 +101,18 @@ const myMiddleware = async(req, res, next) => {
         const redisClient = redisHandler.getRedisClient();
         try {
             const sessionExists = await redisClient.exists(sessionId_D);
-
+            console.log(sensitiveSessionID_D);
             const sensitiveSessionExists = await redisClient.sIsMember(
                 "refreshToken",
                 sensitiveSessionID_D
             );
   
-            console.log(sensitiveSessionExists);
-            if (sessionExists != 1 && sensitiveSessionExists == false)
+            console.log(sensitiveSessionExists, sensitiveSessionID_D);
+            if (sessionExists != 1 && sensitiveSessionExists == 0)
                 return res
                     .status(403)
                     .send("Security Issue, Please Login Again");
-            else if (sensitiveSessionExists == false) {
+            else if (sensitiveSessionExists == 0) {
                 await redisClient.del(sessionId_D);
                 return res
                     .status(403)
@@ -128,11 +129,13 @@ const myMiddleware = async(req, res, next) => {
         // Reset the expiration time of the session data in Redis to 1 hour
         await redisClient.expire(sessionId_D, 3600);
         console.log("Session ID:", sessionId_D);
-        const newSensitiveSessionID = crypto.randomBytes(16);
-        await redisClient.sAdd("refreshToken", newSensitiveSessionID.toString("hex"));
+        let newSensitiveSessionID = crypto.randomBytes(16);
         sensitiveSessionID = crypto
             .privateEncrypt(privateKey, newSensitiveSessionID)
             .toString("base64");
+        newSensitiveSessionID = newSensitiveSessionID.toString("hex");
+        await redisClient.sAdd("refreshToken", newSensitiveSessionID);
+        
         const payload = {
             sessionId,
             sensitiveSessionID,

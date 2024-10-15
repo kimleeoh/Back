@@ -257,6 +257,7 @@ const handleRegister=async(req,res)=>{
             password: mySavedData.password,
             picked: 0,
             intro: "",
+            newNotify:false,
             profile_img: ""
         });
 

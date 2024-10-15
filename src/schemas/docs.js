@@ -26,6 +26,7 @@ const qnaSchema = new mongoose.Schema({
         },
     ],
     now_category_list: [],
+    Rcategory: { type: mongoose.SchemaTypes.ObjectId },
     title: { type: String },
     content: { type: String },
     preview_content: { type: String },

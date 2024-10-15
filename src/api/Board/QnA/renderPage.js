@@ -2,7 +2,7 @@ import { QnaAnswers, QnaDocuments } from "../../../schemas/docs.js";
 import { User } from "../../../schemas/user.js";
 
 
-const qnaPage = async(req, res)=>{
+const handleRenderQnaPage = async(req, res)=>{
     try{
     const doc = await QnaDocuments.findById(req.body.id);
     req.session.currentDocs =
@@ -55,3 +55,5 @@ const qnaPage = async(req, res)=>{
     }
 
 }
+
+export {handleRenderQnaPage};

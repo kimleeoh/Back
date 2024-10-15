@@ -54,6 +54,8 @@ const notify = (() => {
             try{
                 //notify 호출 이전에 client session에 저장된 작성자의 id와 mainInquiry를 통해 알람 생성자의 name을 가져와야함
                 const authorNotify = await User.findById(docAuthorId);
+                authorNotify.newNotify = true;
+                authorNotify.save();
 
                 if(2<typeNum && typeNum<6){
                     const index = authorNotify.notify_meta_list.findIndex((obj)=>obj.Type==typeNum&&obj.Sender==senderName);
@@ -102,22 +104,20 @@ const notify = (() => {
         Follower:async (Rnotifyusers_list, docId, docTitle, senderName, typeNum) => {
             try{
                 const updateData = {
-                    Notifys_list: {
-                        types: typeNum,
-                        who_user: senderName,
-                        time: Date.now(),
-                        Rdoc : docId,
-                        Rdoc_title : docTitle,
-                        checked:false,
-                        count: 1 // Initialize count
-                    }
+                    types: typeNum,
+                    who_user: senderName,
+                    time: Date.now(),
+                    Rdoc : docId,
+                    Rdoc_title : docTitle,
+                    checked:false,
+                    count: 1 // Initialize count
                 };
 
                 const getResult = await User.find({ _id: { $in: Rnotifyusers_list } });
                 const RnotifyArray = getResult.map(user => user.Rnotify); // Extract Rnotify values
                 const result = await Notify.updateMany(
                     { _id: { $in: RnotifyArray } }, // Filter to match user IDs
-                    { $push: updateData } // Update operation
+                    { $push: updateData, newNotify:true } // Update operation
                 );
                 console.log(result);
                 return {state: true, message:"created"};
@@ -142,7 +142,7 @@ const notify = (() => {
 
             try{
                 const userNotify = await User.findById(selfId).Rnotify;
-                const noti = await Notify.updateOne({_id:userNotify}, {$push: updateData});
+                const noti = await Notify.updateOne({_id:userNotify}, {$push: updateData, newNotify:true});
                 console.log(noti);
             }catch(e){
                 console.log(e);
