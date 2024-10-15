@@ -19,12 +19,13 @@ import {
   handleCheckAlreadyEmail
 } from '../api/Auth/register.js'
 import { handleQnACreate } from '../api/Board/QnA/createPage.js'
+import { handleRenderQnaPage } from '../api/Board/QnA/renderPage.js'
 import { loadBoardWithFilter } from '../api/Board/Tips/renderList.js'
 import { handlePointRead } from '../api/User/point.js'
 import { handleTipsCreate } from "../api/Board/Tips/createPage.js";
 import { handleUserProfile, updateUserProfile } from '../api/User/myPage.js'
 import { handleWarn } from '../api/Board/Common/warn.js'
-import { handleNotify, handleNotifyCheck } from '../api/Board/Common/notify.js'
+import { handleNewNotify, handleNotify, handleNotifyCheck } from '../api/Board/Common/notify.js'
 import { handleUserScrapList } from '../api/User/myScrap.js'
 import { handleUserLikeList } from "../api/User/myLike.js";
 
@@ -57,15 +58,16 @@ router.post('/findPassword/changePassword', handleResetPassword)
 
 // QnA 관련 라우터
 router.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate)
+router.get('/qna/page', myMiddleware, handleRenderQnaPage); 
 
 // tips 관련 라우터
 router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
 router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
 
-// 포인트 관련 라우터
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
 router.get('/notify', myMiddleware, handleNotify); // 알림 조회
 router.post('/notify/check', myMiddleware, handleNotifyCheck); // 알림 조회
+router.get('/notify/new', myMiddleware, handleNewNotify); // 알림 확인
 router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 
 
