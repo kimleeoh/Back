@@ -2,7 +2,7 @@ import mainInquiry from "../../../functions/mainInquiry.js";
 import { Notify } from "../../../schemas/notify.js";
 import redisHandler from "../../../config/redisHandler.js";
 
-const handleNotify = async (req, res) => {  
+const handleNotify = async (req, res) => {
     try{
     if(mainInquiry.isNotRedis()){
         const redisClient = redisHandler.getRedisClient();
@@ -50,6 +50,3 @@ const handleNewNotify = async (req, res) => {
 }
 
 export { handleNotify, handleNotifyCheck, handleNewNotify };
-
-
-    
