@@ -53,22 +53,21 @@ const notify = (() => {
         Author:async(docAuthorId, docId, docTitle,senderName, typeNum) => {  
             try{
                 //notify 호출 이전에 client session에 저장된 작성자의 id와 mainInquiry를 통해 알람 생성자의 name을 가져와야함
-                const authorNotify = await User.findById(docAuthorId).Rnotify;
-                const noti = await Notify.findById(authorNotify);
+                const authorNotify = await User.findById(docAuthorId);
 
                 if(2<typeNum && typeNum<6){
-                    const index = noti.Notifys_list.findIndex((obj)=>obj.types==typeNum&&obj.who_user==senderName);
-                    const thatObj = index==-1? undefined : noti.Notifys_list[index];
+                    const index = authorNotify.notify_meta_list.findIndex((obj)=>obj.Type==typeNum&&obj.Sender==senderName);
+                    const thatObj = index==-1? undefined : authorNotify.Rnotify_list[index];
                     
                     if(thatObj!=undefined && thatObj.time - authorTimestamp < 300000){
                         thatObj.count++;
-                        await noti.save();
+                        await Notify.findOneAndUpdate({_id:thatObj}, {time:authorTimestamp, count:thatObj.count});
                         console.log('이미 알림이 있습니다.');
                         return {state: true, message:"updated"};
                     }
                     else{
                         authorTimestamp = Date.now();
-                        noti.Notifys_list.push({
+                        await Notify.create({
                             types: typeNum,
                             who_user: senderName,
                             time: authorTimestamp,
@@ -76,15 +75,14 @@ const notify = (() => {
                             Rdoc_title : docTitle,
                             count: 1 // Initialize count
                         });
-                        await noti.save();
-                        return {state: true, message:"created", };
+                        return {state: true, message:"created"};
                     }
                 }else{
                     authorTimestamp = Date.now();
                     if(typeNum<3){
                         await notiMailer(noti.email, typeNum==2, docId, docTitle, senderName);
                     }
-                    noti.Notifys_list.push({
+                    await Notify.create({
                         types: typeNum,
                         who_user: senderName,
                         time: authorTimestamp,
@@ -92,7 +90,6 @@ const notify = (() => {
                         Rdoc_title : docTitle,
                         count: 1 // Initialize count
                     });
-                    await noti.save();
                     return {state: true, message:"created"};
                 }
             }catch(e){

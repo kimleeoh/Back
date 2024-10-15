@@ -9,10 +9,8 @@ const qnaPage = async(req, res)=>{
         {category: "QnA",
         like: 0,
         scrap:0,
-        title: doc.title,
-        writer:doc.user_main,
-        answer_like_list : Array(size).fill(0),
-        view:1};
+        answer_like_list : Array(size).fill(0)
+        };
     req.session.recentDocs.enqueue({
         category: "QnA",
         _id: doc._id,
