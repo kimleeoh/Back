@@ -24,7 +24,7 @@ import { handlePointRead } from '../api/User/point.js'
 import { handleTipsCreate } from "../api/Board/Tips/createPage.js";
 import { handleUserProfile, updateUserProfile } from '../api/User/myPage.js'
 import { handleWarn } from '../api/Board/Common/warn.js'
-import { handleNotify } from '../api/Board/Common/notify.js'
+import { handleNotify, handleNotifyCheck } from '../api/Board/Common/notify.js'
 import { handleUserScrapList } from '../api/User/myScrap.js'
 import { handleUserLikeList } from "../api/User/myLike.js";
 
@@ -65,6 +65,7 @@ router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTip
 // 포인트 관련 라우터
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
 router.get('/notify', myMiddleware, handleNotify); // 알림 조회
+router.post('/notify/check', myMiddleware, handleNotifyCheck); // 알림 조회
 router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 
 

@@ -17,7 +17,17 @@ const handleNotify = async (req, res) => {
     }
 }
 
-export { handleNotify };
+const handleNotifyCheck = async (req, res) => {
+    try{
+    const notifyList = await Notify.findByIdAndUpdate(req.body.notificationId, {checked:true});
+    res.status(200).send("complete");}
+    catch(e){
+        console.error(e);
+        res.status(500).send("Internal Server Error");
+    }
+}
+
+export { handleNotify, handleNotifyCheck };
 
 
     

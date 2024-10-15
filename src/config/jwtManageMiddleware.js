@@ -122,17 +122,19 @@ const myMiddleware = async(req, res, next) => {
             await redisClient.sRem("refreshToken", sensitiveSessionID_D);
             //await redisClient.
         } catch (err) {
-            return res.sendStatus(403);
+            return res.status(403).send(err);
         }
 
         // Reset the expiration time of the session data in Redis to 1 hour
         await redisClient.expire(sessionId_D, 3600);
         console.log("Session ID:", sessionId_D);
-        const newSensitiveSessionID = crypto.randomBytes(16);
-        await redisClient.sAdd("refreshToken", newSensitiveSessionID.toString("hex"));
+        let newSensitiveSessionID = crypto.randomBytes(16);
         sensitiveSessionID = crypto
             .privateEncrypt(privateKey, newSensitiveSessionID)
             .toString("base64");
+        newSensitiveSessionID = newSensitiveSessionID.toString("hex");
+        await redisClient.sAdd("refreshToken", newSensitiveSessionID);
+        
         const payload = {
             sessionId,
             sensitiveSessionID,
