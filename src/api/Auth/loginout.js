@@ -138,7 +138,7 @@ const handleLogin = async (req, res) => {
             userData,
         };
 
-        req.session.recentDocs = new Queue();
+        req.session = {recentDocs : new Queue()};
         // Store session data in Redis with a 1-hour expiration
         const temp = user.toJSON();
         await redisClient.set(sessionId, JSON.stringify(temp), "EX", 3600);
