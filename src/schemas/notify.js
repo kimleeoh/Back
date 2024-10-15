@@ -7,6 +7,7 @@ const notifySchema = new mongoose.Schema({
     Rdoc: { type: mongoose.SchemaTypes.ObjectId },
     Rdoc_title: { type: String },
     time: { type: Number, default: Date.now },
+    checked: { type: Boolean },
 });
 
 //notifySchema.index({ "Notifys_list.time": -1 });

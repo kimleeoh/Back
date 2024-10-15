@@ -73,7 +73,8 @@ const notify = (() => {
                             time: authorTimestamp,
                             Rdoc : docId,
                             Rdoc_title : docTitle,
-                            count: 1 // Initialize count
+                            count: 1, // Initialize count
+                            checked:false
                         });
                         return {state: true, message:"created"};
                     }
@@ -88,7 +89,8 @@ const notify = (() => {
                         time: authorTimestamp,
                         Rdoc : docId,
                         Rdoc_title : docTitle,
-                        count: 1 // Initialize count
+                        count: 1, // Initialize count
+                        checked:false
                     });
                     return {state: true, message:"created"};
                 }
@@ -106,6 +108,7 @@ const notify = (() => {
                         time: Date.now(),
                         Rdoc : docId,
                         Rdoc_title : docTitle,
+                        checked:false,
                         count: 1 // Initialize count
                     }
                 };
@@ -132,6 +135,7 @@ const notify = (() => {
                     time: Date.now(),
                     Rdoc : docId,
                     Rdoc_title : docTitle,
+                    checked:false,
                     count: 1 // Initialize count
                 }
             };
