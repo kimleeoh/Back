@@ -25,6 +25,7 @@ import { handleTipsCreate } from "../api/Board/Tips/createPage.js";
 import { handleUserProfile, updateUserProfile } from '../api/User/myPage.js'
 import { handleWarn } from '../api/Board/Common/warn.js'
 import { handleNotify } from '../api/Board/Common/notify.js'
+import { handleUserScrapList } from '../api/User/myScrap.js'
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -69,6 +70,6 @@ router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 // 마이페이지 관련 라우터
 router.get('/mypage/profile', myMiddleware, handleUserProfile); // 마이페이지 기본값 조회
 router.post('/update-profile', myMiddleware, updateUserProfile); // 마이페이지 수정
-
+router.post('/menu/scraplist', myMiddleware, handleUserScrapList); // 스크랩 리스트 조회
 
 export default router
