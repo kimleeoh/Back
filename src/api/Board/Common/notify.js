@@ -36,11 +36,11 @@ const handleNewNotify = async (req, res) => {
         }
         if(req.body.send){
             const r = await mainInquiry.write({'newNotify':false}, req.decryptedSessionId);
-            res.status(200).send(r);
+            res.status(200).send({newNotify:false});
         }
         else{
             const r = await mainInquiry.read(['newNotify'], req.decryptedSessionId);
-            res.status(200).send(r);
+            res.status(200).send({newNotify:r.newNotify});
         }
     }
     catch(e){
