@@ -1,5 +1,5 @@
-import mainInquiry from "../../../functions/mainInquiry";
-import { CustomBoardView } from "../../../schemas/userRelated";
+import mainInquiry from "../../../functions/mainInquiry.js";
+import { CustomBoardView } from "../../../schemas/userRelated.js";
 
 const handleEditBoard = async (req, res) => {
     //ex) {type:1(내가수강중)/2(즐겨찾기)/3(내가수강했던), subject:[]}
