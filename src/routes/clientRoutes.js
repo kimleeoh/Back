@@ -85,6 +85,6 @@ router.post('/update-profile', myMiddleware, updateUserProfile); // 마이페이
 router.post('/menu/scraplist', myMiddleware, handleUserScrapList); // 스크랩 리스트 조회
 router.post('/menu/likelist', myMiddleware, handleUserLikeList); // 좋아요 리스트 조회
 router.post('/menu/postlist', myMiddleware, handleUserPostList); // 내가 쓴 글 리스트 조회
-router.get("/menu/recentlist", myMiddleware, handleRecentRead); // 내가 쓴 글 리스트 조회
+router.get("/menu/recentlist", myMiddleware, handleRecentRead); // 최근 본 글 리스트 조회
 
 export default router
