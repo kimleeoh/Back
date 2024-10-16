@@ -4,6 +4,7 @@ import { QnaDocuments } from "../../schemas/docs.js";
 import redisHandler from "../../config/redisHandler.js";
 import mainInquiry from "../../functions/mainInquiry.js";
 import { UserDocs } from "../../schemas/userRelated.js";
+import { CommonCategory } from "../../schemas/category.js"; // CommonCategory import
 
 const handleUserLikeList = async (req, res) => {
     const decryptedSessionId = String(req.decryptedSessionId);
@@ -26,62 +27,75 @@ const handleUserLikeList = async (req, res) => {
             });
         }
 
-        console.log("User info:", userInfo);
-
-        // UserDocs에서 유저의 RLikes_list 가져오기
+        // UserDocs에서 유저의 Rlike_list 가져오기
         const userDocs = await UserDocs.findOne({ _id: userInfo.Rdoc }).lean();
         if (!userDocs || !userDocs.RmyLike_list) {
-            console.log("UserDocs not found or RLike_list missing.");
             return res.status(404).json({ message: "Like list not found" });
         }
-
-        console.log("UserDocs found:", userDocs);
 
         const RmyLikeList = userDocs.RmyLike_list; // 스크랩한 문서들의 ID 목록
         let documents = [];
 
-        // 필터 길이에 따른 각 카테고리별 문서 수 계산
-        const limitPerCategory = Math.floor(12 / filters.length); // 필터 개수에 따라 문서 수를 나눔
-
         // 필터 값에 따른 문서 조회 로직
         for (const filter of filters) {
+            let categoryType;
+            let likeList;
+            let listField;
+
             if (filter === "qna") {
                 const qnaDocs = await QnaDocuments.find({
                     _id: { $in: RmyLikeList.Rqna_list },
                 })
-                    .limit(limitPerCategory)
+                    .limit(12)
                     .lean();
                 documents.push(...qnaDocs);
             } else if (filter === "test") {
-                const testDocs = await getCategoryTipsDocuments(
-                    "test",
-                    { Rtest_list: RmyLikeList.Rtest_list }, 
-                    limitPerCategory
-                );
-                documents.push(...testDocs);
+                categoryType = "test";
+                likeList = RmyLikeList.Rtest_list;
+                listField = "Rtest_list";
             } else if (filter === "pilgy") {
-                const pilgyDocs = await getCategoryTipsDocuments(
-                    "pilgy",
-                    { Rpilgy_list: RmyLikeList.Rpilgy_list }, 
-                    limitPerCategory
-                );
-                documents.push(...pilgyDocs);
+                categoryType = "pilgy";
+                likeList = RmyLikeList.Rpilgy_list;
+                listField = "Rpilgy_list";
             } else if (filter === "honey") {
-                const honeyDocs = await getCategoryTipsDocuments(
-                    "honey",
-                    { Rhoney_list: RmyLikeList.Rhoney_list }, // RmyLike_list에서 리스트 가져오기
-                    limitPerCategory
+                categoryType = "honey";
+                likeList = RmyLikeList.Rhoney_list;
+                listField = "Rhoney_list";
+            }
+
+            // test, pilgy, honey 로직에 공통 적용
+            if (likeList) {
+                const docsFromCategory = await getCategoryTipsDocuments(
+                    categoryType,
+                    { [listField]: likeList }, // RmyLike_list에서 리스트 가져오기
+                    12
                 );
-                documents.push(...honeyDocs);
+
+                for (const doc of docsFromCategory) {
+                    // CommonCategory에서 category_name 가져오기
+                    const categoryDoc = await CommonCategory.findOne({
+                        [listField]: doc._id, // 해당 문서 ID로 CommonCategory 조회
+                    }).lean();
+
+                    // category_name 추가 및 category_type 설정
+                    if (categoryDoc) {
+                        doc.category_name = categoryDoc.category_name;
+                        doc.category_type = categoryType;
+                    } else {
+                        doc.category_name = "Unknown Category"; // 만약 category를 못 찾았을 경우
+                        doc.category_type = categoryType;
+                    }
+                }
+
+                // documents 배열에 추가
+                documents.push(...docsFromCategory);
             }
         }
-
-        console.log("Documents found:", documents);
 
         // documents가 빈 배열이면 메시지와 함께 응답
         if (documents.length === 0) {
             return res.status(200).json({
-                message: "No documents found.", // 빈 배열을 반환하지 않음
+                message: "No documents found.",
             });
         }
 
@@ -92,7 +106,7 @@ const handleUserLikeList = async (req, res) => {
             documents,
         });
     } catch (error) {
-        console.error("Error fetching like list:", error);
+        console.error("Error fetch like list:", error);
         res.status(500).json({ message: "Failed to retrieve like list" });
     }
 };

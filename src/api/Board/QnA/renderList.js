@@ -15,8 +15,8 @@ const handleRenderQnaList = async (req, res) => {
       return res.status(404).json({ message: "Rqna_list not found" });
     }
     const depth = req.body.depth || 1;
-    const end = -20 * (depth - 1) || undefined;
-    const start = end - 20;
+    const end = -12 * (depth - 1) || undefined;
+    const start = end - 12;
 
     // Rqna_list에서 마지막 20개의 문서 ID 가져오기
     const DocIds = category.Rqna_list.slice(start, end);
@@ -24,7 +24,7 @@ const handleRenderQnaList = async (req, res) => {
     }
     else if(req.body.type=="many"){
         const skip = (page - 1) * limit;
-        QnaDocuments.find({'Rcategory':{$in:req.body.id}}).sort({time:-1}).skip(skip).limit(20)
+        QnaDocuments.find({'Rcategory':{$in:req.body.id}}).sort({time:-1}).skip(skip).limit(12)
     }
     // 해당 doc_id로 QnaDocuments에서 필요한 정보 조회
     const docs = await QnaDocuments.find({ _id: { $in: DocIds } })
