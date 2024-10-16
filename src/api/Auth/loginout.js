@@ -7,7 +7,7 @@ import crypto from "crypto";
 import redisHandler from "../../config/redisHandler.js";
 import { decipherAES, hashPassword } from "./register.js";
 import { timeStamp } from "console";
-import { Queue } from "../zOther/recentPageClass.js";
+import { Queue } from "../../utils/recentPageClass.js";
 
 //이거는 jwt인증용 rsa키가 될 것.
 const privateKeyPem = fs.readFileSync(

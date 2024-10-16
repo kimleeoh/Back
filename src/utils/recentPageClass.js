@@ -16,7 +16,18 @@ class Queue {
 
     // Enqueue element at the top
     enqueue(value) {
+        // 중복 체크: 이미 값이 큐에 있으면 추가하지 않음
+        if (this.contains(value)) {
+            return;
+        }
+
         const newNode = new Node(value);
+
+        // 리스트 크기가 10을 초과하면 가장 오래된 요소를 제거
+        if (this.size >= 10) {
+            this.dequeue();
+        }
+
         if (this.size === 0) {
             this.head = this.tail = newNode;
         } else {
@@ -24,12 +35,8 @@ class Queue {
             this.head.prev = newNode;
             this.head = newNode;
         }
+
         this.size++;
-        
-         // Schedule removal of this element after 1 hour
-         setTimeout(() => {
-            this.removeNode(newNode);
-        }, 3600000); // 1 hour in milliseconds
     }
 
     // Dequeue element from the bottom
@@ -48,21 +55,16 @@ class Queue {
         return value;
     }
 
-    // Remove elements that have been in the queue for more than an hour
-    removeNode(node) {
-        if (node === this.head) {
-            this.head = node.next;
+    // 중복된 값이 있는지 확인
+    contains(value) {
+        let currentNode = this.head;
+        while (currentNode !== null) {
+            if (currentNode.value === value) {
+                return true;
+            }
+            currentNode = currentNode.next;
         }
-        if (node === this.tail) {
-            this.tail = node.prev;
-        }
-        if (node.prev) {
-            node.prev.next = node.next;
-        }
-        if (node.next) {
-            node.next.prev = node.prev;
-        }
-        this.size--;
+        return false;
     }
 
     // Check if the queue is empty
