@@ -29,6 +29,7 @@ import { handleNewNotify, handleNotify, handleNotifyCheck } from '../api/Board/C
 import { handleUserScrapList } from '../api/User/myScrap.js'
 import { handleUserLikeList } from "../api/User/myLike.js";
 import { handleUserPostList } from "../api/User/myDocs.js";
+import { handleRenderQnaList } from '../api/Board/QnA/renderList.js'
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -60,6 +61,7 @@ router.post('/findPassword/changePassword', handleResetPassword)
 // QnA 관련 라우터
 router.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate)
 router.get('/qna/page', myMiddleware, handleRenderQnaPage); 
+router.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
 
 // tips 관련 라우터
 router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링

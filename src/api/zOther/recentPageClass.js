@@ -25,6 +25,7 @@ class Queue {
             this.head = newNode;
         }
         this.size++;
+        
          // Schedule removal of this element after 1 hour
          setTimeout(() => {
             this.removeNode(newNode);

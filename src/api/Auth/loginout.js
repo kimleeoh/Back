@@ -177,6 +177,8 @@ const handleLogout = async (req, res) => {
 
         delete req.decryptedSessionId, req.decryptedUserData;
 
+        req.session.destroy();
+
         res.clearCookie("token");
         res.status(200).json({ message: "Logged out successfully" });
     } catch (err) {

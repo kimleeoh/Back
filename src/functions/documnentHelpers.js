@@ -2,6 +2,7 @@ import {
     TestDocuments,
     PilgyDocuments,
     HoneyDocuments,
+    QnaDocuments
 } from "../schemas/docs.js";
 import { User } from "../schemas/user.js";
 
@@ -39,4 +40,23 @@ const getCategoryTipsDocuments = async (categoryType, categoryData, limit) => {
     return documents;
 };
 
-export { getCategoryTipsDocuments };
+const getCategoryQnaDocuments = async (oneOrMany, categoryData, limit, depth=1) => {
+    const target = oneOrMany === "many" 
+        ? { 'Rcategory': { $in: categoryData } } 
+        : { _id: { $in: categoryData } };
+
+    let query = QnaDocuments.find(target)
+                            .select("_id title preview_img content name time views like point")
+                            .sort({ time: -1 });
+
+    if (oneOrMany === "many") {
+        const skip = (depth - 1) * limit;
+        query = query.skip(skip);
+    }
+
+    query = query.limit(limit);
+
+    return await query;
+};
+
+export { getCategoryTipsDocuments, getCategoryQnaDocuments };
