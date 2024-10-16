@@ -37,7 +37,7 @@ const handleNewNotify = async (req, res) => {
             mainInquiry.inputRedisClient(redisClient);
         }
         if(req.body.send){
-            const r = await mainInquiry.write({'newNotify':false}, req.decryptedSessionId);
+            const r = await mainInquiry.write({newNotify:false}, req.decryptedSessionId);
             res.status(200).send({newNotify:false});
         }
         else{
