@@ -16,10 +16,10 @@ const qnaBoard = async (req, res) => {
     }
 
     // Rqna_list에서 마지막 20개의 문서 ID 가져오기
-    const last20DocIds = category.Rqna_list.slice(-20);
+    const last20DocIds = category.Rqna_list.slice(-12);
     }
     else if(req.body.type=="many"){
-        QnaDocuments.find({'Rcategory':{$in:req.body.id}}).sort({time:-1}).limit(20)
+        QnaDocuments.find({'Rcategory':{$in:req.body.id}}).sort({time:-1}).limit(12)
     }
     // 해당 doc_id로 QnaDocuments에서 필요한 정보 조회
     const docs = await QnaDocuments.find({ _id: { $in: last20DocIds } })
