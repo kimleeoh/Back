@@ -28,6 +28,7 @@ import { handleWarn } from '../api/Board/Common/warn.js'
 import { handleNewNotify, handleNotify, handleNotifyCheck } from '../api/Board/Common/notify.js'
 import { handleUserScrapList } from '../api/User/myScrap.js'
 import { handleUserLikeList } from "../api/User/myLike.js";
+import { handleUserPostList } from "../api/User/myDocs.js";
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -75,6 +76,7 @@ router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 router.get('/mypage/profile', myMiddleware, handleUserProfile); // 마이페이지 기본값 조회
 router.post('/update-profile', myMiddleware, updateUserProfile); // 마이페이지 수정
 router.post('/menu/scraplist', myMiddleware, handleUserScrapList); // 스크랩 리스트 조회
-router.post('/menu/likelist', myMiddleware, handleUserLikeList); // 스크랩 리스트 조회
+router.post('/menu/likelist', myMiddleware, handleUserLikeList); // 좋아요 리스트 조회
+router.post('/menu/postlist', myMiddleware, handleUserPostList); // 내가 쓴 글 리스트 조회
 
 export default router
