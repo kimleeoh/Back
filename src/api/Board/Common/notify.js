@@ -36,14 +36,9 @@ const handleNewNotify = async (req, res) => {
             const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
-        if(req.body.send){
-            const r = await mainInquiry.write({newNotify:false}, req.decryptedSessionId);
-            res.status(200).send({newNotify:false});
-        }
-        else{
-            const r = await mainInquiry.read(['newNotify'], req.decryptedSessionId);
-            res.status(200).send({newNotify:r.newNotify});
-        }
+        console.log("제대로오는가",req.body.send);
+        const r = await mainInquiry.read(['newNotify'], req.decryptedSessionId);
+        res.status(200).send({newNotify:r.newNotify});
     }
     catch(e){
         console.error(e);
@@ -51,4 +46,19 @@ const handleNewNotify = async (req, res) => {
     }
 }
 
-export { handleNotify, handleNotifyCheck, handleNewNotify };
+const handleUnNewNotify = async (req, res) => {
+    try{
+        if(mainInquiry.isNotRedis()){
+            const redisClient = redisHandler.getRedisClient();
+            mainInquiry.inputRedisClient(redisClient);
+        }
+        const r = await mainInquiry.write({newNotify:false}, req.decryptedSessionId);
+        res.status(200).send("done");
+    }
+    catch(e){
+        console.error(e);
+        res.status(500).send("Internal Server Error");
+    }
+}
+
+export { handleNotify, handleNotifyCheck, handleNewNotify, handleUnNewNotify };
