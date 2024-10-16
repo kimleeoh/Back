@@ -46,7 +46,7 @@ const getCategoryQnaDocuments = async (oneOrMany, categoryData, limit, depth=1) 
         : { _id: { $in: categoryData } };
 
     let query = QnaDocuments.find(target)
-                            .select("_id title preview_img content name time views like point")
+                            .select("_id title preview_img preview_content user_main time views likes point restricted_type now_category_list")
                             .sort({ time: -1 });
 
     if (oneOrMany === "many") {
