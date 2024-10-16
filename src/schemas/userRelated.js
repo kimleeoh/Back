@@ -26,6 +26,7 @@ const scoreSchema = new mongoose.Schema({
 
 const userDocSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
+    totalLike: { type: Number },
     written: { type: Number },
     Rpilgy_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rhoney_list: { type: [mongoose.SchemaTypes.ObjectId] },

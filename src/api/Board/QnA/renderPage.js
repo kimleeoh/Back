@@ -1,30 +1,42 @@
+import mainInquiry from "../../../functions/mainInquiry.js";
 import { QnaAnswers, QnaDocuments } from "../../../schemas/docs.js";
 import { User } from "../../../schemas/user.js";
+import { UserDocs } from "../../../schemas/userRelated.js";
 
 
 const handleRenderQnaPage = async(req, res)=>{
     try{
-    const doc = await QnaDocuments.findById(req.body.id);
+    if(mainInquiry.isNotRedis()){
+        const redisClient = redisHandler.getRedisClient();
+        mainInquiry.inputRedisClient(redisClient);
+    }
+    const Doc = await mainInquiry.read(['Rdoc', '_id'], req.decryptedSessionId);
+    const shouldIshowLS = await UserDocs.findById(Doc.Rdoc, {RmyLike_list:1, RmyScrap_list:1});
+    const Qdoc = await QnaDocuments.findById(req.body.id);
     req.session.currentDocs =
         {category: "QnA",
+        isLiked: shouldIshowLS.RmyLike_list.includes(req.body.id),
         like: 0,
-        scrap:0,
+        isScrapped: shouldIshowLS.RmyScrap_list.includes(req.body.id),
+        scrap:false,
+        isAlarm:Qdoc.Rnotifyusers_list.includes(Doc._id),
+        alarm:false,
         answer_like_list : Array(size).fill(0)
         };
     req.session.recentDocs.enqueue({
         category: "QnA",
-        _id: doc._id,
-        title: doc.title,
-        writer:doc.user_main,
-        time: doc.time,
-        like: doc.likes,
-        view: doc.views+1,
-        preview_content: doc.preview_content,
-        img: doc.img_list[0],
-        restrict_type: doc.restricted_type,
-        point: doc.point
+        _id: Qdoc._id,
+        title: Qdoc.title,
+        writer:Qdoc.user_main,
+        time: Qdoc.time,
+        like: Qdoc.likes,
+        view: Qdoc.views+1,
+        preview_content: Qdoc.preview_content,
+        img: Qdoc.img_list[0],
+        restrict_type: Qdoc.restricted_type,
+        point: Qdoc.point
     });
-    const { answer_list, now_category_list, view, ...others} = doc;
+    const { answer_list, now_category_list, view, ...others} = Qdoc;
 
     const onlyString = now_category_list.map(item => Object.values(item)[0]);
 
@@ -45,7 +57,8 @@ const handleRenderQnaPage = async(req, res)=>{
         others,
         view: view+1,
         onlyString,
-        answer_list: res_list
+        answer_list: res_list,
+        alarm: req.session.currentDocs.isAlarm
     };
 
     res.status(200).send(returnData);}
