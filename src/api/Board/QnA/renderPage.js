@@ -21,7 +21,7 @@ const handleRenderQnaPage = async(req, res)=>{
         const see = Ascore.overA_subject_list.findIndex(subject => subject === lastCategory);
         answerAble = see==-1? false : true;
         whatScore = see === -1 ? null : Ascore.overA_type_list[see];
-        whatScore = whatScore === -1 ? "A-" : whatScore === 0 ? "A" : whatScore === 1 ? "A+" : whatScore;
+        whatScore = whatScore === 2 ? "A-" : whatScore === 1 ? "A0" : whatScore === 0 ? "A+" : whatScore;
     }else{
         const sc = await Score.findById(Doc.Rscore, {semester_list:1});
         let see = -1;
@@ -34,6 +34,8 @@ const handleRenderQnaPage = async(req, res)=>{
             }
         }
         whatScore = see == -1 ? null : sc.semester_list[see[1]].grade_list[see[0]];
+        const grades = ["A+", "A0", "A-", "B+", "B0", "B-", "C+", "C0", "C-", "F"];
+        whatScore = grades[whatScore];
     }
     if(Qdoc.warn >9) { res.status(403).send({locked:true, message:"신고처리된 게시글입니다."});return;}
     req.session.currentDocs =

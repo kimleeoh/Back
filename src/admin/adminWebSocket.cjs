@@ -94,8 +94,12 @@ function adminWebSocketInit(){
 function confirmUser(element){
     const parentDiv = element.parentElement;
     const ind = parentDiv.id.toString().replace('div', '');
-    const target = ind.split('-')[0]==1? "confirmU" : "warnU";
-    $.post('/admin/mongoose', {type: 'confirm', id: parentDiv.children[0].innerHTML, where:target}, (data,status) => {
+    const check = ind.split('-')[0];
+    const target = check==1? "confirmU" : check==2? "warnU" : check==3? "scoreU" : "error";
+    const len = parentDiv.children.length;
+    const type = len>4? parentDiv.children[4].innerHTML : null;
+    const docid = len>1? parentDiv.children[1].innerHTML : null;
+    $.post('/admin/mongoose', {type: 'confirm', id: parentDiv.children[0].innerHTML, where:target, type: type, docid:docid}, (data,status) => {
         if(status=='success'){
             $('#div'+ind).remove();
             socket.emit('finishWork', ind);
@@ -109,13 +113,16 @@ function confirmUser(element){
 function rejectUser(element){
     const parentDiv = element.parentElement;
     const ind = parentDiv.id.toString().replace('div', '');
-    const target = ind.split('-')[0]==1? "confirmU" : "warnU";
-    $.post('/admin/mongoose', {type: 'unconfirm', id: parentDiv.children[0].innerHTML, where:target}, (data,status) => {
+    const check = ind.split('-')[0];
+    const target = check==1? "confirmU" : check==2? "warnU" : check==3? "scoreU" : "error";
+    const len = parentDiv.children.length;
+    const type = len>4? parentDiv.children[4].innerHTML : null;
+    const docid = len>1? parentDiv.children[1].innerHTML : null;
+    $.post('/admin/mongoose', {type: 'unconfirm', id: parentDiv.children[0].innerHTML, where:target, type: type, docid:docid}, (data,status) => {
         if(status=='success'){
             $('#div'+ind).remove();
             socket.emit('finishWork', ind);
-        }
-        else{
+        }else{
             alert('Failed to reject user, retry.');
         }
     });

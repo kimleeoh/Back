@@ -39,9 +39,24 @@ const adminWarnSchema = new mongoose.Schema({
         required: true
     },
     warn_list: [{
+        type:{type:String},
+        Ruser: {type:mongoose.Types.ObjectId},
         Rdoc: {type:mongoose.Types.ObjectId},
         count: {type:Number},
         why_list: [{type:Number}]
+    }]
+});
+
+const adminScoreSchema = new mongoose.Schema({
+    _id: {
+        type: String,
+        required: true
+    },
+    score_list: [{
+        Ruser: {type:mongoose.Types.ObjectId},
+        Rscore: {type:mongoose.Types.ObjectId},
+        index: {type:Number},
+        confirm_img: {type:String},
     }]
 });
 
@@ -64,5 +79,6 @@ const AdminLogin = mongoose.model('AdminLogin', adminLoginSchema, 'Admin');
 const AdminConfirm = mongoose.model('AdminConfirm', adminConfirmSchema, 'Admin');
 const AdminWarn = mongoose.model('AdminWarn', adminWarnSchema, 'Admin');
 const AdminUsers = mongoose.model('AdminUsers', adminUsersSchema, 'Admin');
+const AdminScore = mongoose.model('AdminScore', adminScoreSchema, 'Admin');
 
-export {AdminConfirm, AdminLogin, AdminWarn, AdminUsers};
+export {AdminConfirm, AdminLogin, AdminWarn, AdminUsers, AdminScore};
