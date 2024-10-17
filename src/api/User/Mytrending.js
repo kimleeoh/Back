@@ -1,6 +1,6 @@
-import { UserDocs } from "../../../schemas/userRelated.js";
-import redisHandler from "../../../config/redisHandler.js";
-import mainInquiry from "../../../functions/mainInquiry.js";
+import { UserDocs } from "../../schemas/userRelated.js";
+import redisHandler from "../../config/redisHandler.js";
+import mainInquiry from "../../functions/mainInquiry.js";
 
 // 인기 게시물 요청 핸들러 (캐시된 데이터 반환)
 // Mytrending.js (프론트엔드 요청 핸들러)
@@ -15,6 +15,7 @@ const handleMytrendingList = async (req, res) => {
 
         const userInfo = await mainInquiry.read(["_id", "Rdoc"], decryptedSessionId);
 
+        
         if (!userInfo || !userInfo._id || !userInfo.Rdoc) {
             return res.status(400).json({ message: "Failed to retrieve user information from Redis" });
         }

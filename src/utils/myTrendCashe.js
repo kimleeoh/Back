@@ -42,7 +42,7 @@ const updateMyPopularPostsCache = async () => {
             .map(doc => ({
                 title: doc.title,
                 time: doc.time,
-                target: doc.target,
+                content: doc.target,
                 views: doc.views,
             }));
 

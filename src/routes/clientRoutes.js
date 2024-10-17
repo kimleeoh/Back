@@ -38,8 +38,8 @@ import { handleDeleteQna } from '../api/Board/QnA/deletePage.js'
 import { handleIsManage, handleManagePickPage, handleManageUpdatePage } from '../api/Board/QnA/managePage.js'
 import { loadBoardPage } from '../api/Board/Board/BoardPage.js'
 import { loadBoardDetail } from '../api/Board/Board/BoardDetail.js'
-import { handleMytrendingList } from '../api/Board/Common/Mytrending.js'
 // import { getCachedPopularPosts } from '../utils/trendingcheck.js'
+import { handleMytrendingList } from '../api/User/Mytrending.js'
 import { handleGetScore, handleUploadScore } from '../api/User/score.js'
 
 const router = express.Router()
