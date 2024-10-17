@@ -10,7 +10,7 @@ import mongoose from "mongoose";
 
 const handleQnaAnswer = async (req, res) => {
     try {
-        const { id, answer } = req.body;
+        const { id, answer, score } = req.body;
 
         if(mainInquiry.isNotRedis()){
             const redisClient = redisHandler.getRedisClient();
@@ -43,7 +43,7 @@ const handleQnaAnswer = async (req, res) => {
             warn: 0,
             Rqna: id
         });
-        qna.answer_list.push(answerId);
+        qna.answer_list.push({Ruser: received._id, Ranswer : answerId, user_grade: score});
         await qna.save();
 
         let modal = rewardNullCheck(1, userDoc, {})
