@@ -1,7 +1,7 @@
 import mainInquiry from "../../../functions/mainInquiry.js";
 import { QnaAnswers, QnaDocuments } from "../../../schemas/docs.js";
 import { User } from "../../../schemas/user.js";
-import { UserDocs } from "../../../schemas/userRelated.js";
+import { Score, UserDocs } from "../../../schemas/userRelated.js";
 
 
 const handleRenderQnaPage = async(req, res)=>{
@@ -10,9 +10,32 @@ const handleRenderQnaPage = async(req, res)=>{
         const redisClient = redisHandler.getRedisClient();
         mainInquiry.inputRedisClient(redisClient);
     }
-    const Doc = await mainInquiry.read(['Rdoc', '_id'], req.decryptedSessionId);
+    const Doc = await mainInquiry.read(['Rdoc', '_id', 'Rscore'], req.decryptedSessionId);
     const shouldIshowLS = await UserDocs.findById(Doc.Rdoc, {RmyLike_list:1, RmyScrap_list:1});
     const Qdoc = await QnaDocuments.findById(req.body.id);
+    let answerAble = true;
+    let whatScore = null;
+    const lastCategory = Object.values(Qdoc.now_category_list[Qdoc.now_category_list.length - 1])[0];
+    if(Qdoc.restricted_type==true){
+        const Ascore = await Score.findById(Doc.Rscore, {overA_subject_list:1, overA_type_list:1});
+        const see = Ascore.overA_subject_list.findIndex(subject => subject === lastCategory);
+        answerAble = see==-1? false : true;
+        whatScore = see === -1 ? null : Ascore.overA_type_list[see];
+        whatScore = whatScore === -1 ? "A-" : whatScore === 0 ? "A" : whatScore === 1 ? "A+" : whatScore;
+    }else{
+        const sc = await Score.findById(Doc.Rscore, {semester_list:1});
+        let see = -1;
+        for (let i = sc.semester_list.length - 1; i >= 0; i--) {
+            const semester = sc.semester_list[i];
+            const index = semester.subject_list.findIndex(subj => subj === lastCategory);
+            if (index !== -1) {
+                see = [index, i];
+                break;
+            }
+        }
+        whatScore = see == -1 ? null : sc.semester_list[see[1]].grade_list[see[0]];
+    }
+    if(Qdoc.warn >9) { res.status(403).send({locked:true, message:"신고처리된 게시글입니다."});return;}
     req.session.currentDocs =
         {category: "QnA",
         category_id: Qdoc.Rcategory,
@@ -55,10 +78,13 @@ const handleRenderQnaPage = async(req, res)=>{
             ...gradeList[index]
         }));
     const returnData = {
+        locked:false,
         others,
         view: view+1,
         onlyString,
         answer_list: res_list,
+        isScore: answerAble,
+        whatScore,
         alarm: req.session.currentDocs.isAlarm
     };
 

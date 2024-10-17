@@ -24,11 +24,9 @@ const handleWarn = async(req, res) => {
         if(r.warn >= 10){
             const check = await mainInquiry.read(['warned'], req.decryptedSessionId);
             if(check.warned > 8) {
-                await mainInquiry.write({confirmed:1, warned:1}, req.decryptedSessionId);
-            } else {
-                await mainInquiry.write({warned:1}, req.decryptedSessionId);
+                await mainInquiry.write({confirmed:1}, req.decryptedSessionId);
             }
-            await AdminWarn.create({Rdoc:req.body.id, count:r.warn, why_list:r.warn_why_list});
+            await AdminWarn.create({Rdoc:req.body.id, count:r.warn, why_list:r.warn_why_list, type:req.body.filters});
         }
         
         return r;

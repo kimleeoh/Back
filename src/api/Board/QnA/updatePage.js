@@ -21,10 +21,17 @@ const handleUpdatePage = async (req, res) => {
     doc.views += 1;
     const RanswerList = doc.answer_list.map(answer => answer.Ranswer);
     const answers = await QnaAnswers.findById({_id:{$in:RanswerList}});
-    await answers.map((answer,index) => {
-            answer.likes += willchange.answer_like_list[index];
-            answer.save();
-    });
+    await Promise.all(answers.map(async (answer, index) => {
+        answer.likes += willchange.answer_like_list[index];
+        await answer.save();
+        if (answer.likes != 0) {
+            const answerUser = doc.answer_list[index].Ruser;
+            await notify.Author(answerUser, doc._id, doc.title, req.decryptedUserData.name, 3);
+            if (answer.likes % 10 == 0) {
+                await notify.Author(answerUser, doc._id, doc.title, req.decryptedUserData.name, 7);
+            }
+        }
+    }));
     doc.likes += willchange.like;
 
     // reward check and notify
@@ -36,8 +43,14 @@ const handleUpdatePage = async (req, res) => {
         await notify.Self(req.decryptedSessionId, doc._id, doc.title, req.decryptedUserData.name, 3);
     }
 
-    if(doc.likes!=0 && doc.likes%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7);
-    if(doc.scrap!=0 && doc.scrap%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7);
+    if(doc.likes!=0){
+        await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 3)
+        if(doc.likes%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7);
+    }
+    if(doc.scrap!=0){
+        await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 4)
+        if(doc.scrap%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7);
+    }
 
     switch (willchange.like) {
         case -1:

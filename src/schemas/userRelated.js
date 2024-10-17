@@ -12,7 +12,7 @@ const scoreSchema = new mongoose.Schema({
     Ruser: { type: mongoose.SchemaTypes.ObjectId, required: true },
     overA_subject_list: { type: [String] },
     overA_type_list: { type: [Number] },
-    semester_list: {
+    semester_list: [{
         confirmed: { type: Boolean },
         filled: { type: Boolean },
         Rcategory_list: { type: [mongoose.SchemaTypes.ObjectId] }, // 참조할 과목 id 
@@ -21,7 +21,7 @@ const scoreSchema = new mongoose.Schema({
         grade_list: { type: [Number] },
         ismajor_list: { type: [Boolean] },
         is_show_list: { type: [Boolean] },
-    },
+    }],
 });
 
 const userDocSchema = new mongoose.Schema({
