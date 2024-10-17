@@ -113,7 +113,6 @@ router.get("/menu/recentlist", myMiddleware, handleRecentRead); // 최근 본 �
 router.get("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필페이지의 인기게시글 조회
 
 
-
 // 캐시 테스트
 // router.get('/cache/popular-posts', getCachedPopularPosts);
 

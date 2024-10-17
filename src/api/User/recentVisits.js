@@ -1,7 +1,7 @@
-import { QnaDocuments } from "../../schemas/docs.js";
-import { CommonCategory } from "../../schemas/category.js";
-import { getCategoryTipsDocuments } from "../../functions/documentHelpers.js";
-import mongoose from "mongoose";
+import {
+    getCategoryTipsDocuments,
+    getCategoryQnaDocuments,
+} from "../../functions/documentHelpers.js"; // QnA와 Tips 불러오기 함수
 import { Queue } from "../../utils/recentPageClass.js"; // Queue 클래스 활용
 
 // 세션 내 recentRead 큐를 초기화하는 함수
@@ -23,7 +23,7 @@ const handleRecentRead = async (req, res) => {
         // 큐의 첫 번째 노드부터 순차적으로 처리
         let currentNode = recentRead.head;
         while (currentNode !== null) {
-            const doc_id = currentNode.value;
+            const { doc_id, type } = currentNode.value; // recentRead에 저장된 doc_id와 type
 
             // doc_id에 '{'나 '}'가 포함된 경우 제외
             if (doc_id.includes("{") || doc_id.includes("}")) {
@@ -31,30 +31,38 @@ const handleRecentRead = async (req, res) => {
                 continue;
             }
 
-            // QnA 문서 조회
-            const qnaDoc = await QnaDocuments.findOne({
-                _id: mongoose.Types.ObjectId(doc_id),
-            }).lean();
-            if (qnaDoc) {
-                documents.push({
-                    type: "qna",
-                    _id: qnaDoc._id,
-                    title: qnaDoc.title,
-                    preview_content: qnaDoc.preview_content,
-                    time: qnaDoc.time,
-                });
-            } else {
-                // Tips 문서 조회
+            // QnA 문서 처리
+            if (type === "qna") {
+                const qnaDocs = await getCategoryQnaDocuments(
+                    "one",
+                    [doc_id],
+                    1
+                );
+                if (qnaDocs.length > 0) {
+                    documents.push({
+                        type: "qna",
+                        ...qnaDocs[0], // QnA 문서의 모든 필드 포함
+                    });
+                }
+            }
+            // Tips 문서 처리
+            else if (type === "tips") {
                 const tipDoc = await getCategoryTipsDocumentsForRecentRead(
                     doc_id
                 );
                 if (tipDoc) {
-                    documents.push(tipDoc);
+                    documents.push({
+                        type: "tips",
+                        ...tipDoc, // Tips 문서의 모든 필드 포함
+                    });
                 }
             }
 
             currentNode = currentNode.next; // 다음 노드로 이동
         }
+
+        // 최신순으로 정렬
+        documents.sort((a, b) => new Date(b.time) - new Date(a.time));
 
         // 문서가 없으면 빈 배열 응답
         if (documents.length === 0) {
@@ -77,6 +85,7 @@ const handleRecentRead = async (req, res) => {
     }
 };
 
+// Tips 문서 조회 함수
 const getCategoryTipsDocumentsForRecentRead = async (doc_id) => {
     // 각 카테고리별 문서 조회
     const pilgyDoc = await getCategoryTipsDocuments(
@@ -109,7 +118,6 @@ const getCategoryTipsDocumentsForRecentRead = async (doc_id) => {
 
         // getCategoryTipsDocuments에서 이미 필요한 정보를 반환하므로 추가 가공 불필요
         return {
-            type: "tips",
             ...tipDoc, // 필요한 문서 정보 그대로 반환
             category_type: categoryType,
         };
@@ -118,6 +126,8 @@ const getCategoryTipsDocumentsForRecentRead = async (doc_id) => {
     return null;
 };
 
+export { handleRecentRead };
+    
 // // 게시글 클릭 시 세션에 큐로 저장
 // const handlePostClick = (req, res) => {
 //     const { doc_id } = req.params; // 게시글의 doc_id
@@ -143,5 +153,3 @@ const getCategoryTipsDocumentsForRecentRead = async (doc_id) => {
 //         recentRead: recentRead, // 큐를 그대로 반환
 //     });
 // };
-
-export { handleRecentRead };
