@@ -36,20 +36,37 @@ const handleUserLikeList = async (req, res) => {
         const RmyLikeList = userDocs.RmyLike_list; // 스크랩한 문서들의 ID 목록
         let documents = [];
 
-        // 필터 값에 따른 문서 조회 로직
-        for (const filter of filters) {
+        // QnA 문서 처리 (항상 최대 12개)
+        if (filters.includes("qna") && RmyLikeList.Rqna_list.length > 0) {
+            const qnaDocs = await QnaDocuments.find({
+                _id: { $in: RmyLikeList.Rqna_list },
+            })
+                .limit(12)
+                .lean();
+            documents.push(...qnaDocs);
+        }
+
+        // Tips 관련 필터 처리 (필터 개수에 따라 반환할 문서 수 결정)
+        const tipsFilters = filters.filter((f) => f !== "qna");
+        const numTipsFilters = tipsFilters.length;
+
+        // 필터당 반환할 문서 개수 계산
+        let numDocsPerFilter;
+        if (numTipsFilters === 3) {
+            numDocsPerFilter = 4;
+        } else if (numTipsFilters === 2) {
+            numDocsPerFilter = 6;
+        } else if (numTipsFilters === 1) {
+            numDocsPerFilter = 12;
+        }
+
+        // 필기(Tips) 문서 처리 (Test, Pilgy, Honey)
+        for (const filter of tipsFilters) {
             let categoryType;
             let likeList;
             let listField;
 
-            if (filter === "qna") {
-                const qnaDocs = await QnaDocuments.find({
-                    _id: { $in: RmyLikeList.Rqna_list },
-                })
-                    .limit(12)
-                    .lean();
-                documents.push(...qnaDocs);
-            } else if (filter === "test") {
+            if (filter === "test") {
                 categoryType = "test";
                 likeList = RmyLikeList.Rtest_list;
                 listField = "Rtest_list";
@@ -63,18 +80,17 @@ const handleUserLikeList = async (req, res) => {
                 listField = "Rhoney_list";
             }
 
-            // test, pilgy, honey 로직에 공통 적용
-            if (likeList) {
+            // 필기 관련 문서 조회
+            if (likeList && likeList.length > 0) {
                 const docsFromCategory = await getCategoryTipsDocuments(
                     categoryType,
-                    { [listField]: likeList }, // RmyLike_list에서 리스트 가져오기
-                    12
+                    { [listField]: likeList },
+                    numDocsPerFilter // 필터 개수에 따른 문서 수 적용
                 );
 
                 for (const doc of docsFromCategory) {
-                    // CommonCategory에서 category_name 가져오기
                     const categoryDoc = await CommonCategory.findOne({
-                        [listField]: doc._id, // 해당 문서 ID로 CommonCategory 조회
+                        [listField]: doc._id,
                     }).lean();
 
                     // category_name 추가 및 category_type 설정
@@ -82,7 +98,7 @@ const handleUserLikeList = async (req, res) => {
                         doc.category_name = categoryDoc.category_name;
                         doc.category_type = categoryType;
                     } else {
-                        doc.category_name = "Unknown Category"; // 만약 category를 못 찾았을 경우
+                        doc.category_name = "Unknown Category"; // 카테고리 못 찾을 경우
                         doc.category_type = categoryType;
                     }
                 }

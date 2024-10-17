@@ -86,11 +86,12 @@ router.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
 router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
 router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
 
+
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
 router.get('/notify', myMiddleware, handleNotify); // 알림 조회
-router.post('/notify/check', myMiddleware, handleNotifyCheck); // 알림 조회
-router.get('/notify/new', myMiddleware, handleNewNotify); // 알림 확인
-router.post('/notify/unnew', myMiddleware, handleUnNewNotify); // 알림 확인
+router.post('/notify/check', myMiddleware, handleNotifyCheck); // 알림 확인
+router.get('/notify/new', myMiddleware, handleNewNotify); // 새로운 알림 확인
+router.post('/notify/unnew', myMiddleware, handleUnNewNotify); // 예전 알림 확인
 router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 
 // board 관련 라우터
