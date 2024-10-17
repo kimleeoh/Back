@@ -5,6 +5,7 @@ import { Score, UserDocs } from "../../../schemas/userRelated.js";
 
 
 const handleRenderQnaPage = async(req, res)=>{
+    const {id} = req.params;
     try{
     if(mainInquiry.isNotRedis()){
         const redisClient = redisHandler.getRedisClient();
@@ -12,7 +13,7 @@ const handleRenderQnaPage = async(req, res)=>{
     }
     const Doc = await mainInquiry.read(['Rdoc', '_id', 'Rscore'], req.decryptedSessionId);
     const shouldIshowLS = await UserDocs.findById(Doc.Rdoc, {RmyLike_list:1, RmyScrap_list:1});
-    const Qdoc = await QnaDocuments.findById(req.body.id);
+    const Qdoc = await QnaDocuments.findById(id);
     let answerAble = true;
     let whatScore = null;
     const lastCategory = Object.values(Qdoc.now_category_list[Qdoc.now_category_list.length - 1])[0];
@@ -41,9 +42,9 @@ const handleRenderQnaPage = async(req, res)=>{
     req.session.currentDocs =
         {category: "QnA",
         category_id: Qdoc.Rcategory,
-        isLiked: shouldIshowLS.RmyLike_list.includes(req.body.id),
+        isLiked: shouldIshowLS.RmyLike_list.includes(id),
         like: 0,
-        isScrapped: shouldIshowLS.RmyScrap_list.includes(req.body.id),
+        isScrapped: shouldIshowLS.RmyScrap_list.includes(id),
         scrap:false,
         isAlarm:Qdoc.Rnotifyusers_list.includes(Doc._id),
         alarm:false,

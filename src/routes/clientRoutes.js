@@ -77,7 +77,7 @@ router.post('/qna/manage/post', myMiddleware, upload.array('images'), handleMana
 router.put('/qna/manage/pick', myMiddleware, handleManagePickPage);
 router.get('/qna/manage', myMiddleware, handleIsManage);
 
-router.get('/qna/post', myMiddleware, handleRenderQnaPage); 
+router.get('/qna/:id', myMiddleware, handleRenderQnaPage); 
 
 router.post('/qna/create/answer', myMiddleware, upload.array('images'), handleQnaAnswer);
 router.put('/qna/update/answer', myMiddleware, upload.array('images'),handleEditAnswer);
