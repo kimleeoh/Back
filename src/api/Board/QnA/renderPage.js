@@ -45,7 +45,8 @@ const handleRenderQnaPage = async(req, res)=>{
         scrap:false,
         isAlarm:Qdoc.Rnotifyusers_list.includes(Doc._id),
         alarm:false,
-        answer_like_list : Array(size).fill(0)
+        answer_like_list : Array(size).fill(0),
+        score: whatScore,
         };
     req.session.recentDocs.enqueue({
         category: "QnA",
