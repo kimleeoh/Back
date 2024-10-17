@@ -179,8 +179,20 @@ const s3Handler = (() => {
             currentFileNums[fileDestination]++;
             return link;
         },
-        delete: async (imgLink) => {
-            await S3client.deleteObject({ Bucket: bucketName, Key: imgLink });
+        delete: async (imgLinks) => {
+            if (!Array.isArray(imgLinks)) {
+                imgLinks = [imgLinks];
+            }
+            const objectsToDelete = imgLinks.map(link => ({
+                Key: link.replace('https://d1bp3kp7g4awpu.cloudfront.net/', '')
+            }));
+            await S3client.deleteObjects({
+                Bucket: bucketName,
+                Delete: {
+                    Objects: objectsToDelete,
+                    Quiet: true
+                }
+            }).promise();
         },
     };
 })();

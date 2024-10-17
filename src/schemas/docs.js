@@ -87,7 +87,6 @@ const qnaAnswerSchema = new mongoose.Schema({
     content: { type: String, required: true },
     img_list: { type: [String] },
     likes: { type: Number },
-    QNAtitle: { type: String, required: true },
     QNAcategory: { type: [String], required: true },
     Rqna: { type: mongoose.SchemaTypes.ObjectId },
     warn: { type: Number },

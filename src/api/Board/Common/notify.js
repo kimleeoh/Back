@@ -1,6 +1,7 @@
 import mainInquiry from "../../../functions/mainInquiry.js";
 import { Notify } from "../../../schemas/notify.js";
 import redisHandler from "../../../config/redisHandler.js";
+import { User } from "../../../schemas/user.js";
 
 const handleNotify = async (req, res) => {
     try{
@@ -21,7 +22,24 @@ const handleNotify = async (req, res) => {
 
 const handleNotifyCheck = async (req, res) => {
     try{
-    const notifyList = await Notify.findByIdAndUpdate(req.body.notificationId, {checked:true});
+    if(mainInquiry.isNotRedis()){
+        const redisClient = redisHandler.getRedisClient();
+        mainInquiry.inputRedisClient(redisClient);
+    }
+    const notifyList = await Notify.findByIdAndUpdate(req.body.notificationId, {checked:true}, {new:true});
+    const updates = {};
+
+    if (notifyList.point !== 0) {
+        updates.POINT = notifyList.point;
+    }
+
+    if (notifyList.types == 12) {
+        updates.picked = 1;
+    }
+
+    if (Object.keys(updates).length > 0) {
+        await mainInquiry.write(updates, req.decryptedSessionId);
+    }
     res.status(200).send("complete");}
     catch(e){
         console.error(e);
@@ -30,15 +48,15 @@ const handleNotifyCheck = async (req, res) => {
 }
 
 const handleNewNotify = async (req, res) => {
-    //{send:true}로 요청 시 새로운 알림이 없음을 알림
     try{
         if(mainInquiry.isNotRedis()){
             const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
-        console.log("제대로오는가",req.body.send);
-        const r = await mainInquiry.read(['newNotify'], req.decryptedSessionId);
-        res.status(200).send({newNotify:r.newNotify});
+        const r = await mainInquiry.read(['_id'], req.decryptedSessionId);
+        const current = await User.findById(r._id).newNotify;
+        await mainInquiry.write({newNotify:current}, req.decryptedSessionId);
+        res.status(200).send({newNotify:current});
     }
     catch(e){
         console.error(e);

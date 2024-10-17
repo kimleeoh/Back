@@ -1,6 +1,8 @@
 import { User } from "../schemas/user.js";
 import { Notify } from "../schemas/notify.js";
 import smtpTransport from "../config/emailHandler.js";
+import mongoose from "mongoose";
+import mainInquiry from "./mainInquiry.js";
 
 /*
 1: 알림설정 눌러놓은 게시글 수정되면 알림
@@ -12,12 +14,17 @@ import smtpTransport from "../config/emailHandler.js";
 7: 포인트 관련 획득(내가 누른 누적좋아요 10개단위마다, 누적스크랩 10개단위마다..등등)
 8: 배지 획득
 9: 게시물이 신고처리됨
+10: 알림설정눌러놓은 게시글에 답변달림
+11: 알림설정눌러놓은 게시글이 채택됨
+12: 내 답변 채택됨
 ... 
 */
 
 const othersMessageList = [
     "을 수정했어요!",
     "에 답변을 달았어요!",
+    "의 답변을 채택했어요!",
+    "의 내 답변을 채택했어요!"
 ];
 
 const totalFormat = (type)=> [
@@ -50,50 +57,71 @@ const notify = (() => {
     //몇 분 내로 보낸 좋아요 알림은 무시하게 코드짜기
     //timer fire
     return {
-        Author:async(docAuthorId, docId, docTitle,senderName, typeNum) => {  
+        Author:async(docAuthorId, docId, docTitle,senderName, typeNum, docPoint=0) => {  
             try{
-                //notify 호출 이전에 client session에 저장된 작성자의 id와 mainInquiry를 통해 알람 생성자의 name을 가져와야함
+                const ID = new mongoose.Types.ObjectId();
                 const authorNotify = await User.findById(docAuthorId);
                 authorNotify.newNotify = true;
-                authorNotify.save();
+                
+
+                let poin = 0;
 
                 if(2<typeNum && typeNum<6){
                     const index = authorNotify.notify_meta_list.findIndex((obj)=>obj.Type==typeNum&&obj.Sender==senderName);
                     const thatObj = index==-1? undefined : authorNotify.Rnotify_list[index];
-                    
-                    if(thatObj!=undefined && thatObj.time - authorTimestamp < 300000){
-                        thatObj.count++;
-                        await Notify.findOneAndUpdate({_id:thatObj}, {time:authorTimestamp, count:thatObj.count});
+                    const that = await Notify.findById(thatObj);
+                    if(thatObj!=undefined && that.time - authorTimestamp < 300000){
+                        that.count++;
+                        that.time = authorTimestamp;
+                        await that.save();
                         console.log('이미 알림이 있습니다.');
                         return {state: true, message:"updated"};
                     }
                     else{
+                        if(typeNum==6)poin = 50;
                         authorTimestamp = Date.now();
                         await Notify.create({
+                            _id : ID,
                             types: typeNum,
                             who_user: senderName,
                             time: authorTimestamp,
                             Rdoc : docId,
                             Rdoc_title : docTitle,
                             count: 1, // Initialize count
-                            checked:false
+                            checked:false,
+                            point:poin
                         });
+
+                        authorNotify.notify_meta_list.push({Type:typeNum, Sender:senderName});
+                        authorNotify.Rnotify_list.push(ID);
+
+                        await authorNotify.save();
                         return {state: true, message:"created"};
                     }
                 }else{
                     authorTimestamp = Date.now();
                     if(typeNum<3){
-                        await notiMailer(noti.email, typeNum==2, docId, docTitle, senderName);
+                        await notiMailer(authorNotify.email, typeNum==2, docId, docTitle, senderName);
+                    }else if(typeNum==12){
+                        await notiMailer(authorNotify.email, 3, docId, docTitle, senderName);
+                        poin = docPoint;
                     }
                     await Notify.create({
+                        _id:ID,
                         types: typeNum,
                         who_user: senderName,
                         time: authorTimestamp,
                         Rdoc : docId,
                         Rdoc_title : docTitle,
                         count: 1, // Initialize count
-                        checked:false
+                        checked:false,
+                        point:poin
                     });
+
+                    authorNotify.notify_meta_list.push({Type:typeNum, Sender:senderName});
+                    authorNotify.Rnotify_list.push(ID);
+
+                    await authorNotify.save();
                     return {state: true, message:"created"};
                 }
             }catch(e){
@@ -103,23 +131,28 @@ const notify = (() => {
         },
         Follower:async (Rnotifyusers_list, docId, docTitle, senderName, typeNum) => {
             try{
-                const updateData = {
-                    types: typeNum,
-                    who_user: senderName,
-                    time: Date.now(),
-                    Rdoc : docId,
-                    Rdoc_title : docTitle,
-                    checked:false,
-                    count: 1 // Initialize count
-                };
-
                 const getResult = await User.find({ _id: { $in: Rnotifyusers_list } });
-                const RnotifyArray = getResult.map(user => user.Rnotify); // Extract Rnotify values
-                const result = await Notify.updateMany(
-                    { _id: { $in: RnotifyArray } }, // Filter to match user IDs
-                    { $push: updateData, newNotify:true } // Update operation
-                );
-                console.log(result);
+                for(const user of getResult){
+                    const ID = new mongoose.Types.ObjectId();
+                    const updateData = {
+                        id:ID,
+                        types: typeNum,
+                        who_user: senderName,
+                        time: Date.now(),
+                        Rdoc : docId,
+                        Rdoc_title : docTitle,
+                        checked:false,
+                        point:0,
+                        count: 1 // Initialize count
+                    };
+                    user.newNotify = true;
+                    user.Rnotify_list.push(ID);
+                    user.notify_meta_list.push({Type:typeNum, Sender:senderName});
+                    await user.save();
+                    if(typeNum==11) await notiMailer(user.email, 2, docId, docTitle, senderName);
+                    
+                }
+            
                 return {state: true, message:"created"};
             }catch(e){
                 console.log(e);
@@ -128,26 +161,31 @@ const notify = (() => {
         },
         Self:async (selfId, docId, docTitle, typeNum) => {
             //뱃지 획득을 알림창에 띄워두는거
-            const updateData = {
-                Notifys_list: {
-                    types: typeNum,
-                    who_user: "system",
-                    time: Date.now(),
-                    Rdoc : docId,
-                    Rdoc_title : docTitle,
-                    checked:false,
-                    count: 1 // Initialize count
-                }
-            };
+            try{let poin = 0;
+            if(typeNum==8)poin = 100;
+            else if(typeNum==7)poin = 50;
 
-            try{
-                const userNotify = await User.findById(selfId).Rnotify;
-                const noti = await Notify.updateOne({_id:userNotify}, {$push: updateData, newNotify:true});
-                console.log(noti);
-            }catch(e){
+            const ID = new mongoose.Types.ObjectId();
+            await Notify.create({
+                _id:ID,
+                types: typeNum,
+                who_user: "system",
+                time: Date.now(),
+                Rdoc : docId,
+                Rdoc_title : docTitle,
+                checked:false,
+                point:poin,
+                count: 1 // Initialize count
+            });
+
+            await mainInquiry.write({Rnotify_list:ID, notify_meta_list:{Type:typeNum, Sender:senderName}}, selfId);
+            return {state: true, message:"created"};
+        }
+            catch(e){
                 console.log(e);
                 return {state: false, message:"error"};
             }
+
         }
     }
 })();

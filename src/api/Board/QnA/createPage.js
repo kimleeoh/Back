@@ -6,6 +6,7 @@ import redisHandler from '../../../config/redisHandler.js';
 import s3Handler from '../../../config/s3Handler.js';
 import { UserDocs } from '../../../schemas/userRelated.js';
 import fs from 'fs';
+import { LowestCategory } from '../../../schemas/category.js';
 
 //decryptedSessionId: sessionId_D, 이건 해독된 세션아이디
 //decryptedUserData: decoded.userData -> 이건 이름이랑 프로필 사진만 가지고 있음
@@ -61,6 +62,7 @@ const handleQnACreate = async(req, res)=>{
         await data.save();
         const i = new mongoose.Types.ObjectId(received.Rdoc);
         const lastCheck = await UserDocs.findOneAndUpdate({_id:i},{$inc:{written:1}, $push:{Rqna_list:objId}},{new:true});
+        await LowestCategory.findByIdAndUpdate(data.Rcategory,{$push:{Rqna_list:objId}});
         console.log(lastCheck);
         res.status(200).json({message:'Success'});
         
