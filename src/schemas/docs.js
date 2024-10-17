@@ -10,6 +10,7 @@ const AllFilesSchema = new mongoose.Schema({
         required: true,
     }, // 파일 업로드한 사용자
     time: { type: Date, default: Date.now }, // 업로드 시간
+    Rpurchase_list: [{ type: mongoose.Schema.Types.ObjectId }], // 구매한 사용자 목록
 });
 
 const qnaSchema = new mongoose.Schema({

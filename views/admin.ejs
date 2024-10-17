@@ -44,11 +44,26 @@
     <div class="listContainer" id="warnedList">
       <% if(warned!=undefined&&selected!=undefined){warned.forEach((Item, index) => { %>
         <div class="divItem" id="div2-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes('2-'+index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
+          <p class="userObjectID" onclick=alertUserInfo(this) disabled><%= Item.Ruser %></p>
+          <p class="docLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.Rdoc%></p>
           <p class="warnCount"><%= Item.count %></p>
           <p class="warnWhy"><%= Item.warnWhy%></p>
-          <p class="docLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.Rdoc%></p>
+          <p class="doctype"><%= Item.type%></p>
           <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>페널티 및 삭제</button>
           <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>요청 취소</button>
+        </div>
+      <% });} %>
+  </div>
+  <h2>성적인증 요청</h2>
+    <div class="listContainer" id="scoreList">
+      <% if(scored!=undefined&&selected!=undefined){scored.forEach((Item, index) => { %>
+        <div class="divItem" id="div3-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes('3-'+index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
+          <p class="userObjectID" onclick=alertUserInfo(this) disabled><%= Item.Ruser %></p>
+          <p class="docLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.Rscore%></p>
+          <p class="imgLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.confirm_img%></p>
+          <p class="whatSem"><%= Item.index%></p>
+          <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>성적인증</button>
+          <button type="button" class="btn btn-danger" onclick=rejectUser(this) disabled>거부</button>
         </div>
       <% });} %>
   </div>
@@ -59,6 +74,7 @@
       <% if(quitUser!=undefined&&selected!=undefined){quitUser.forEach((Item, index) => { %>
         <div class="divItem" id="div3-<%= index %>" >
           <p><%= Item.reason %></p>
+          <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>페널티 및 삭제</button>
         </div>
       <% });} %>
   </div>

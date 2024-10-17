@@ -5,6 +5,7 @@ import { Score, UserDocs } from "../../../schemas/userRelated.js";
 
 
 const handleRenderQnaPage = async(req, res)=>{
+    const {id} = req.params;
     try{
     if(mainInquiry.isNotRedis()){
         const redisClient = redisHandler.getRedisClient();
@@ -12,7 +13,7 @@ const handleRenderQnaPage = async(req, res)=>{
     }
     const Doc = await mainInquiry.read(['Rdoc', '_id', 'Rscore'], req.decryptedSessionId);
     const shouldIshowLS = await UserDocs.findById(Doc.Rdoc, {RmyLike_list:1, RmyScrap_list:1});
-    const Qdoc = await QnaDocuments.findById(req.body.id);
+    const Qdoc = await QnaDocuments.findById(id);
     let answerAble = true;
     let whatScore = null;
     const lastCategory = Object.values(Qdoc.now_category_list[Qdoc.now_category_list.length - 1])[0];
@@ -21,7 +22,7 @@ const handleRenderQnaPage = async(req, res)=>{
         const see = Ascore.overA_subject_list.findIndex(subject => subject === lastCategory);
         answerAble = see==-1? false : true;
         whatScore = see === -1 ? null : Ascore.overA_type_list[see];
-        whatScore = whatScore === -1 ? "A-" : whatScore === 0 ? "A" : whatScore === 1 ? "A+" : whatScore;
+        whatScore = whatScore === 2 ? "A-" : whatScore === 1 ? "A0" : whatScore === 0 ? "A+" : whatScore;
     }else{
         const sc = await Score.findById(Doc.Rscore, {semester_list:1});
         let see = -1;
@@ -34,14 +35,16 @@ const handleRenderQnaPage = async(req, res)=>{
             }
         }
         whatScore = see == -1 ? null : sc.semester_list[see[1]].grade_list[see[0]];
+        const grades = ["A+", "A0", "A-", "B+", "B0", "B-", "C+", "C0", "C-", "F"];
+        whatScore = grades[whatScore];
     }
     if(Qdoc.warn >9) { res.status(403).send({locked:true, message:"신고처리된 게시글입니다."});return;}
     req.session.currentDocs =
         {category: "QnA",
         category_id: Qdoc.Rcategory,
-        isLiked: shouldIshowLS.RmyLike_list.includes(req.body.id),
+        isLiked: shouldIshowLS.RmyLike_list.includes(id),
         like: 0,
-        isScrapped: shouldIshowLS.RmyScrap_list.includes(req.body.id),
+        isScrapped: shouldIshowLS.RmyScrap_list.includes(id),
         scrap:false,
         isAlarm:Qdoc.Rnotifyusers_list.includes(Doc._id),
         alarm:false,

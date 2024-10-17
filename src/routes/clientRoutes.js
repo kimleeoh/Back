@@ -40,6 +40,7 @@ import { loadBoardPage } from '../api/Board/Board/BoardPage.js'
 import { loadBoardDetail } from '../api/Board/Board/BoardDetail.js'
 import { handleMytrendingList } from '../api/Board/Common/Mytrending.js'
 // import { getCachedPopularPosts } from '../utils/trendingcheck.js'
+import { handleGetScore, handleUploadScore } from '../api/User/score.js'
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -76,7 +77,7 @@ router.post('/qna/manage/post', myMiddleware, upload.array('images'), handleMana
 router.put('/qna/manage/pick', myMiddleware, handleManagePickPage);
 router.get('/qna/manage', myMiddleware, handleIsManage);
 
-router.get('/qna/post', myMiddleware, handleRenderQnaPage); 
+router.get('/qna/:id', myMiddleware, handleRenderQnaPage); 
 
 router.post('/qna/create/answer', myMiddleware, upload.array('images'), handleQnaAnswer);
 router.put('/qna/update/answer', myMiddleware, upload.array('images'),handleEditAnswer);
@@ -100,6 +101,9 @@ router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 router.post('/board/edit', myMiddleware, handleEditBoard); // 보드편집
 router.get('/board', myMiddleware, loadBoardPage); // 보드메인페이지 조회
 router.post('/board/detail', loadBoardDetail); // 보드과목별 상세페이지 조회
+
+router.get('/score', myMiddleware, handleGetScore); // 성적가져오기
+router.post('/score', myMiddleware, upload.single('img'),handleUploadScore); // 성적업로드
 
 // 마이페이지 관련 라우터
 router.get('/mypage/profile', myMiddleware, handleUserProfile); // 마이페이지 기본값 조회
