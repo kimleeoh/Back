@@ -77,9 +77,10 @@ router.get('/notify/new', myMiddleware, handleNewNotify); // 알림 확인
 router.post('/notify/unnew', myMiddleware, handleUnNewNotify); // 알림 확인
 router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 
+// board 관련 라우터
 router.post('/board/edit', myMiddleware, handleEditBoard); // 보드편집
 router.get('/board', myMiddleware, loadBoardPage); // 보드메인페이지 조회
-
+router.post('/board/detail', loadBoardPage); // 보드메인페이지 조회
 
 // 마이페이지 관련 라우터
 router.get('/mypage/profile', myMiddleware, handleUserProfile); // 마이페이지 기본값 조회
