@@ -20,55 +20,56 @@ const loadBoardDetail = async (req, res) => {
             subjectCategory; // 각 리스트 추출
         let documents = [];
 
-        // 필터 값에 따른 문서 조회
-        for (const filter of filters) {
-            let categoryType, listField, documentList;
+        // QnA 필터 처리
+        if (filters.includes("qna")) {
+            const qnaDocs = await QnA_Documents.find({
+                _id: { $in: Rqna_list },
+            })
+                .limit(12) // QnA 문서 최대 12개만 가져옴
+                .lean();
+            documents.push(
+                ...qnaDocs.map((doc) => ({
+                    ...doc,
+                    category_type: "qna",
+                    category_name: subjectCategory.category_name,
+                }))
+            );
+        }
 
-            // QnA 필터 처리
-            if (filter === "qna") {
-                const qnaDocs = await QnaDocuments.find({
-                    _id: { $in: Rqna_list },
-                }).lean();
+        // QnA 이외의 Tips 필터 처리
+        const tipsFilters = filters.filter((f) => f !== "qna");
+        const numTipsFilters = tipsFilters.length;
+        const numDocsPerFilter = Math.floor(12 / numTipsFilters); // 필터당 문서 개수 계산
+
+        for (const filter of tipsFilters) {
+            let categoryType, documentList;
+
+            if (filter === "test") {
+                categoryType = "test";
+                documentList = Rtest_list;
+            } else if (filter === "pilgy") {
+                categoryType = "pilgy";
+                documentList = Rpilgy_list;
+            } else if (filter === "honey") {
+                categoryType = "honey";
+                documentList = Rhoney_list;
+            }
+
+            // 해당 필터의 문서 조회
+            if (documentList) {
+                const docsFromCategory = await getCategoryTipsDocuments(
+                    categoryType,
+                    { [`R${categoryType}_list`]: documentList },
+                    numDocsPerFilter // 필터당 계산된 문서 수
+                );
+
                 documents.push(
-                    ...qnaDocs.map((doc) => ({
+                    ...docsFromCategory.map((doc) => ({
                         ...doc,
-                        category_type: "qna",
+                        category_type: categoryType,
                         category_name: subjectCategory.category_name,
                     }))
                 );
-            }
-            // Test, Pilgy, Honey 처리
-            else {
-                if (filter === "test") {
-                    categoryType = "test";
-                    documentList = Rtest_list;
-                    listField = "Rtest_list";
-                } else if (filter === "pilgy") {
-                    categoryType = "pilgy";
-                    documentList = Rpilgy_list;
-                    listField = "Rpilgy_list";
-                } else if (filter === "honey") {
-                    categoryType = "honey";
-                    documentList = Rhoney_list;
-                    listField = "Rhoney_list";
-                }
-
-                // Test, Pilgy, Honey에 해당하는 문서 조회
-                if (documentList) {
-                    const docsFromCategory = await getCategoryTipsDocuments(
-                        categoryType,
-                        { [listField]: documentList },
-                        12 // 최대 12개의 문서 조회
-                    );
-
-                    documents.push(
-                        ...docsFromCategory.map((doc) => ({
-                            ...doc,
-                            category_type: categoryType,
-                            category_name: subjectCategory.category_name,
-                        }))
-                    );
-                }
             }
         }
 
