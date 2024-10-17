@@ -56,7 +56,7 @@ const rewardOtherCheck = async (type, data, temporarySessionData) => {
             if (temporarySessionData.joayo == 2 && data.totalLike % 10 == 0) {
                 return {
                     status: true,
-                    type: "좋아요 업적 달성!",
+                    type: "누적 좋아요 n개 달성!",
                     reward: "50 포인트 증정!",
                 };
                 //배지의 경우 : 이 응답받으면 mainInquiry 통해서 가진배지리스트에 추가

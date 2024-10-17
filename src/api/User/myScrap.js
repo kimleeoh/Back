@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { getCategoryTipsDocuments } from "../../functions/documnentHelpers.js";
+import { getCategoryTipsDocuments } from "../../functions/documentHelpers.js";
 import { QnaDocuments } from "../../schemas/docs.js";
 import redisHandler from "../../config/redisHandler.js";
 import mainInquiry from "../../functions/mainInquiry.js";
