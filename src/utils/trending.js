@@ -6,59 +6,49 @@ import {
     HoneyDocuments,
     TestDocuments,
 } from "../schemas/docs.js";
-import mainInquiry from "./mainInquiry.js";
+import mainInquiry from "../functions/mainInquiry.js";
 
 // 인기 게시물 캐시 갱신 함수 (상위 5개의 조회수 높은 게시물만)
+// trending.js (캐시 갱신 함수)
 const updateMyPopularPostsCache = async () => {
     try {
-        // Redis 클라이언트 설정
         if (mainInquiry.isNotRedis()) {
             const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
 
-        // 모든 유저의 UserDocs 가져오기
+        // 유저의 문서 리스트 가져오기
         const users = await UserDocs.find().lean();
         let allDocuments = [];
 
         for (const user of users) {
             const { Rpilgy_list, Rhoney_list, Rtest_list } = user;
+            const pilgyDocs = await PilgyDocuments.find({ _id: { $in: Rpilgy_list } });
+            const honeyDocs = await HoneyDocuments.find({ _id: { $in: Rhoney_list } });
+            const testDocs = await TestDocuments.find({ _id: { $in: Rtest_list } });
 
-            // 각 리스트에서 Document들의 조회수를 가져옴
-            const pilgyDocs = await PilgyDocuments.find({
-                _id: { $in: Rpilgy_list },
-            });
-            const honeyDocs = await HoneyDocuments.find({
-                _id: { $in: Rhoney_list },
-            });
-            const testDocs = await TestDocuments.find({
-                _id: { $in: Rtest_list },
-            });
-
-            // 모든 문서를 하나의 배열에 합침
-            allDocuments = [
-                ...allDocuments,
-                ...pilgyDocs,
-                ...honeyDocs,
-                ...testDocs,
-            ];
+            allDocuments = [...allDocuments, ...pilgyDocs, ...honeyDocs, ...testDocs];
         }
 
-        // 조회수 기준으로 상위 5개의 게시물 선택
-        const topDocuments = allDocuments
-            .sort((a, b) => b.views - a.views) // 조회수 기준으로 내림차순 정렬
-            .slice(0, 5) // 상위 5개만 선택
+        // 작성한 글이 없을 경우 캐싱을 하지 않음
+        if (allDocuments.length === 0) {
+            console.log("No documents found, skipping cache update.");
+            return;  // 캐싱 중단
+        }
 
-            .map((doc) => ({
+        const topDocuments = allDocuments
+            .sort((a, b) => b.views - a.views)
+            .slice(0, 5)
+            .map(doc => ({
                 title: doc.title,
                 time: doc.time,
                 target: doc.target,
                 views: doc.views,
             }));
 
-        // Redis에 캐싱 (1시간 동안 유지)
         const redisClient = redisHandler.getRedisClient();
         await redisClient.set("my_popular_posts", JSON.stringify(topDocuments));
+        console.log("Popular posts cached successfully.");
     } catch (error) {
         console.error("Error updating my popular posts cache:", error);
     }

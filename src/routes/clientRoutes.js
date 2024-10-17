@@ -39,6 +39,7 @@ import { handleIsManage, handleManagePickPage, handleManageUpdatePage } from '..
 import { loadBoardPage } from '../api/Board/Board/BoardPage.js'
 import { loadBoardDetail } from '../api/Board/Board/BoardDetail.js'
 import { handleMytrendingList } from '../api/Board/Common/Mytrending.js'
+// import { getCachedPopularPosts } from '../utils/trendingcheck.js'
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -112,4 +113,8 @@ router.get("/menu/recentlist", myMiddleware, handleRecentRead); // 최근 본 �
 router.get("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필페이지의 인기게시글 조회
 
 
-export default router
+
+// 캐시 테스트
+// router.get('/cache/popular-posts', getCachedPopularPosts);
+
+export default router;
