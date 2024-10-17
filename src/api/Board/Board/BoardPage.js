@@ -75,17 +75,22 @@ const loadBoardPage = async (req, res) => {
             .select("category_name")
             .lean();
 
-        // 3. 각 board_type에 따른 데이터 형식 구성
-        const formatCategories = (categories) =>
-            categories.map((category) => ({
-                id: category._id,
-                name: category.category_name,
-            }));
+        // 3. 각 board_type에 따른 데이터 형식 구성 및 원래 순서대로 정렬
+        const formatCategories = (categories, ids) =>
+            ids.map((id) => {
+                const category = categories.find(
+                    (category) => String(category._id) === String(id)
+                );
+                return {
+                    id: category._id, // _id를 id로 변환
+                    name: category.category_name,
+                };
+            });
 
         const response = {
-            enroll: formatCategories(enrolledCategories),
-            bookmark: formatCategories(bookmarkCategories),
-            listened: formatCategories(listenedCategories),
+            enroll: formatCategories(enrolledCategories, enrolledIds),
+            bookmark: formatCategories(bookmarkCategories, bookmarkIds),
+            listened: formatCategories(listenedCategories, listenedIds),
         };
 
         // 4. 프론트로 데이터 전송
