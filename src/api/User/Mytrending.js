@@ -13,20 +13,34 @@ const handleMytrendingList = async (req, res) => {
             mainInquiry.inputRedisClient(redisClient);
         }
 
-        const userInfo = await mainInquiry.read(["_id", "Rdoc"], decryptedSessionId);
+        // 유저 정보를 Redis에서 가져오기
+        const userInfo = await mainInquiry.read(
+            ["_id", "Rdoc"],
+            decryptedSessionId
+        );
 
-        
         if (!userInfo || !userInfo._id || !userInfo.Rdoc) {
-            return res.status(400).json({ message: "Failed to retrieve user information from Redis" });
+            return res
+                .status(400)
+                .json({
+                    message: "Failed to retrieve user information from Redis",
+                });
         }
 
+        const userId = userInfo._id; // 유저 ID를 가져옴
         const redisClient = redisHandler.getRedisClient();
-        const cachedPopularPosts = await redisClient.get("my_popular_posts");
+
+        // 유저별 캐시된 인기 게시물 가져오기
+        const cachedPopularPosts = await redisClient.get(
+            `my_popular_posts:${userId}`
+        );
 
         if (cachedPopularPosts) {
             const parsedPosts = JSON.parse(cachedPopularPosts);
             if (parsedPosts.length === 0) {
-                return res.status(200).json({ message: "No popular posts available" });
+                return res
+                    .status(200)
+                    .json({ message: "No popular posts available" });
             }
             return res.status(200).json(parsedPosts);
         }
