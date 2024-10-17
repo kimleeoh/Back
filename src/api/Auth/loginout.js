@@ -79,7 +79,7 @@ const handleLogin = async (req, res) => {
 
     const isDuplicate = await redisClient.hGet("idempotency", idempotencyKey);
 
-    if (unixTimestamp - isDuplicate < 10) {
+    if (unixTimestamp - isDuplicate < 3) {
         return res.status(409).json({ message: "Duplicate request" });
     } else {
         await redisClient.hDel("idempotency", idempotencyKey);

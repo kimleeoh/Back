@@ -15,6 +15,7 @@ const handleRenderQnaPage = async(req, res)=>{
     const Qdoc = await QnaDocuments.findById(req.body.id);
     req.session.currentDocs =
         {category: "QnA",
+        category_id: Qdoc.Rcategory,
         isLiked: shouldIshowLS.RmyLike_list.includes(req.body.id),
         like: 0,
         isScrapped: shouldIshowLS.RmyScrap_list.includes(req.body.id),
@@ -44,7 +45,7 @@ const handleRenderQnaPage = async(req, res)=>{
     const RuserList = answer_list.map(answer => answer.Ruser);
     const gradeList = answer_list.map(answer => answer.user_grade);
 
-    const answers = await QnaAnswers.findById({_id:{$in:RanswerList}}, {_id:0, Rqna:0, warn_why_list:0});
+    const answers = await QnaAnswers.findById({_id:{$in:RanswerList}}, { Rqna:0, warn_why_list:0});
     const users = await User.findById({_id:{$in:RuserList}}, {hakbu:1, name:1, profile_img:1, level:1});
     
     const res_list = answers.map((answer, index) => ({

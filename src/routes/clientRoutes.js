@@ -32,6 +32,10 @@ import { handleUserPostList } from "../api/User/myDocs.js";
 import { handleRenderQnaList } from '../api/Board/QnA/renderList.js'
 import { handleRecentRead } from '../api/User/recentVisits.js'
 import { handleEditBoard } from '../api/Board/Board/editBoard.js'
+import { handleUpdatePage } from '../api/Board/QnA/updatePage.js'
+import { handleEditAnswer, handleQnaAnswer } from '../api/Board/QnA/answer.js'
+import { handleDeleteQna } from '../api/Board/QnA/deletePage.js'
+import { handleIsManage, handleManagePickPage, handleManageUpdatePage } from '../api/Board/QnA/managePage.js'
 import { loadBoardPage } from '../api/Board/Board/BoardPage.js'
 import { loadBoardDetail } from '../api/Board/Board/BoardDetail.js'
 
@@ -64,7 +68,18 @@ router.post('/findPassword/changePassword', handleResetPassword)
 
 // QnA 관련 라우터
 router.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate)
-router.get('/qna/page', myMiddleware, handleRenderQnaPage); 
+router.put('/qna/update/post', myMiddleware, handleUpdatePage);
+router.delete('/qna/delete/post', myMiddleware, handleDeleteQna);
+router.post('/qna/manage/post', myMiddleware, upload.array('images'), handleManageUpdatePage);
+router.put('/qna/manage/pick', myMiddleware, handleManagePickPage);
+router.get('/qna/manage', myMiddleware, handleIsManage);
+
+router.get('/qna/post', myMiddleware, handleRenderQnaPage); 
+
+router.post('/qna/create/answer', myMiddleware, upload.array('images'), handleQnaAnswer);
+router.put('/qna/update/answer', myMiddleware, upload.array('images'),handleEditAnswer);
+router.delete('/qna/delete/answer', myMiddleware, handleEditAnswer);
+
 router.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
 
 // tips 관련 라우터

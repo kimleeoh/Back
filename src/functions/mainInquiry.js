@@ -4,6 +4,7 @@ import { User } from "../schemas/user.js";
 const mainInquiry = (() => {
     let redisClient = null;
     const stringFields = ["hakbu", "intro", "profile_img"];
+    const listFields = ["Rbadge_list", "Rnotify_list", "notify_meta_list"];
     return {
         isNotRedis: () => {
             return redisClient == null;
@@ -86,7 +87,7 @@ const mainInquiry = (() => {
             Object.keys(paramObject).forEach((key) => {
                 if (stringFields.includes(key)) {
                     stringChunk[key] = paramObject[key];
-                } else if (key === "Rbadge_list") {
+                } else if (listFields.includes(key)) {
                     listChunk[key] = paramObject[key];
                 } else if (
                     typeof paramObject[key] === "number" &&
