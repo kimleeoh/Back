@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
-import { getCategoryTipsDocuments } from "../../functions/documnentHelpers.js";
-import { QnaDocuments } from "../../schemas/docs.js";
-import { CommonCategory } from "../../schemas/category.js"; // CommonCategory 가져오기
+import { getCategoryTipsDocuments } from "../../../functions/documentHelpers.js";
+import { QnaDocuments }  from "../../../schemas/docs.js";
+import { CommonCategory } from "../../../schemas/category.js"; // CommonCategory 가져오기
 
 const loadBoardDetail = async (req, res) => {
     const { subjectId, filters } = req.body; // 프론트로부터 과목 ID와 필터 받기
 
     try {
+
         // 과목 ID로 CommonCategory에서 해당 과목 정보 조회
         const subjectCategory = await CommonCategory.findOne({
             _id: subjectId,
@@ -22,7 +23,7 @@ const loadBoardDetail = async (req, res) => {
 
         // QnA 필터 처리
         if (filters.includes("qna")) {
-            const qnaDocs = await QnA_Documents.find({
+            const qnaDocs = await QnaDocuments.find({
                 _id: { $in: Rqna_list },
             })
                 .limit(12) // QnA 문서 최대 12개만 가져옴

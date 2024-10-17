@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { CommonCategory } from "../../../schemas/category.js"; // 경로는 환경에 맞게 설정하세요
 import { QnaDocuments } from "../../../schemas/docs.js"; // 경로는 환경에 맞게 설정하세요
-import { getCategoryQnaDocuments } from "../../../functions/documnentHelpers.js";
+import { getCategoryQnaDocuments } from "../../../functions/documentHelpers.js";
 
 const handleRenderQnaList = async (req, res) => {
 //{type:"one"/"many", depth:1, id:[category_id]} 형식으로 요청

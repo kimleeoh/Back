@@ -1,6 +1,6 @@
 import { QnaDocuments } from "../../schemas/docs.js";
 import { CommonCategory } from "../../schemas/category.js";
-import { getCategoryTipsDocuments } from "../../functions/documnentHelpers.js";
+import { getCategoryTipsDocuments } from "../../functions/documentHelpers.js";
 import mongoose from "mongoose";
 import { Queue } from "../../utils/recentPageClass.js"; // Queue 클래스 활용
 
