@@ -32,6 +32,7 @@ import { handleUserPostList } from "../api/User/myDocs.js";
 import { handleRenderQnaList } from '../api/Board/QnA/renderList.js'
 import { handleRecentRead } from '../api/User/recentVisits.js'
 import { handleEditBoard } from '../api/Board/Board/editBoard.js'
+import { loadBoardPage } from '../api/Board/Board/BoardPage.js'
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -76,7 +77,8 @@ router.get('/notify/new', myMiddleware, handleNewNotify); // 알림 확인
 router.post('/notify/unnew', myMiddleware, handleUnNewNotify); // 알림 확인
 router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 
-router.post('/board/edit', myMiddleware, handleEditBoard); // 게시글 저장
+router.post('/board/edit', myMiddleware, handleEditBoard); // 보드편집
+router.post('/board', myMiddleware, loadBoardPage); // 보드메인페이지 조회
 
 
 // 마이페이지 관련 라우터
