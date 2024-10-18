@@ -6,6 +6,7 @@ import {
     PilgyDocuments,
     HoneyDocuments,
     TestDocuments,
+    QnaDocuments,
 } from "../schemas/docs.js";
 import mainInquiry from "../functions/mainInquiry.js";
 
