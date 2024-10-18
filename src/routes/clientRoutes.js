@@ -38,9 +38,10 @@ import { handleDeleteQna } from '../api/Board/QnA/deletePage.js'
 import { handleIsManage, handleManagePickPage, handleManageUpdatePage } from '../api/Board/QnA/managePage.js'
 import { loadBoardPage } from '../api/Board/Board/BoardPage.js'
 import { loadBoardDetail } from '../api/Board/Board/BoardDetail.js'
-// import { getCachedPopularPosts } from '../utils/trendingcheck.js'
+import { getCachedPopularPosts } from '../utils/trendingcheck.js'
 import { handleMytrendingList } from '../api/User/Mytrending.js'
 import { handleGetScore, handleUploadScore } from '../api/User/score.js'
+import { handleHomeTipsList } from '../api/Home/Hometrending.js'
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -116,8 +117,13 @@ router.get("/menu/recentlist", myMiddleware, handleRecentRead); // 최근 본 �
 // 인기 게시물 조회 관련
 router.get("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필페이지의 인기게시글 조회
 
+// 홈 화면 관련 라우터
+// 인기 게시물 조회 관련
+router.get("/home/trending-tips", myMiddleware, handleHomeTipsList); // 홈 게시판별 인기 tips조회
+router.get("/home/trending-qna", myMiddleware, handleHomeQnaList); // 홈 게시판별 인기 qna조회
+
 
 // 캐시 테스트
-// router.get('/cache/popular-posts', getCachedPopularPosts);
+router.get('/cache/popular-posts', getCachedPopularPosts);
 
 export default router;
