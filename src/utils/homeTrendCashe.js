@@ -176,7 +176,8 @@ const updateHomePopularQnaCache = async (userId) => {
                 content: doc.content,
                 views: doc.views,
             }));
-
+        console.log("Data to cache in Redis: ", topQnaDocuments);
+        
         // Redis에 캐싱
         const redisClient = redisHandler.getRedisClient();
         await redisClient.set(`home_popular_qna:${userId}`, JSON.stringify(topQnaDocuments));

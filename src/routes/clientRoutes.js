@@ -120,9 +120,9 @@ router.get("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필
 
 // 홈 화면 관련 라우터
 // 인기 게시물 조회 관련
-router.get("/home/trending-tips", myMiddleware, handleHomeTipsList); // 홈 게시판별 인기 tips조회
-router.get("/home/trending-qna", myMiddleware, handleHomeQnaList); // 홈 게시판별 인기 qna조회
-router.get("/home/answer-possible", myMiddleware, handleAnswerPossibleList); // 홈 게시판별 인기 qna조회
+router.post("/home/trending-tips", myMiddleware, handleHomeTipsList); // 홈 게시판별 인기 tips조회
+router.post("/home/trending-qna", myMiddleware, handleHomeQnaList); // 홈 게시판별 인기 qna조회
+router.post("/home/answer-possible", myMiddleware, handleAnswerPossibleList); // 홈 게시판별 인기 qna조회
 
 // // 캐시 테스트
 // router.get('/cache/popular-posts', getCachedPopularPosts);

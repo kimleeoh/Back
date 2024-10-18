@@ -69,14 +69,25 @@ const handleHomeQnaList = async (req, res) => {
         const userId = userInfo._id;
         const redisClient = redisHandler.getRedisClient();
         const cachedPopularQnaPosts = await redisClient.get(`home_popular_qna:${userId}`);
-
+        console.log("Fetched Redis Key: home_popular_qna:", userId);
+        
         if (cachedPopularQnaPosts) {
-            const parsedQnaPosts = JSON.parse(cachedPopularQnaPosts);
-            if (parsedQnaPosts.length === 0) {
-                return res.status(200).json({ message: "No popular Q&A available" });
+            try {
+                const parsedQnaPosts = JSON.parse(cachedPopularQnaPosts);
+                if (parsedQnaPosts.length === 0) {
+                    return res
+                        .status(200)
+                        .json({ message: "No popular Q&A available" });
+                }
+                return res.status(200).json(parsedQnaPosts);
+            } catch (error) {
+                console.error("JSON parsing error:", error); // 파싱 오류 확인
+                return res
+                    .status(500)
+                    .json({ message: "Error parsing popular Q&A data" });
             }
-            return res.status(200).json(parsedQnaPosts);
         }
+        console.log("Cached Q&A Data: ", cachedPopularQnaPosts);
 
         return res.status(200).json({ message: "No popular Q&A available" });
     } catch (error) {

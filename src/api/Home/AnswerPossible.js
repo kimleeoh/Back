@@ -26,7 +26,7 @@ const handleAnswerPossibleList = async (req, res) => {
         const userId = userInfo._id;
         const redisClient = redisHandler.getRedisClient();
         const cachedAnswerPossiblePosts = await redisClient.get(
-            `home_popular_qna:${userId}`
+            `answer_possible_qna:${userId}`
         );
 
         if (cachedAnswerPossiblePosts) {
