@@ -108,7 +108,7 @@ const updateHomePopularTipsCache = async (userId) => {
     }
 };
 
-// 캐시 갱신 함수 (1시간마다)
+// Q&A 인기 게시물 캐시 갱신 함수
 const updateHomePopularQnaCache = async (userId) => {
     try {
         if (mainInquiry.isNotRedis()) {
@@ -116,7 +116,6 @@ const updateHomePopularQnaCache = async (userId) => {
             mainInquiry.inputRedisClient(redisClient);
         }
 
-        // 로그인한 유저의 문서 리스트 가져오기
         const user = await UserDocs.findOne({ _id: userId }).lean();
         if (!user) {
             console.log("User not found.");
@@ -125,66 +124,52 @@ const updateHomePopularQnaCache = async (userId) => {
 
         const { Rcustom_brd } = user;
 
-        // 1. Rcustom_brd에서 랜덤 카테고리 ID 가져오기
-        const randomCategoryId = await getRandomCategoryIdFromCustomBoard(
-            Rcustom_brd
-        );
+        const randomCategoryId = await getRandomCategoryIdFromCustomBoard(Rcustom_brd);
         if (!randomCategoryId) {
             console.log("No random category found.");
-            return; // 카테고리를 못 찾으면 캐싱 중단
+            return;
         }
 
-        // 2. 랜덤 카테고리 ID로 CommonCategory에서 조회
-        const commonCategory = await CommonCategory.findOne({
-            _id: randomCategoryId,
-        });
+        const commonCategory = await CommonCategory.findOne({ _id: randomCategoryId });
         if (!commonCategory) {
             console.log(`No common category found for ID: ${randomCategoryId}`);
-            return; // 카테고리를 못 찾으면 캐싱 중단
+            return;
         }
 
-        // 3. CommonCategory에서 Rpilgy_list, Rtest_list, Rhoney_list의 doc ID 추출
-        const { Rpilgy_list, Rhoney_list, Rtest_list } = commonCategory;
+        // Rqna_list에서 Q&A 문서 조회
+        const { Rqna_list } = commonCategory;
+        const qnaDocs = await QnaDocuments.find({ _id: { $in: Rqna_list } });
 
-        // 4. 해당 ID로 Pilgy, Honey, Test 문서 조회
-        const pilgyDocs = await PilgyDocuments.find({
-            _id: { $in: Rpilgy_list },
-        });
-        const honeyDocs = await HoneyDocuments.find({
-            _id: { $in: Rhoney_list },
-        });
-        const testDocs = await TestDocuments.find({ _id: { $in: Rtest_list } });
-
-        let allDocuments = [...pilgyDocs, ...honeyDocs, ...testDocs];
-
-        // 작성한 글이 없을 경우 캐싱을 하지 않음
-        if (allDocuments.length === 0) {
-            console.log("No documents found, skipping cache update.");
-            return; // 캐싱 중단
+        if (qnaDocs.length === 0) {
+            console.log("No Q&A documents found, skipping cache update.");
+            return;
         }
 
-        // 조회수 기준으로 상위 5개의 인기 게시물 선택
-        const topDocuments = allDocuments
+        // 조회수 기준으로 상위 5개 선택
+        const topQnaDocuments = qnaDocs
             .sort((a, b) => b.views - a.views)
             .slice(0, 5)
             .map((doc) => ({
                 title: doc.title,
                 time: doc.time,
-                content: doc.target,
+                content: doc.content,
                 views: doc.views,
             }));
 
         // Redis에 캐싱
         const redisClient = redisHandler.getRedisClient();
-        await redisClient.set(
-            `home_popular_tips:${userId}`,
-            JSON.stringify(topDocuments)
-        );
-        console.log("Home popular tips cached successfully.");
+        await redisClient.set(`home_popular_qna:${userId}`, JSON.stringify(topQnaDocuments));
+        console.log("Home popular Q&A cached successfully.");
     } catch (error) {
-        console.error("Error updating home popular tips cache:", error);
+        console.error("Error updating home popular Q&A cache:", error);
     }
 };
+
+// 1시간마다 Q&A 캐시 갱신 스케줄 설정
+cron.schedule("0 * * * *", () => {
+    const userId = "로그인한 유저의 ID";
+    updateHomePopularQnaCache(userId);
+});
 
 // 1시간마다 캐시 갱신 스케줄 설정
 cron.schedule("0 * * * *", () => {
@@ -192,8 +177,3 @@ cron.schedule("0 * * * *", () => {
     updateHomePopularTipsCache(userId);
 });
 
-// 1시간마다 캐시 갱신 스케줄 설정
-cron.schedule("0 * * * *", () => {
-    const userId = "로그인한 유저의 ID"; // 여기서 로그인한 유저의 ID를 가져와야 함
-    updateHomePopularQnaCache(userId);
-});
