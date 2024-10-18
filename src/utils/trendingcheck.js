@@ -6,7 +6,6 @@ const addTestDataToSession = async (userId) => {
     try {
         // Redis 클라이언트 생성 및 연결 (비밀번호 추가)
         redisHandler.create(
-            "redis://default:pXwOx2H30l9SuuZVt6i462EoL9hNngOK@redis-17273.c340.ap-northeast-2-1.ec2.redns.redis-cloud.com:17273"
         );
         await redisHandler.connect();
 

@@ -26,9 +26,7 @@ const handleHomeTipsList = async (req, res) => {
 
         const userId = userInfo._id;
         const redisClient = redisHandler.getRedisClient();
-        const cachedPopularTipsPosts = await redisClient.get(
-            "home_popular_tips:${userId}"
-        );
+        const cachedPopularTipsPosts = await redisClient.get(`home_popular_tips:${userId}`);
         console.log("Fetched Redis Key: home_popular_tips", userId);
 
         if (cachedPopularTipsPosts) {
