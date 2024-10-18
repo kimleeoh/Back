@@ -85,5 +85,4 @@ const handleHomeQnaList = async (req, res) => {
     }
 };
 
-
 export { handleHomeTipsList, handleHomeQnaList};

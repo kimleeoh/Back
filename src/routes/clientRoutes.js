@@ -42,6 +42,7 @@ import { loadBoardDetail } from '../api/Board/Board/BoardDetail.js'
 import { handleMytrendingList } from '../api/User/Mytrending.js'
 import { handleGetScore, handleUploadScore } from '../api/User/score.js'
 import { handleHomeTipsList, handleHomeQnaList } from '../api/Home/Hometrending.js'
+import { handleAnswerPossibleList } from "../api/Home/AnswerPossible.js";
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -121,7 +122,7 @@ router.get("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필
 // 인기 게시물 조회 관련
 router.get("/home/trending-tips", myMiddleware, handleHomeTipsList); // 홈 게시판별 인기 tips조회
 router.get("/home/trending-qna", myMiddleware, handleHomeQnaList); // 홈 게시판별 인기 qna조회
-
+router.get("/home/answer-possible", myMiddleware, handleAnswerPossibleList); // 홈 게시판별 인기 qna조회
 
 // // 캐시 테스트
 // router.get('/cache/popular-posts', getCachedPopularPosts);
