@@ -24,21 +24,22 @@ const handleHomeTipsList = async (req, res) => {
                 });
         }
 
+        const userId = userInfo._id;
         const redisClient = redisHandler.getRedisClient();
-        const cachedPopularTipsPosts = await redisClient.get("home_popular_tips");
+        const cachedPopularTipsPosts = await redisClient.get(
+            "home_popular_tips:${userId}"
+        );
+        console.log("Fetched Redis Key: home_popular_tips", userId);
 
         if (cachedPopularTipsPosts) {
-            const parsedTipsPosts = JSON.parse(cachedPopularPosts);
+            const parsedTipsPosts = JSON.parse(cachedPopularTipsPosts);
             if (parsedTipsPosts.length === 0) {
                 return res
                     .status(200)
-                    .json({ message: "No popular tips available" });
+                    .json({ message: "No popular tips available1" });
             }
             return res.status(200).json(parsedTipsPosts);
         }
-
-        // 캐시된 데이터가 없을 경우
-        return res.status(200).json({ message: "No popular tips available" });
     } catch (error) {
         console.error("Error fetching popular tips: error");
         res.status(500).send("Internal Server Error");
