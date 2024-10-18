@@ -116,7 +116,7 @@ router.post('/menu/postlist', myMiddleware, handleUserPostList); // 내가 쓴 �
 router.get("/menu/recentlist", myMiddleware, handleRecentRead); // 최근 본 글 리스트 조회
 
 // 인기 게시물 조회 관련
-router.get("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필페이지의 인기게시글 조회
+router.post("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필페이지의 인기게시글 조회
 
 // 홈 화면 관련 라우터
 // 인기 게시물 조회 관련

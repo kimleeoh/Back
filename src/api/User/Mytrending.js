@@ -31,22 +31,22 @@ const handleMytrendingList = async (req, res) => {
         const redisClient = redisHandler.getRedisClient();
 
         // 유저별 캐시된 인기 게시물 가져오기
-        const cachedPopularPosts = await redisClient.get(
+        const cachedMyPopularPosts = await redisClient.get(
             `my_popular_posts:${userId}`
         );
 
-        if (cachedPopularPosts) {
-            const parsedPosts = JSON.parse(cachedPopularPosts);
+        if (cachedMyPopularPosts) {
+            const parsedPosts = JSON.parse(cachedMyPopularPosts);
             if (parsedPosts.length === 0) {
                 return res
                     .status(200)
-                    .json({ message: "No popular posts available" });
+                    .json({ message: "No popular posts available1" });
             }
             return res.status(200).json(parsedPosts);
         }
 
         // 캐시된 데이터가 없을 경우
-        return res.status(200).json({ message: "No popular posts available" });
+        return res.status(200).json({ message: "No popular posts available2" });
     } catch (error) {
         console.error("Error fetching popular posts:", error);
         res.status(500).send("Internal Server Error");

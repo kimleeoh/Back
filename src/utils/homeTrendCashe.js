@@ -124,6 +124,7 @@ const updateHomePopularTipsCache = async (userId) => {
             `home_popular_tips:${userId}`,
             JSON.stringify(topDocuments)
         );
+        await redisClient.expire(`home_popular_tips:${userId}`, 3600); // 1시간 후 만료
         console.log("Home popular tips cached successfully.");
     } catch (error) {
         console.error("Error updating home popular tips cache:", error);
@@ -146,13 +147,17 @@ const updateHomePopularQnaCache = async (userId) => {
 
         const { Rcustom_brd } = user;
 
-        const randomCategoryId = await getRandomEnrolledIdFromCustomBoard(Rcustom_brd);
+        const randomCategoryId = await getRandomEnrolledIdFromCustomBoard(
+            Rcustom_brd
+        );
         if (!randomCategoryId) {
             console.log("No random category found.");
             return;
         }
 
-        const commonCategory = await CommonCategory.findOne({ _id: randomCategoryId });
+        const commonCategory = await CommonCategory.findOne({
+            _id: randomCategoryId,
+        });
         if (!commonCategory) {
             console.log(`No common category found for ID: ${randomCategoryId}`);
             return;
@@ -178,17 +183,21 @@ const updateHomePopularQnaCache = async (userId) => {
                 views: doc.views,
             }));
         console.log("Data to cache in Redis: ", topQnaDocuments);
-        
+
         // Redis에 캐싱
         const redisClient = redisHandler.getRedisClient();
-        await redisClient.set(`home_popular_qna:${userId}`, JSON.stringify(topQnaDocuments));
+        await redisClient.set(
+            `home_popular_qna:${userId}`,
+            JSON.stringify(topQnaDocuments)
+        );
+        await redisClient.expire(`home_popular_qna:${userId}`, 3600); // 1시간 후 만료
         console.log("Home popular Q&A cached successfully.");
     } catch (error) {
         console.error("Error updating home popular Q&A cache:", error);
     }
 };
 
-// Q&A 인기 게시물 캐시 갱신 함수
+// 답변가능한거 캐시 갱신 함수
 const updateAnswerPossibleCache = async (userId) => {
     try {
         if (mainInquiry.isNotRedis()) {
@@ -222,12 +231,16 @@ const updateAnswerPossibleCache = async (userId) => {
 
         // Rqna_list에서 Q&A 문서 조회
         const { Rqna_list } = commonCategory;
-        const recentQnaDocs = await QnaDocuments.find({ _id: { $in: Rqna_list } })
+        const recentQnaDocs = await QnaDocuments.find({
+            _id: { $in: Rqna_list },
+        })
             .sort({ time: -1 }) // 가장 최근 질문을 기준으로 정렬
             .limit(5); // 상위 5개만 가져오기
-        
+
         if (recentQnaDocs.length === 0) {
-            console.log("No recent Q&A documents found, skipping cache update.");
+            console.log(
+                "No recent Q&A documents found, skipping cache update."
+            );
             return;
         }
 
@@ -248,6 +261,7 @@ const updateAnswerPossibleCache = async (userId) => {
             `answer_possible_qna:${userId}`,
             JSON.stringify(topQnaDocuments)
         );
+        await redisClient.expire(`answer_possible_qna:${userId}`, 3600); // 1시간 후 만료
         console.log("Answer Possible Q&A cached successfully.");
     } catch (error) {
         console.error("Error updating answer possible Q&A cache:", error);

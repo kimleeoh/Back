@@ -57,6 +57,7 @@ const updateMyPopularPostsCache = async (userId) => {
             `my_popular_posts:${userId}`,
             JSON.stringify(topDocuments)
         );
+        await redisClient.expire(`my_popular_posts:${userId}`, 3600); // 1시간 후 만료
         console.log(`Popular posts for user ${userId} cached successfully.`);
     } catch (error) {
         console.error(
@@ -70,4 +71,5 @@ const updateMyPopularPostsCache = async (userId) => {
 cron.schedule("0 * * * *", () => {
     const userId = "로그인한 유저의 ID"; // 여기에 로그인한 유저의 ID를 가져와서 사용
     updateMyPopularPostsCache(userId);
+    console.log("Cache updated for user:", userId); //
 });
