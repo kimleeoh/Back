@@ -9,7 +9,7 @@ import notify from "../../../functions/notify.js"; // 알림 처리
 import { Category } from "../../../schemas/category.js"; // Category 스키마
 
 const handleManageUpdateTipsPage = async (req, res) => {
-    const { id, board, target, purchase_price, content, title, category_type } = req.body;
+    const { id, board, target, purchase_price, content, title, type } = req.body;
     
     try {
         let DocumentsModel;
@@ -26,7 +26,7 @@ const handleManageUpdateTipsPage = async (req, res) => {
         console.log("categoryId: " + categoryId);
 
         // category_type에 따라 문서 스키마 선택
-        switch (category_type) {
+        switch (type) {
             case "pilgy":
                 DocumentsModel = PilgyDocuments;
                 break;
@@ -37,7 +37,7 @@ const handleManageUpdateTipsPage = async (req, res) => {
                 DocumentsModel = HoneyDocuments;
                 break;
             default:
-                return res.status(400).send("Invalid category_type");
+                return res.status(400).send("Invalid type");
         }
 
         // 문서 ID로 해당 문서 찾기
