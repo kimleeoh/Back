@@ -17,6 +17,7 @@ const handleTipsCreate = async (req, res) => {
         // req.files와 req.body를 직접 사용
         const files = req.files; // 업로드된 파일 목록
         const body = req.body; // 요청 본문 데이터
+        console.log("Received board data:", req.body.board);
 
         console.log("Session ID from client:", req.decryptedSessionId);
         if (!req.decryptedSessionId) {
@@ -34,7 +35,7 @@ const handleTipsCreate = async (req, res) => {
         }
 
         const received = await mainInquiry.read(
-            ["_id", "hakbu", "POINT", "Rdoc"],
+            ["_id", "hakbu", "name", "exp", "Rdoc"],
             req.decryptedSessionId
         );
 
@@ -113,6 +114,18 @@ const handleTipsCreate = async (req, res) => {
                 return res.status(400).send("Invalid document type");
         }
 
+        // CommonCategory에 문서 추가 (카테고리별 필드에 추가)
+        let categoryId;
+        const lastBoardElement = req.body.board[req.body.board.length - 1];
+
+        // 마지막 요소가 객체일 경우 ObjectId만 추출
+        if (typeof lastBoardElement === "object" && lastBoardElement !== null) {
+            categoryId = Object.keys(lastBoardElement)[0]; // 객체의 key가 ObjectId일 것으로 가정
+        } else {
+            categoryId = lastBoardElement; // 이미 문자열 또는 ObjectId 형태일 경우 그대로 사용
+        }
+        console.log("categoryId: " + categoryId);
+
         // 새로운 문서 생성
         const doc = new DocumentsModel({
             _id: new mongoose.Types.ObjectId(),
@@ -120,10 +133,10 @@ const handleTipsCreate = async (req, res) => {
             content: req.body.content,
             target: req.body.target,
             Rfile,
-            now_category_list: req.body.board, // 문서가 속한 카테고리
+            now_category: categoryId, // 문서가 속한 카테고리
             time: req.body.time,
             Ruser: received._id,
-            user_main: `${received.hakbu} ${req.decryptedUserData.name}`,
+            user_main: `${received.hakbu} ${received.name}`,
             user_img: req.decryptedUserData.profile_img,
             preview_img,
             views: 0,
@@ -135,13 +148,13 @@ const handleTipsCreate = async (req, res) => {
         });
 
         await mainInquiry.write(
-            { POINT: received.POINT + 100 },
+            { exp: received.exp + 30 },
             req.decryptedSessionId
         );
 
         // 문서 저장 및 사용자 문서 리스트 업데이트
         await doc.save();
-        console.log("Document saved:", doc._id);
+        console.log("Document saved:", doc._id, "now", doc.now_category);
 
         // AllFiles에 추가
         const allFileDoc = new AllFiles({
@@ -156,22 +169,11 @@ const handleTipsCreate = async (req, res) => {
             { $inc: { written: 1 }, $push: { [userListField]: doc._id } },
             { new: true }
         );
-        console.log("updateUserDocs", updatedUserDocs);
+        // console.log("updateUserDocs", updatedUserDocs);
 
         if (!updatedUserDocs) {
             console.error("Failed to update UserDocs. Rdoc:", received.Rdoc);
             return res.status(500).send("Failed to update UserDocs");
-        }
-
-        // CommonCategory에 문서 추가 (카테고리별 필드에 추가)
-        let categoryId;
-        const lastBoardElement = req.body.board[req.body.board.length - 1];
-
-        // 마지막 요소가 객체일 경우 ObjectId만 추출
-        if (typeof lastBoardElement === "object" && lastBoardElement !== null) {
-            categoryId = Object.keys(lastBoardElement)[0]; // 객체의 key가 ObjectId일 것으로 가정
-        } else {
-            categoryId = lastBoardElement; // 이미 문자열 또는 ObjectId 형태일 경우 그대로 사용
         }
 
         const updateCommonCategory = await CommonCategory.findOneAndUpdate(
@@ -179,7 +181,7 @@ const handleTipsCreate = async (req, res) => {
             { $push: { [categoryListField]: doc._id } }, // 해당 카테고리 리스트에 문서 추가
             { new: true }
         );
-        console.log("updateCommonCategory", updateCommonCategory);
+        // console.log("updateCommonCategory", updateCommonCategory);
 
         console.log("Document and category updated successfully");
         res.status(200).json({ message: "Success" });

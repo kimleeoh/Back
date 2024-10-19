@@ -67,7 +67,7 @@ const tipsSchema = new mongoose.Schema({
     // _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     Ruser: { type: mongoose.SchemaTypes.ObjectId },
     target: { type: String },
-    now_category: { type: String },
+    now_category: { type: mongoose.SchemaTypes.ObjectId },
     title: { type: String },
     content: { type: String },
     preview_img: { type: String },
