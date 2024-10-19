@@ -116,6 +116,8 @@ const updateHomePopularTipsCache = async (userId) => {
                 time: doc.time,
                 content: doc.target,
                 views: doc.views,
+                type: "tips", // type 추가
+                docId: doc._id, // 문서 ID 추가
             }));
 
         // Redis에 캐싱
@@ -181,6 +183,8 @@ const updateHomePopularQnaCache = async (userId) => {
                 time: doc.time,
                 content: doc.content,
                 views: doc.views,
+                type: "qna", // type 추가
+                docId: doc._id, // 문서 ID 추가
             }));
         console.log("Data to cache in Redis: ", topQnaDocuments);
 

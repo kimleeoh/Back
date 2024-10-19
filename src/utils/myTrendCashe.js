@@ -49,6 +49,8 @@ const updateMyPopularPostsCache = async (userId) => {
                 time: doc.time,
                 content: doc.target,
                 views: doc.views,
+                type: "tips", // type 추가
+                docId: doc._id, // 문서 ID 추가
             }));
 
         // Redis에 유저별로 캐싱
