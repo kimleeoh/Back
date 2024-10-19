@@ -234,7 +234,7 @@ const updateAnswerPossibleCache = async (userId) => {
         const recentQnaDocs = await QnaDocuments.find({
             _id: { $in: Rqna_list },
         })
-            .sort({ time: -1 }) // 가장 최근 질문을 기준으로 정렬
+            .sort({ time: -1 }) // 최신순으로 정렬
             .limit(5); // 상위 5개만 가져오기
 
         if (recentQnaDocs.length === 0) {
@@ -244,16 +244,15 @@ const updateAnswerPossibleCache = async (userId) => {
             return;
         }
 
-        // 조회수 기준으로 상위 5개 선택
-        const topQnaDocuments = qnaDocs
-            .sort((a, b) => b.views - a.views)
-            .slice(0, 5)
-            .map((doc) => ({
-                title: doc.title,
-                time: doc.time,
-                content: doc.content,
-                views: doc.views,
-            }));
+        // 캐시할 데이터에 type과 docId 포함
+        const topQnaDocuments = recentQnaDocs.map((doc) => ({
+            title: doc.title,
+            time: doc.time,
+            content: doc.content,
+            views: doc.views,
+            type: "qna", // type 추가
+            docId: doc._id, // 문서 ID 추가
+        }));
 
         // Redis에 캐싱
         const redisClient = redisHandler.getRedisClient();
