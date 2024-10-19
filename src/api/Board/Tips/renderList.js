@@ -27,10 +27,11 @@ const loadBoardWithFilter = async (req, res) => {
         }
 
         const allSubjectIds = [
-            ...paramList.Renrolled_list,
-            ...paramList.Rbookmark_list,
-            ...paramList.Rlistened_list,
+            ...userInfo.Renrolled_list,
+            ...userInfo.Rbookmark_list,
+            ...userInfo.Rlistened_list,
         ];
+
         const uniqueSubjectIds = [...new Set(allSubjectIds)];
 
         if (!uniqueSubjectIds || uniqueSubjectIds.length === 0) {
