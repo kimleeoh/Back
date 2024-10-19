@@ -6,6 +6,7 @@ import {
     AllFiles,
 } from "../../../schemas/docs.js";
 import { User } from "../../../schemas/user.js"; // User 스키마 가져오기
+import { Category } from "../../../schemas/category.js"; // Category 스키마
 
 const handleRenderTipsPage = async (req, res) => {
     try {
@@ -42,6 +43,14 @@ const handleRenderTipsPage = async (req, res) => {
             return res.status(404).send({ message: "Document not found" });
         }
 
+        // now_category의 ObjectId로 카테고리 이름 가져오기
+        const category = await Category.findById(document.now_category)
+            .select("category_name")
+            .lean();
+        if (!category) {
+            return res.status(404).send({ message: "Category not found" });
+        }
+
         // Ruser를 통해 사용자 정보 조회
         const user = await User.findById(document.Ruser)
             .select("name hakbu")
@@ -74,7 +83,9 @@ const handleRenderTipsPage = async (req, res) => {
                 name: user.name,
                 hakbu: user.hakbu,
             },
-            file_links: file.file_link_list, // file의 link 리스트 포함
+            file_links: file.file_link_list,
+            category_name: category.category_name,
+            category_type: category_type,
         };
 
         // 조회수 증가 처리
