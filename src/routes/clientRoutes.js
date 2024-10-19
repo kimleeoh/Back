@@ -35,7 +35,7 @@ import { handleEditBoard } from '../api/Board/Board/editBoard.js'
 import { handleUpdatePage } from '../api/Board/QnA/updatePage.js'
 import { handleEditAnswer, handleQnaAnswer } from '../api/Board/QnA/answer.js'
 import { handleDeleteQna } from '../api/Board/QnA/deletePage.js'
-import { handleIsManage, handleManagePickPage, handleManageUpdatePage } from '../api/Board/QnA/managePage.js'
+import { checkIsUserQna, handleManagePickPage, handleManageUpdatePage } from '../api/Board/QnA/managePage.js'
 import { loadBoardPage } from '../api/Board/Board/BoardPage.js'
 import { loadBoardDetail } from '../api/Board/Board/BoardDetail.js'
 // import { getCachedMyPopularPosts } from '../utils/trendingcheck.js'
@@ -43,6 +43,7 @@ import { handleMytrendingList } from '../api/User/Mytrending.js'
 import { handleGetScore, handleUploadScore } from '../api/User/score.js'
 import { handleHomeTipsList, handleHomeQnaList } from '../api/Home/Hometrending.js'
 import { handleAnswerPossibleList } from "../api/Home/AnswerPossible.js";
+import { checkIsUserTips } from '../api/Board/Tips/managePage.js'
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -77,7 +78,7 @@ router.put('/qna/update/post', myMiddleware, handleUpdatePage);
 router.delete('/qna/delete/post', myMiddleware, handleDeleteQna);
 router.post('/qna/manage/post', myMiddleware, upload.array('images'), handleManageUpdatePage);
 router.put('/qna/manage/pick', myMiddleware, handleManagePickPage);
-router.get('/qna/manage', myMiddleware, handleIsManage);
+router.get('/qna/manage', myMiddleware, checkIsUserQna);
 
 router.get('/qna/:id', myMiddleware, handleRenderQnaPage); 
 
@@ -90,6 +91,7 @@ router.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
 // tips 관련 라우터
 router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
 router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
+router.post("/tips/manage", myMiddleware, checkIsUserTips);
 
 
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회

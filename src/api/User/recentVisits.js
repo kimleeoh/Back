@@ -128,31 +128,31 @@ const getCategoryTipsDocumentsForRecentRead = async (doc_id) => {
 
 export { handleRecentRead };
     
-// // 게시글 클릭 시 세션에 큐로 저장
-// const handlePostClick = (req, res) => {
-//     const { doc_id, category_type } = req.params; // 게시글의 doc_id와 category_type
+// 게시글 클릭 시 세션에 큐로 저장
+const handlePostClick = (req, res) => {
+    const { doc_id, category_type } = req.params; // 게시글의 doc_id와 category_type
 
-//     // 세션에 recentRead 큐가 없으면 초기화
-//     initializeRecentReadQueue(req.session);
+    // 세션에 recentRead 큐가 없으면 초기화
+    initializeRecentReadQueue(req.session);
 
-//     const recentRead = req.session.recentRead;
+    const recentRead = req.session.recentRead;
 
-//     // 문서 유형(type) 구분: category_type이 존재하면 Tips, 없으면 QnA
-//     const type = category_type ? "tips" : "qna";
+    // 문서 유형(type) 구분: category_type이 존재하면 Tips, 없으면 QnA
+    const type = category_type ? "tips" : "qna";
 
-//     // 중복되지 않으면 추가 (doc_id와 type을 함께 추가)
-//     if (!recentRead.contains({ doc_id, type })) {
-//         // 큐의 크기가 10개를 초과하면 가장 오래된 항목 제거
-//         if (recentRead.getSize() >= 10) {
-//             recentRead.dequeue();
-//         }
+    // 중복되지 않으면 추가 (doc_id와 type을 함께 추가)
+    if (!recentRead.contains({ doc_id, type })) {
+        // 큐의 크기가 10개를 초과하면 가장 오래된 항목 제거
+        if (recentRead.getSize() >= 10) {
+            recentRead.dequeue();
+        }
 
-//         // 새로운 doc_id와 type을 큐에 추가
-//         recentRead.enqueue({ doc_id, type });
-//     }
+        // 새로운 doc_id와 type을 큐에 추가
+        recentRead.enqueue({ doc_id, type });
+    }
 
-//     res.status(200).json({
-//         message: "Doc ID added to recentRead list",
-//         recentRead: recentRead, // 큐를 그대로 반환
-//     });
-// };
+    res.status(200).json({
+        message: "Doc ID added to recentRead list",
+        recentRead: recentRead, // 큐를 그대로 반환
+    });
+};

@@ -4,7 +4,7 @@ import { QnaDocuments } from "../../../schemas/docs.js";
 import mainInquiry from "../../../functions/mainInquiry.js";
 import { notify } from "../../../functions/notifier.js";
 
-const handleIsManage = async(req,res)=>{
+const checkIsUserQna = async(req,res)=>{
     try{
         if(mainInquiry.isNotRedis()){
             const redisClient = redisHandler.getRedisClient();
@@ -73,6 +73,6 @@ const handleManagePickPage = async (req, res) => {
 // 하나의 질문에 대한 답변들 중에서 0 or 1개만 채택있어야됨 (구현함)
 // 채택된 답변이 0이면 채택가능
 // 채택된 답변이 1이면 채택불가능 (메시지로 보낼것 프론트에게)
-// 위 두개를 반영하면 자동으로 그 수정불가가 구현됨
+// 위 두개를 반영하면 자동으로 그 수정불가가 구현됨 
 
-export { handleIsManage, handleManageUpdatePage, handleManagePickPage };
+export { checkIsUserQna, handleManageUpdatePage, handleManagePickPage };
