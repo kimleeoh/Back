@@ -44,6 +44,7 @@ import { handleGetScore, handleUploadScore } from '../api/User/score.js'
 import { handleHomeTipsList, handleHomeQnaList } from '../api/Home/Hometrending.js'
 import { handleAnswerPossibleList } from "../api/Home/AnswerPossible.js";
 import { checkIsUserTips } from '../api/Board/Tips/managePage.js'
+import { handleRenderTipsPage } from "../api/Board/Tips/renderPage.js";
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -92,7 +93,7 @@ router.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
 router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
 router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
 router.post("/tips/manage", myMiddleware, checkIsUserTips);
-
+router.post("/tips/:id", myMiddleware, handleRenderTipsPage);
 
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
 router.get('/notify', myMiddleware, handleNotify); // 알림 조회

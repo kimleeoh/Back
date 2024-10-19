@@ -2,13 +2,13 @@ import {
     PilgyDocuments,
     HoneyDocuments,
     TestDocuments,
+    AllFiles
 } from "../../../schemas/docs.js";
-import { AllFiles } from "../../../schemas/files.js";
-import mainInquiry from "../../../functions/mainInquiry.js";
+import { User } from "../../../schemas/user.js"; // User 스키마 가져오기
 
 const handleRenderTipsPage = async (req, res) => {
     try {
-        const { docid, Ruser, category_type } = req.params;
+        const { docid, category_type } = req.params;
 
         // category_type에 따라 적절한 Documents 스키마 선택
         let documentSchema;
@@ -29,69 +29,56 @@ const handleRenderTipsPage = async (req, res) => {
         }
 
         // 문서 정보 가져오기
-        const document = await documentSchema.findById(docid);
+        const document = await documentSchema.findById(docid).lean();
         if (!document) {
             return res.status(404).send({ message: "Document not found" });
         }
 
-        // 구매 여부 확인
-        const fileIds = document.Rfile;
-        const purchasedFiles = await AllFiles.find({
-            _id: { $in: fileIds },
-            Rpurchase_list: Ruser._id,
-        });
-        const hasPurchased = purchasedFiles.length > 0;
-
-        // 자신의 글인지 확인
-        const isOwner = String(document.Ruser) === String(Ruser._id);
-
-        // 게시물이 구매되었거나, 사용자가 게시물의 작성자인 경우
-        if (hasPurchased || isOwner) {
-            // 디테일한 정보 반환
-            const detailData = {
-                id: document._id,
-                title: document.title,
-                content: document.content,
-                likes: document.likes,
-                now_category: document.now_category,
-                Ruser: document.Ruser,
-                scrap: document.scrap,
-                views: document.views + 1, // 조회수 증가
-                time: document.time,
-                warn: document.warn,
-                warn_why_list: document.warn_why_list,
-                purchase_price: document.purchase_price,
-            };
-            // 조회수 증가
-            document.views += 1;
-            await document.save();
-
-            return res.status(200).json(detailData);
-        } else {
-            // 미리보기 정보 반환
-            const previewData = {
-                id: document._id,
-                title: document.title,
-                target: document.target,
-                now_category: document.now_category,
-                Ruser: document.Ruser,
-                likes: document.likes,
-                preview_img: document.preview_img,
-                scrap: document.scrap,
-                views: document.views + 1, // 조회수 증가
-                time: document.time,
-                warn: document.warn,
-                warn_why_list: document.warn_why_list,
-                purchase_price: document.purchase_price,
-            };
-            // 조회수 증가
-            document.views += 1;
-            await document.save();
-
-            return res.status(200).json(previewData);
+        // Ruser를 통해 사용자 정보 조회
+        const user = await User.findById(document.Ruser)
+            .select("name hakbu")
+            .lean();
+        if (!user) {
+            return res.status(404).send({ message: "User not found" });
         }
+
+        // Rfile을 통해 파일 정보 조회
+        const file = await AllFiles.findById(document.Rfile)
+            .select("file_link_list")
+            .lean();
+        if (!file) {
+            return res.status(404).send({ message: "File not found" });
+        }
+
+        // 문서의 필요한 정보만 클라이언트로 전송
+        const responseData = {
+            id: document._id,
+            title: document.title,
+            content: document.content,
+            likes: document.likes,
+            views: document.views + 1, // 조회수 증가
+            time: document.time,
+            warn: document.warn,
+            warn_why_list: document.warn_why_list,
+            purchase_price: document.purchase_price,
+            user: {
+                // user의 name과 hakbu를 포함
+                name: user.name,
+                hakbu: user.hakbu,
+            },
+            file_links: file.file_link_list, // file의 link 리스트 포함
+        };
+
+        // 조회수 증가 처리
+        document.views += 1;
+        await documentSchema.findByIdAndUpdate(docid, {
+            views: document.views,
+        });
+
+        // 응답 전송
+        res.status(200).json(responseData);
     } catch (error) {
-        console.error("Error rendering tips page:", error);
+        console.error("Error fetching document details:", error);
         res.status(500).send("Server Error");
     }
 };
