@@ -271,22 +271,4 @@ const updateAnswerPossibleCache = async (userId) => {
     }
 };
 
-// 1시간마다 Q&A 캐시 갱신 스케줄 설정
-cron.schedule("0 * * * *", () => {
-    const userId = "로그인한 유저의 ID";
-    updateHomePopularQnaCache(userId);
-});
-
-// 1시간마다 답변가능질문 캐시 갱신 스케줄 설정
-cron.schedule("0 * * * *", () => {
-    const userId = "로그인한 유저의 ID";
-    updateAnswerPossibleCache(userId);
-});
-
-
-// 1시간마다 캐시 갱신 스케줄 설정
-cron.schedule("0 * * * *", () => {
-    const userId = "로그인한 유저의 ID"; // 여기서 로그인한 유저의 ID를 가져와야 함
-    updateHomePopularTipsCache(userId);
-});
 

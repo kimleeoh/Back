@@ -69,9 +69,3 @@ const updateMyPopularPostsCache = async (userId) => {
     }
 };
 
-// 1시간마다 유저별로 캐시 갱신 스케줄 설정
-cron.schedule("0 * * * *", () => {
-    const userId = "로그인한 유저의 ID"; // 여기에 로그인한 유저의 ID를 가져와서 사용
-    updateMyPopularPostsCache(userId);
-    console.log("Cache updated for user:", userId); //
-});
