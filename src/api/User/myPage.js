@@ -13,7 +13,7 @@ const handleUserProfile = async (req, res) => {
         }
 
         const decryptedSessionId = String(req.decryptedSessionId);
-        const paramList = ["_id", "name", "intro", "level", "Rdoc", "hakbu"];
+        const paramList = ["_id", "name", "intro", "level", "exp", "Rdoc", "hakbu"];
         console.log("Requested params:", paramList);
 
         let userInfo;
@@ -37,6 +37,10 @@ const handleUserProfile = async (req, res) => {
             userInfo.hakbu !== undefined
                 ? userInfo.hakbu
                 : previousUserInfo.hakbu;
+        const exp =
+            userInfo.exp !== undefined
+                ? userInfo.exp
+                : previousUserInfo.exp;
 
         const name = userInfo.name || "Unknown";
         const intro = userInfo.intro || "소개가 없습니다";
@@ -60,6 +64,7 @@ const handleUserProfile = async (req, res) => {
             hakbu,
             level,
             intro,
+            exp,
             tipsCount,
             replyCount,
             profile: req.decryptedUserData.profile,
@@ -87,7 +92,7 @@ const updateUserProfile = async (req, res) => {
 
         // Redis에서 사용자 정보 가져오기
         const userInfo = await mainInquiry.read(
-            ["_id", "level", "Rdoc", "hakbu"],
+            ["_id", "level", "Rdoc", "exp", "hakbu"],
             decryptedSessionId
         );
         if (!userInfo || !userInfo._id) {
@@ -118,6 +123,7 @@ const updateUserProfile = async (req, res) => {
                 name: updatedUser.name,
                 intro: updatedUser.intro,
                 level: updatedUser.level,
+                exp: updatedUser.exp,
                 Rdoc: updatedUser.Rdoc,
                 hakbu: updatedUser.hakbu,
             },
