@@ -93,8 +93,9 @@ router.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
 router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
 router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
 router.post("/tips/manage", myMiddleware, checkIsUserTips);
-router.post("/tips/:id", myMiddleware, handleRenderTipsPage);
+router.get("/tips/:category_type/:docid", myMiddleware, handleRenderTipsPage);
 
+// 사용자관련
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
 router.get('/notify', myMiddleware, handleNotify); // 알림 조회
 router.post('/notify/check', myMiddleware, handleNotifyCheck); // 알림 확인

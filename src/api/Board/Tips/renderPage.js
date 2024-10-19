@@ -8,7 +8,7 @@ import { User } from "../../../schemas/user.js"; // User 스키마 가져오기
 
 const handleRenderTipsPage = async (req, res) => {
     try {
-        const { docid, category_type } = req.params;
+        const { category_type, docid } = req.params;
 
         // category_type에 따라 적절한 Documents 스키마 선택
         let documentSchema;
@@ -17,7 +17,7 @@ const handleRenderTipsPage = async (req, res) => {
                 documentSchema = PilgyDocuments;
                 break;
             case "honey":
-                documentSchema = HoneyDocuments;
+                documentSchema = HoneyDocuments
                 break;
             case "test":
                 documentSchema = TestDocuments;
@@ -52,7 +52,7 @@ const handleRenderTipsPage = async (req, res) => {
 
         // 문서의 필요한 정보만 클라이언트로 전송
         const responseData = {
-            id: document._id,
+            _id: document._id,
             title: document.title,
             content: document.content,
             likes: document.likes,
