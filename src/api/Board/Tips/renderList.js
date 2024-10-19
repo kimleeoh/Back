@@ -8,7 +8,7 @@ import { CustomBoardView } from "../../../schemas/userRelated.js";
 // 필터를 통해 게시판 데이터 로드
 const loadBoardWithFilter = async (req, res) => {
     try {
-        let { filters, lastDocTime } = req.body;  // 마지막 문서의 time을 함께 받음
+        let { filters, lastDocTime } = req.body; // 마지막 문서의 time을 함께 받음
 
         if (!filters || filters.length === 0) {
             filters = ["test", "pilgy", "honey"];
@@ -34,7 +34,9 @@ const loadBoardWithFilter = async (req, res) => {
                 .select("Renrolled_list Rbookmark_list Rlistened_list")
                 .lean();
             if (!customBoard) {
-                return res.status(404).json({ message: "Custom board not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Custom board not found" });
             }
         } catch (error) {
             return res.status(500).json({ message: "Internal server error" });
@@ -72,14 +74,15 @@ const loadBoardWithFilter = async (req, res) => {
 
         for (const filter of filters) {
             for (const category of categories) {
-                const limit = filters.length === 1 ? 12 : filters.length === 2 ? 6 : 4;
+                const limit =
+                    filters.length === 1 ? 12 : filters.length === 2 ? 6 : 4;
 
                 // 마지막 문서의 시간 또는 _id 기준으로 더 이전 문서들을 가져옴
                 const docs = await getCategoryTipsDocuments(
                     filter,
                     category,
                     limit,
-                    lastDocTime  // 마지막 문서의 시간 기준으로 추가된 인자
+                    lastDocTime // 마지막 문서의 시간 기준으로 추가된 인자
                 );
 
                 docs.forEach((doc) => {
@@ -90,6 +93,9 @@ const loadBoardWithFilter = async (req, res) => {
                 documents.push(...docs);
             }
         }
+
+        // 모든 문서를 모은 후 최신순으로 정렬
+        documents.sort((a, b) => new Date(b.time) - new Date(a.time));
 
         // 결과를 클라이언트로 반환
         res.json(documents);
