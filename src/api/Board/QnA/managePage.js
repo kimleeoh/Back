@@ -14,10 +14,10 @@ const handleIsManage = async(req,res)=>{
         const doc = await QnaDocuments.findById(req.body.id);
 
         if(doc.Ruser === uid._id){
-            res.status(200).send('Manage');
+            res.status(200).send('Mine');
         }
         else{
-            res.status(404).send('Not Found');
+            res.status(200).send('Not Mine');
         }
     }catch(e){
         console.error(e);
@@ -69,5 +69,10 @@ const handleManagePickPage = async (req, res) => {
     await notify.Follower(doc.Rnotifyusers_list, doc._id, doc.title, req.decryptedUserData.name, 11);
     res.status(200).send('Successfully updated');
 }
+
+// 하나의 질문에 대한 답변들 중에서 0 or 1개만 채택있어야됨 (구현함)
+// 채택된 답변이 0이면 채택가능
+// 채택된 답변이 1이면 채택불가능 (메시지로 보낼것 프론트에게)
+// 위 두개를 반영하면 자동으로 그 수정불가가 구현됨
 
 export { handleIsManage, handleManageUpdatePage, handleManagePickPage };
