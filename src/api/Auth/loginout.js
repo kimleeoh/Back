@@ -8,6 +8,7 @@ import redisHandler from "../../config/redisHandler.js";
 import { decipherAES, hashPassword } from "./register.js";
 import { timeStamp } from "console";
 import { Queue } from "../../utils/recentPageClass.js";
+import { CustomBoardView } from "../../schemas/userRelated.js";
 
 //이거는 jwt인증용 rsa키가 될 것.
 const privateKeyPem = fs.readFileSync(
@@ -87,7 +88,7 @@ const handleLogin = async (req, res) => {
     await redisClient.hSet("idempotency", idempotencyKey, unixTimestamp);
 
     try {
-        const user = await User.findOne({ email: username });
+        const user = await User.findOne({ email: username }).lean();
 
         if (user == null) {
             return res
@@ -138,10 +139,20 @@ const handleLogin = async (req, res) => {
             userData,
         };
 
+        const {_id, ...selectedBoard} = await CustomBoardView.findOne({ _id: user.Rcustom_brd }).lean();
+        console.log(selectedBoard);
+        const cache = {
+            ...user,
+            ...selectedBoard
+        }
+
         req.session.recentDocs = new Queue();
+
+        req.session.save();
+
+        console.log(req.session.recentDocs);
         // Store session data in Redis with a 1-hour expiration
-        const temp = user.toJSON();
-        await redisClient.set(sessionId, JSON.stringify(temp), "EX", 3600);
+        await redisClient.set(sessionId, JSON.stringify(cache), "EX", 3600);
         await redisClient.sAdd(
             "refreshToken",
             sensitiveSessionID.toString("hex")

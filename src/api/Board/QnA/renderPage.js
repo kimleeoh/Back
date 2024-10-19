@@ -12,7 +12,7 @@ const handleRenderQnaPage = async(req, res)=>{
         mainInquiry.inputRedisClient(redisClient);
     }
     const Doc = await mainInquiry.read(['Rdoc', '_id', 'Rscore'], req.decryptedSessionId);
-    const shouldIshowLS = await UserDocs.findById(Doc.Rdoc, {RmyLike_list:1, RmyScrap_list:1});
+    const shouldIshowLS = await UserDocs.findById(Doc.Rdoc, {RmyLike_list:1, RmyScrap_list:1}).lean();
     const Qdoc = await QnaDocuments.findById(id);
     let answerAble = true;
     let whatScore = null;
@@ -42,15 +42,16 @@ const handleRenderQnaPage = async(req, res)=>{
     req.session.currentDocs =
         {category: "QnA",
         category_id: Qdoc.Rcategory,
-        isLiked: shouldIshowLS.RmyLike_list.includes(id),
+        isLiked: shouldIshowLS.RmyLike_list.Rqna_list.includes(id),
         like: 0,
-        isScrapped: shouldIshowLS.RmyScrap_list.includes(id),
+        isScrapped: shouldIshowLS.RmyScrap_list.Rqna_list.includes(id),
         scrap:false,
         isAlarm:Qdoc.Rnotifyusers_list.includes(Doc._id),
         alarm:false,
-        answer_like_list : Array(size).fill(0),
+        answer_like_list : Array(Qdoc.answer_list.length).fill(0),
         score: whatScore,
         };
+    console.log(req.session.recentDocs);
     req.session.recentDocs.enqueue({
         category: "QnA",
         _id: Qdoc._id,

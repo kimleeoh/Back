@@ -56,7 +56,10 @@ const getCategoryQnaDocuments = async (oneOrMany, categoryData, limit, depth=1) 
 
     query = query.limit(limit);
 
-    return await query;
+    const result = await query.lean();
+
+    console.log("QnA Documents: ", result);
+    return result
 };
 
 export { getCategoryTipsDocuments, getCategoryQnaDocuments };

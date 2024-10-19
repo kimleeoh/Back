@@ -12,7 +12,7 @@ const handleEditBoard = async (req, res) => {
 
         // Redis에서 사용자 커스텀 보드 정보 가져오기
         const r = await mainInquiry.read(
-            ["Rcustom_brd"],
+            ["Renrolled_list", "Rbookmark_list", "Rlistened_list"],
             req.decryptedSessionId
         );
 
@@ -22,21 +22,15 @@ const handleEditBoard = async (req, res) => {
         // 요청 타입에 따라 적절한 리스트에 저장
         switch (req.body.type) {
             case 1:
-                await CustomBoardView.findByIdAndUpdate(r.Rcustom_brd, {
-                    Renrolled_list: subjectIds,
-                });
+                await mainInquiry.write({Renrolled_list: subjectIds}, req.decryptedSessionId);
                 break;
 
             case 2:
-                await CustomBoardView.findByIdAndUpdate(r.Rcustom_brd, {
-                    Rbookmark_list: subjectIds,
-                });
+                await mainInquiry.write({Rbookmark_list: subjectIds}, req.decryptedSessionId);
                 break;
 
             case 3:
-                await CustomBoardView.findByIdAndUpdate(r.Rcustom_brd, {
-                    Rlistened_list: subjectIds,
-                });
+                await mainInquiry.write({Rlistened_list: subjectIds}, req.decryptedSessionId);
                 break;
         }
 

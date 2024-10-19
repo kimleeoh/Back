@@ -96,30 +96,11 @@ const updateUserProfile = async (req, res) => {
                 .json({ message: "유효하지 않은 세션입니다." });
         }
 
-        const userId = userInfo._id;
-
-        // MongoDB에서 사용자 정보 업데이트
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            { $set: { name, intro } }, // name과 intro 업데이트
-            { new: true }
-        );
-        
-        if (!updatedUser) {
-            return res
-                .status(404)
-                .json({ message: "사용자를 찾을 수 없습니다." });
-        }
-
         // Redis 캐시에 업데이트된 정보 반영
         await mainInquiry.write(
             {
-                _id: updatedUser._id,
-                name: updatedUser.name,
-                intro: updatedUser.intro,
-                level: updatedUser.level,
-                Rdoc: updatedUser.Rdoc,
-                hakbu: updatedUser.hakbu,
+                name,
+                intro,
             },
             decryptedSessionId
         );

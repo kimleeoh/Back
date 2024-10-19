@@ -2,15 +2,18 @@ import mongoose from "mongoose";
 import { CommonCategory } from "../../../schemas/category.js"; // 경로는 환경에 맞게 설정하세요
 import { QnaDocuments } from "../../../schemas/docs.js"; // 경로는 환경에 맞게 설정하세요
 import { getCategoryQnaDocuments } from "../../../functions/documentHelpers.js";
+import mainInquiry from "../../../functions/mainInquiry.js";
+import redisHandler from "../../../config/redisHandler.js";
 
 const handleRenderQnaList = async (req, res) => {
 //{type:"one"/"many", depth:1, id:[category_id]} 형식으로 요청
-  const depth = req.body.depth || 1;
+
+  const depth = req.query.depth || 1;
   try {
     let DocIDs;
-    if(req.body.type=="one"){
+    if(req.query.type=="one"){
       // commonCategorySchema에서 Rqna_list의 마지막 20개 문서 추출
-      const category = await CommonCategory.findOne({"_id":req.body.id[0]})
+      const category = await CommonCategory.findOne({"_id":req.query.id[0]})
         .select("Rqna_list")
         .lean();
 
@@ -25,10 +28,18 @@ const handleRenderQnaList = async (req, res) => {
       DocIDs = category.Rqna_list.slice(start, end);
       // 해당 doc_id로 QnaDocuments에서 필요한 정보 조회
     }
-    else if(req.body.type=="many"){
-      DocIDs = req.body.id;
+    else if(req.query.type=="many"){
+      if(mainInquiry.isNotRedis()){
+        const redisClient = redisHandler.getRedisClient();
+        mainInquiry.inputRedisClient(redisClient);
+      }
+      const result = await mainInquiry.read(['Renrolled_list', 'Rbookmark_list', 'Rlistened_list'], req.decryptedSessionId);
+      const lst = [ ...result.Renrolled_list, ...result.Rbookmark_list, ...result.Rlistened_list ];
+      DocIDs = [...new Set(lst)];
+      console.log("DOC:",DocIDs);
+
     }
-    const docs = await getCategoryQnaDocuments(req.body.type, DocIDs, 12, depth);
+    const docs = await getCategoryQnaDocuments(req.query.type, DocIDs, 12, depth);
     // 결과 반환
     res.status(200).send({docList:docs});
   } catch (error) {

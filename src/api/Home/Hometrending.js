@@ -6,8 +6,8 @@ const handleHomeTipsList = async (req, res) => {
     const decryptedSessionId = String(req.decryptedSessionId);
 
     try {
+        const redisClient = redisHandler.getRedisClient();
         if (mainInquiry.isNotRedis()) {
-            const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
 
@@ -24,7 +24,6 @@ const handleHomeTipsList = async (req, res) => {
                 });
         }
 
-        const redisClient = redisHandler.getRedisClient();
         const cachedPopularTipsPosts = await redisClient.get("home_popular_tips");
 
         if (cachedPopularTipsPosts) {
@@ -49,8 +48,8 @@ const handleHomeQnaList = async (req, res) => {
     const decryptedSessionId = String(req.decryptedSessionId);
 
     try {
+        const redisClient = redisHandler.getRedisClient();
         if (mainInquiry.isNotRedis()) {
-            const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
 
@@ -65,11 +64,10 @@ const handleHomeQnaList = async (req, res) => {
             });
         }
 
-        const redisClient = redisHandler.getRedisClient();
         const cachedPopularTipsPosts = await redisClient.get("home_popular_qna");
 
         if (cachedPopularTipsPosts) {
-            const parsedPosts = JSON.parse(cachedPopularPosts);
+            const parsedPosts = JSON.parse(cachedPopularTipsPosts);
             if (parsedPosts.length === 0) {
                 return res
                     .status(200)

@@ -33,7 +33,9 @@ const handleQnACreate = async(req, res)=>{
             fs.unlinkSync(a.path)
         }
         const objId = new mongoose.Types.ObjectId();
-        const nc = req.body.board;
+        const nc = JSON.parse(req.body.board);
+        console.log("머가문제냐:",nc[3]);
+        console.log("머가문제냐:",Object.keys(nc[nc.length-1]));
         data._id = objId;
         data.title = req.body.title;
         data.content = req.body.content;
@@ -52,9 +54,9 @@ const handleQnACreate = async(req, res)=>{
         data.answer_list = [];  
         data.restricted_type = req.body.limit;
         data.warn_why_list = [0,0,0,0,0,0,0,0];
-        data.Rcategory = Object.keys(nc[-1])[0];
-        const p = received.POINT - req.body.point;
-        if(p<0) res.status(400).send('Not enough points');
+        data.Rcategory = Object.keys(nc[nc.length-1])[0];
+        const p = req.body.point*-1;
+        if(p*-1<0) {res.status(400).send('Not enough points');return;}
         else await mainInquiry.write({'POINT':p},req.decryptedSessionId);
         delete req.decryptedSessionId;
         delete req.decryptedUserData;
@@ -64,8 +66,8 @@ const handleQnACreate = async(req, res)=>{
         const lastCheck = await UserDocs.findOneAndUpdate({_id:i},{$inc:{written:1}, $push:{Rqna_list:objId}},{new:true});
         await LowestCategory.findByIdAndUpdate(data.Rcategory,{$push:{Rqna_list:objId}});
         console.log(lastCheck);
-        res.status(200).json({message:'Success'});
-        
+        res.status(200).send({message:'Success'});
+        return;
     }catch(e){
         console.error(e);
         res.status(500).send('Internal Server Error');

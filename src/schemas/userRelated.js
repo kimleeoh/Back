@@ -5,7 +5,7 @@ const customBoardSchema = new mongoose.Schema({
     Renrolled_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rbookmark_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rlistened_list: { type: [mongoose.SchemaTypes.ObjectId] },
-});
+}, {versionKey: false});
 
 const scoreSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },

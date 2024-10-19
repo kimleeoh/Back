@@ -16,7 +16,7 @@ const loadBoardWithFilter = async (req, res) => {
 
         const decryptedSessionId = String(req.decryptedSessionId);
 
-        const paramList = ["_id", "Rcustom_brd"];
+        const paramList = ["_id", "Rcustom_brd", "Renrolled_list", "Rbookmark_list", "Rlistened_list"];
         let userInfo;
         try {
             userInfo = await mainInquiry.read(paramList, decryptedSessionId);
@@ -26,24 +26,10 @@ const loadBoardWithFilter = async (req, res) => {
             });
         }
 
-        let customBoard;
-        try {
-            customBoard = await CustomBoardView.findOne({
-                _id: userInfo.Rcustom_brd,
-            })
-                .select("Renrolled_list Rbookmark_list Rlistened_list")
-                .lean();
-            if (!customBoard) {
-                return res.status(404).json({ message: "Custom board not found" });
-            }
-        } catch (error) {
-            return res.status(500).json({ message: "Internal server error" });
-        }
-
         const allSubjectIds = [
-            ...customBoard.Renrolled_list,
-            ...customBoard.Rbookmark_list,
-            ...customBoard.Rlistened_list,
+            ...paramList.Renrolled_list,
+            ...paramList.Rbookmark_list,
+            ...paramList.Rlistened_list,
         ];
         const uniqueSubjectIds = [...new Set(allSubjectIds)];
 

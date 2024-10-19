@@ -1,10 +1,14 @@
 import { User } from "../schemas/user.js";
+import { CustomBoardView } from "../schemas/userRelated.js";
 //반드시 router 내부에서 이 함수가 작동할 수 있도록 할 것.
 
 const mainInquiry = (() => {
     let redisClient = null;
     const stringFields = ["hakbu", "intro", "profile_img"];
     const listFields = ["Rbadge_list", "Rnotify_list", "notify_meta_list"];
+    const rlistFields = ["-Rbadge_list", "-Rnotify_list", "-notify_meta_list"];
+    const boardFields = ["Renrolled_list", "Rbookmark_list", "Rlistened_list"];
+
     return {
         isNotRedis: () => {
             return redisClient == null;
@@ -80,16 +84,25 @@ const mainInquiry = (() => {
 
             let stringChunk = {};
             let listChunk = {};
+            let rlistChunk = {};
+            let BlistChunk = {};
             let numChunk = {};
             let updateObject = {};
+            let brdUpdateObject = {};
 
             // 전달된 paramObject에 따라 적절한 Chunk로 분리
             Object.keys(paramObject).forEach((key) => {
-                if (stringFields.includes(key)) {
+                if(boardFields.includes(key)){
+                    BlistChunk[key] = paramObject[key];
+                }
+                else if (stringFields.includes(key)) {
                     stringChunk[key] = paramObject[key];
                 } else if (listFields.includes(key)) {
                     listChunk[key] = paramObject[key];
-                } else if (
+                } else if(rlistFields.includes(key)){
+                    rlistChunk[key] = paramObject[key];
+                }
+                else if (
                     typeof paramObject[key] === "number" &&
                     key !== "level"
                 ) {
@@ -107,32 +120,46 @@ const mainInquiry = (() => {
             if (Object.keys(listChunk).length > 0) {
                 updateObject.$push = listChunk;
             }
+            if (Object.keys(rlistChunk).length > 0) {
+                updateObject.$pull = rlistChunk;
+            }
             if (Object.keys(numChunk).length > 0) {
                 updateObject.$inc = numChunk; // level 제외한 숫자 필드만 증가
+            }
+            if (Object.keys(BlistChunk).length > 0) {
+                brdUpdateObject.$set = BlistChunk;
             }
 
             // MongoDB에서 사용자 정보 업데이트
             if (Object.keys(updateObject).length > 0) {
                 try {
                     // MongoDB에서 사용자 정보 업데이트
-                    const result = await User.updateOne(
+                    const result = await User.findOneAndUpdate(
                         { _id: userInfo._id }, // userInfo의 _id를 사용하여 업데이트
-                        updateObject
-                    );
+                        updateObject,
+                        {new:true}
+                    ).lean();
 
-                    if (result.matchedCount === 0) {
+                    console.log("\nuserinfo: ",userInfo);
+
+                    const brd = { Renrolled_list:userInfo.Renrolled_list, Rlistened_list:userInfo.Rlistened_list, Rbookmark_list:userInfo.Rbookmark_list };
+
+                    if(Object.keys(brdUpdateObject).length > 0 )await CustomBoardView.findByIdAndUpdate(result.Rcustom_brd,brdUpdateObject,{new:true}).select('-_id').lean();
+                    
+
+                    if (!result) {
                         throw new Error("Failed to update user in MongoDB");
                     }
 
-                    // MongoDB에서 업데이트된 사용자 정보 다시 조회
-                    const updatedUserInfo = await User.findById(
-                        userInfo._id
-                    ).lean();
+                    const willreturn = {
+                        ...result,
+                        ...brd
+                    }
 
                     // 업데이트된 사용자 정보를 Redis에 다시 저장
                     await redisClient.set(
                         redisId,
-                        JSON.stringify(updatedUserInfo),
+                        JSON.stringify(willreturn),
                         "EX",
                         3600 // 1시간 동안 Redis에 저장
                     );
