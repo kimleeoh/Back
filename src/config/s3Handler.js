@@ -152,7 +152,7 @@ const s3Handler = (() => {
                 }
             );
         },
-         put: async (fileDestination, img) => {
+        put: async (fileDestination, img) => {
             
             const mimeType = img.mimetype || "image/jpeg";  // MIME 타입이 없으면 기본적으로 image/jpeg 사용
             const extension = mimeType.split("/")[1]; // 확장자 추출 (예: "png")
@@ -178,6 +178,46 @@ const s3Handler = (() => {
             const link = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}.${extension}`;
             currentFileNums[fileDestination]++;
             return link;
+        },
+        uploadPDFWithPreview: async (pdfFile, fileDestination) => {
+            // PDF 첫 페이지를 이미지로 변환 (pdf2pic 사용)
+            const options = {
+                density: 100,
+                saveFilename: `preview_${currentFileNums[fileDestination]}`,
+                savePath: "./temp",
+                format: "jpg",
+                width: 600,
+                height: 800,
+            };
+            const pdfConvert = fromPath(pdfFile.path, options);
+            const previewImage = await pdfConvert(1); // 첫 페이지만 변환
+
+            // PDF 파일 업로드
+            const pdfUpload = new Upload({
+                client: S3client,
+                params: {
+                    Bucket: bucketName,
+                    Key: `${fileDestination}/${currentFileNums[fileDestination]}.pdf`,
+                    Body: pdfFile,
+                },
+            });
+            await pdfUpload.done();
+            const pdfLink = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}.pdf`;
+
+            // 미리보기 이미지 업로드
+            const previewUpload = new Upload({
+                client: S3client,
+                params: {
+                    Bucket: bucketName,
+                    Key: `${fileDestination}/${currentFileNums[fileDestination]}_preview.jpg`,
+                    Body: previewImage.path,
+                },
+            });
+            await previewUpload.done();
+            const previewLink = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}_preview.jpg`;
+
+            currentFileNums[fileDestination]++;
+            return { link: pdfLink, preview: previewLink };
         },
         delete: async (imgLinks) => {
             if (!Array.isArray(imgLinks)) {
