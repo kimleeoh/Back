@@ -7,7 +7,7 @@ import {
 
 const checkIsUserTips = async (req, res) => {
     try {
-        const { docid, Ruser, category_type } = req.params;
+        const { docid, Ruser, category_type } = req.body;
 
         // category_type에 따라 적절한 Documents 스키마 선택
         let documentSchema;
