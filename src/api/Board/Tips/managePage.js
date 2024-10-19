@@ -4,10 +4,26 @@ import {
     TestDocuments,
     AllFiles,
 } from "../../../schemas/docs.js";
+import mainInquiry from '../../../functions/mainInquiry.js'; // 세션에서 유저 정보 가져오기
 
 const checkIsUserTips = async (req, res) => {
     try {
+        const decryptedSessionId = String(req.decryptedSessionId);
         const { docid, Ruser, category_type } = req.body;
+        const paramList = ["_id"]; // 필요한 필드 (유저 ID)
+
+        if (mainInquiry.isNotRedis()) {
+            const redisClient = redisHandler.getRedisClient();
+            mainInquiry.inputRedisClient(redisClient);
+        }
+
+        const userInfo = await mainInquiry.read(paramList, decryptedSessionId); // 세션에서 유저 정보 가져오기
+
+        if (!userInfo || !userInfo._id || !userInfo.Rdoc) {
+            return res.status(400).json({
+                message: "Failed to retrieve user information from Redis",
+            });
+        }
 
         // category_type에 따라 적절한 Documents 스키마 선택
         let documentSchema;
@@ -34,7 +50,7 @@ const checkIsUserTips = async (req, res) => {
         }
 
         // 자신의 글인지 확인
-        const userId = Ruser._id ? Ruser._id : Ruser; // Ruser가 객체면 _id 사용, 아니면 바로 Ruser
+        const userId = userInfo._id; // 세션에서 가져온 유저 ID
         const isOwner = String(document.Ruser) === String(userId);
 
         // 자신의 글이면 "Mine" 메시지 반환

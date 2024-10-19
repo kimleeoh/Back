@@ -45,6 +45,7 @@ import { handleHomeTipsList, handleHomeQnaList } from '../api/Home/Hometrending.
 import { handleAnswerPossibleList } from "../api/Home/AnswerPossible.js";
 import { checkIsUserTips } from '../api/Board/Tips/managePage.js'
 import { handleRenderTipsPage } from "../api/Board/Tips/renderPage.js";
+import { handleManageUpdateTipsPage } from '../api/Board/Tips/tipsModify.js'
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -94,6 +95,7 @@ router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 �
 router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
 router.post("/tips/manage", myMiddleware, checkIsUserTips);
 router.get("/tips/:category_type/:docid", myMiddleware, handleRenderTipsPage);
+router.post("/tips/update", myMiddleware, handleManageUpdateTipsPage);
 
 // 사용자관련
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회

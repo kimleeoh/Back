@@ -53,7 +53,7 @@ const handleRenderTipsPage = async (req, res) => {
 
         // Ruser를 통해 사용자 정보 조회
         const user = await User.findById(document.Ruser)
-            .select("name hakbu")
+            .select("_id name hakbu")
             .lean();
         if (!user) {
             return res.status(404).send({ message: "User not found" });
@@ -79,7 +79,7 @@ const handleRenderTipsPage = async (req, res) => {
             warn_why_list: document.warn_why_list,
             purchase_price: document.purchase_price,
             user: {
-                // user의 name과 hakbu를 포함
+                id: user.id,
                 name: user.name,
                 hakbu: user.hakbu,
             },
