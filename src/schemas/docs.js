@@ -1,16 +1,15 @@
 import mongoose from "mongoose";
 
 const AllFilesSchema = new mongoose.Schema({
-    file_link: { type: String, required: true }, // S3에 저장된 파일 링크
-    preview_img: { type: String }, // 미리보기 이미지 (선택 사항)
-    // file_type: { type: String, enum: ["image", "pdf"], required: true }, // 파일 타입
-    Ruser: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-    }, // 파일 업로드한 사용자
-    time: { type: Date, default: Date.now }, // 업로드 시간
-    Rpurchase_list: [{ type: mongoose.Schema.Types.ObjectId }], // 구매한 사용자 목록
+    Rpurchase_list: {
+        type: [mongoose.Schema.Types.ObjectId], // 구매한 사용자의 ObjectId 리스트
+        ref: "User", // 만약 User 스키마를 참조한다면 ref 추가
+        default: [],
+    },
+    file_link_list: {
+        type: [String], // S3 파일 링크들의 배열
+        default: [],
+    },
 });
 
 const qnaSchema = new mongoose.Schema({
@@ -65,10 +64,10 @@ const qnaAlreadySchema = new mongoose.Schema({
 });
 
 const tipsSchema = new mongoose.Schema({
-    _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
+    // _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     Ruser: { type: mongoose.SchemaTypes.ObjectId },
     target: { type: String },
-    now_category: { type: String },
+    now_category: { type: mongoose.SchemaTypes.ObjectId },
     title: { type: String },
     content: { type: String },
     preview_img: { type: String },

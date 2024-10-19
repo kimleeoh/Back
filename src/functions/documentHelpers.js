@@ -31,6 +31,7 @@ const getCategoryTipsDocuments = async (categoryType, categoryData, limit) => {
     // 문서 조회 및 populate
     const documents = await model
         .find({ _id: { $in: docList.slice().reverse().slice(0, limit) } })
+        .limit(limit) // 제한된 수의 문서만 가져옴
         .select(
             "_id title preview_img target Ruser time views likes purchase_price"
         )

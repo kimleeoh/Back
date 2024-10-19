@@ -1,34 +1,92 @@
-// import redisHandler from "../config/redisHandler.js";
+import redisHandler from "../config/redisHandler.js";
 
-// import { updateMyPopularPostsCache } from "./trending.js";
 
-// // 캐시 갱신을 직접 실행 (서버에서)
-// updateMyPopularPostsCache()
-//     .then(() => console.log("Popular posts cache updated successfully"))
-//     .catch((error) =>
-//         console.error("Error updating popular posts cache:", error)
-//     );
+// 세션에 테스트 데이터를 넣는 함수
+const addTestDataToSession = async (userId) => {
+    try {
+        // Redis 클라이언트 생성 및 연결 (비밀번호 추가)
+        redisHandler.create();
+        await redisHandler.connect();
 
-// // Redis에서 캐시된 인기 게시물 확인용 API
-// const getCachedPopularPosts = async (req, res) => {
-//     try {
-//         // Redis 클라이언트 설정
-//         const redisClient = redisHandler.getRedisClient();
+        const redisClient = redisHandler.getRedisClient();
+        if (!redisClient) {
+            throw new Error("Redis 클라이언트가 null 상태입니다.");
+        }
 
-//         // Redis에서 'my_popular_posts' 키에 저장된 데이터 가져오기
-//         const cachedPopularPosts = await redisClient.get("my_popular_posts");
+        // 테스트용 인기 Q&A 데이터
+        const popularAnswerPossibleData = [
+            {
+                title: "JavaScript Promises",
+                time: "2024-09-30T12:00:00.000Z",
+                content: "How to use Promises in JavaScript",
+                views: 51,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb90",
+            },
+            {
+                title: "MongoDB Indexing",
+                time: "2024-10-01T15:00:00.000Z",
+                content: "Guide to MongoDB indexing",
+                views: 41,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb84",
+            },
+            {
+                title: "동현아",
+                time: "2024-09-30T12:00:00.000Z",
+                content: "How to use Promises in JavaScript",
+                views: 31,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb78",
+            },
+            {
+                title: "개발",
+                time: "2024-09-30T12:00:00.000Z",
+                content: "How to use Promises in JavaScript",
+                views: 21,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb8d",
+            },
+            {
+                title: "파이팅",
+                time: "2024-09-30T12:00:00.000Z",
+                content: "How to use Promises in JavaScript",
+                views: 11,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb81",
+            },
+        ];
 
-//         if (cachedPopularPosts) {
-//             return res.status(200).json(JSON.parse(cachedPopularPosts)); // JSON 형식으로 응답
-//         } else {
-//             return res
-//                 .status(404)
-//                 .json({ message: "No popular posts found in cache" });
-//         }
-//     } catch (error) {
-//         console.error("Error fetching popular posts from Redis:", error);
-//         return res.status(500).json({ message: "Internal server error" });
-//     }
-// };
+        await redisClient.del(`my_popular_posts:${userId}`); // 기존 캐시 삭제
+        // JSON으로 변환한 후 Redis 세션에 저장
+        await redisClient.set(
+            `my_popular_posts:${userId}`,
+            JSON.stringify(popularAnswerPossibleData)
+        );
+        console.log(`Test data added to Redis for user: ${userId}`);
+    } catch (error) {
+        console.error("Error adding test data to session:", error);
+    }
+};
 
-// export { getCachedPopularPosts };
+// 테스트용 데이터 추가 실행
+const userId = "6703e0aff4e66d047e84e65e"; // 유저 ID를 직접 넣어줍니다.
+addTestDataToSession(userId);
+
+const checkTestDataInSession = async (userId) => {
+    try {
+        const redisClient = redisHandler.getRedisClient();
+        const cachedData = await redisClient.get(`my_popular_posts:${userId}`);
+
+        if (cachedData) {
+            console.log("Cached Q&A Data:", JSON.parse(cachedData));
+        } else {
+            console.log("No data found in session for user:", userId);
+        }
+    } catch (error) {
+        console.error("Error checking data in session:", error);
+    }
+};
+
+// 세션에서 데이터 확인
+checkTestDataInSession(userId);

@@ -49,6 +49,8 @@ const updateMyPopularPostsCache = async (userId) => {
                 time: doc.time,
                 content: doc.target,
                 views: doc.views,
+                type: "tips", // type 추가
+                docId: doc._id, // 문서 ID 추가
             }));
 
         // Redis에 유저별로 캐싱
@@ -57,6 +59,7 @@ const updateMyPopularPostsCache = async (userId) => {
             `my_popular_posts:${userId}`,
             JSON.stringify(topDocuments)
         );
+        await redisClient.expire(`my_popular_posts:${userId}`, 3600); // 1시간 후 만료
         console.log(`Popular posts for user ${userId} cached successfully.`);
     } catch (error) {
         console.error(
@@ -66,8 +69,3 @@ const updateMyPopularPostsCache = async (userId) => {
     }
 };
 
-// 1시간마다 유저별로 캐시 갱신 스케줄 설정
-cron.schedule("0 * * * *", () => {
-    const userId = "로그인한 유저의 ID"; // 여기에 로그인한 유저의 ID를 가져와서 사용
-    updateMyPopularPostsCache(userId);
-});
