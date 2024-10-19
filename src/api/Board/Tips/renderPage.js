@@ -1,14 +1,22 @@
+import mongoose from "mongoose"; // mongoose 모듈 import
 import {
     PilgyDocuments,
     HoneyDocuments,
     TestDocuments,
-    AllFiles
+    AllFiles,
 } from "../../../schemas/docs.js";
 import { User } from "../../../schemas/user.js"; // User 스키마 가져오기
 
 const handleRenderTipsPage = async (req, res) => {
     try {
         const { category_type, docid } = req.params;
+
+        console.log("Received params:", req.params); // 전체 params 출력
+
+        // docid가 유효한지 확인
+        if (!docid || !mongoose.Types.ObjectId.isValid(docid)) {
+            return res.status(400).send({ message: "Invalid document ID" });
+        }
 
         // category_type에 따라 적절한 Documents 스키마 선택
         let documentSchema;
@@ -17,7 +25,7 @@ const handleRenderTipsPage = async (req, res) => {
                 documentSchema = PilgyDocuments;
                 break;
             case "honey":
-                documentSchema = HoneyDocuments
+                documentSchema = HoneyDocuments;
                 break;
             case "test":
                 documentSchema = TestDocuments;

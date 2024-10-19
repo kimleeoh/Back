@@ -46,27 +46,28 @@ const handleTipsCreate = async (req, res) => {
         }
 
         // 고유한 ObjectId를 Rfile로 생성
-        const Rfile = new mongoose.Types.ObjectId();
+        const Rfile = new mongoose.Types.ObjectId(); 
         const linkList = [];
         let preview_img = "";
-        // 첫 번째 파일의 MIME 타입 확인 (PDF 여부)
-        const isPDF = files[0].mimetype === "application/pdf";
 
         // 파일 처리 (이미지 또는 PDF)
         if (files && files.length > 0) {
+            const isPDF = files[0].mimetype === "application/pdf"; // 첫 번째 파일의 MIME 타입 확인 (PDF 여부)
             if (isPDF) {
                 // PDF 파일 처리
-                const pdfFile = files[0];  // 첫 번째 파일이 PDF인 경우
+                const pdfFile = files[0]; // 첫 번째 파일이 PDF인 경우
                 const fileStream = fs.createReadStream(pdfFile.path);
 
                 // 1. S3에 PDF 파일 저장 (files 경로)
                 const pdfLink = await s3Handler.put("files", fileStream);
-                linkList.push(pdfLink);  // PDF 파일 링크 저장
+                linkList.push(pdfLink); // PDF 파일 링크 저장
 
                 // 2. 첫 페이지를 이미지로 변환하여 S3에 저장 (preview 경로)
-                const { preview } = await s3Handler.uploadPDFWithPreview(fileStream, "preview");
-                preview_img = preview;  // 첫 페이지 이미지 설정
-
+                const { preview } = await s3Handler.uploadPDFWithPreview(
+                    fileStream,
+                    "preview"
+                );
+                preview_img = preview; // 첫 페이지 이미지 설정
             } else {
                 for (let i = 0; i < files.length; i++) {
                     const fileStream = fs.createReadStream(files[i].path);
@@ -113,7 +114,7 @@ const handleTipsCreate = async (req, res) => {
 
         // 새로운 문서 생성
         const doc = new DocumentsModel({
-            _id: new mongoose.Types.ObjectId(),
+            // _id: new mongoose.Types.ObjectId(),
             title: req.body.title,
             content: req.body.content,
             target: req.body.target,
