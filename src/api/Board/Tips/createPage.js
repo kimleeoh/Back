@@ -17,7 +17,6 @@ const handleTipsCreate = async (req, res) => {
         // req.files와 req.body를 직접 사용
         const files = req.files; // 업로드된 파일 목록
         const body = req.body; // 요청 본문 데이터
-        console.log("Received board:", req.body.board); // 전체 board 확인
 
         console.log("Session ID from client:", req.decryptedSessionId);
         if (!req.decryptedSessionId) {
@@ -53,7 +52,8 @@ const handleTipsCreate = async (req, res) => {
 
         // 파일 처리 (이미지 또는 PDF)
         if (files && files.length > 0) {
-            const isPDF = files[0].mimetype === "application/pdf"; // 첫 번째 파일의 MIME 타입 확인 (PDF 여부)
+            // 첫 번째 파일의 MIME 타입 확인 (PDF 여부)
+            const isPDF = files[0].mimetype === "application/pdf";
             if (isPDF) {
                 // PDF 파일 처리
                 const pdfFile = files[0]; // 첫 번째 파일이 PDF인 경우
@@ -115,7 +115,7 @@ const handleTipsCreate = async (req, res) => {
 
         // 새로운 문서 생성
         const doc = new DocumentsModel({
-            // _id: new mongoose.Types.ObjectId(),
+            _id: new mongoose.Types.ObjectId(),
             title: req.body.title,
             content: req.body.content,
             target: req.body.target,
@@ -172,16 +172,6 @@ const handleTipsCreate = async (req, res) => {
             categoryId = Object.keys(lastBoardElement)[0]; // 객체의 key가 ObjectId일 것으로 가정
         } else {
             categoryId = lastBoardElement; // 이미 문자열 또는 ObjectId 형태일 경우 그대로 사용
-        }
-        console.log("lastBoardElement: " + lastBoardElement + " categoryId: " + categoryId);
-
-        // ObjectId 유효성 검증 추가
-        if (mongoose.Types.ObjectId.isValid(lastBoardElement)) {
-            categoryId = lastBoardElement;
-        } else {
-            return res
-                .status(400)
-                .send({ message: "Invalid categoryId format" });
         }
 
         const updateCommonCategory = await CommonCategory.findOneAndUpdate(
