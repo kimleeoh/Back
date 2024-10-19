@@ -5,7 +5,7 @@ import redisHandler from "../config/redisHandler.js";
 const addTestDataToSession = async (userId) => {
     try {
         // Redis 클라이언트 생성 및 연결 (비밀번호 추가)
-        redisHandler.create();
+        redisHandler.create("redis://:pXwOx2H30l9SuuZVt6i462EoL9hNngOK@redis-17273.c340.ap-northeast-2-1.ec2.redns.redis-cloud.com:17273");
         await redisHandler.connect();
 
         const redisClient = redisHandler.getRedisClient();
@@ -20,30 +20,40 @@ const addTestDataToSession = async (userId) => {
                 time: "2024-09-30T12:00:00.000Z",
                 content: "How to use Promises in JavaScript",
                 views: 51,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb90",
             },
             {
                 title: "MongoDB Indexing",
                 time: "2024-10-01T15:00:00.000Z",
                 content: "Guide to MongoDB indexing",
                 views: 41,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb84",
             },
             {
                 title: "동현아",
                 time: "2024-09-30T12:00:00.000Z",
                 content: "How to use Promises in JavaScript",
                 views: 31,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb78",
             },
             {
                 title: "개발",
                 time: "2024-09-30T12:00:00.000Z",
                 content: "How to use Promises in JavaScript",
                 views: 21,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb8d",
             },
             {
                 title: "파이팅",
                 time: "2024-09-30T12:00:00.000Z",
                 content: "How to use Promises in JavaScript",
                 views: 11,
+                type: "tips",
+                docId: "6702481644c3b0ef2743eb81",
             },
         ];
 

@@ -2,3 +2,4 @@ node_modules/
 .env
 *.pem
 trendingcheck.js
+src/utils/trendingcheck.js
