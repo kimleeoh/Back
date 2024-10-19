@@ -5,7 +5,7 @@ import {
     HoneyDocuments,
 } from "../../../schemas/docs.js"; // 각 스키마 가져오기
 import s3Handler from "../../../config/s3Handler.js"; // s3Handler 사용
-import notify from "../../../functions/notify.js"; // 알림 처리
+import {notify} from "../../../functions/notifier.js"
 import { Category } from "../../../schemas/category.js"; // Category 스키마
 
 const handleManageUpdateTipsPage = async (req, res) => {
