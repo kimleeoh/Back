@@ -46,6 +46,7 @@ import { handleAnswerPossibleList } from "../api/Home/AnswerPossible.js";
 import { checkIsUserTips } from '../api/Board/Tips/managePage.js'
 import { handleRenderTipsPage } from "../api/Board/Tips/renderPage.js";
 import { handleManageUpdateTipsPage } from '../api/Board/Tips/tipsModify.js'
+import { handleDeleteTips } from "../api/Board/Tips/deletePage.js";
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -96,6 +97,7 @@ router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTip
 router.post("/tips/manage", myMiddleware, checkIsUserTips);
 router.get("/tips/:category_type/:docid", myMiddleware, handleRenderTipsPage);
 router.post("/tips/update", myMiddleware, handleManageUpdateTipsPage);
+router.delete("/tips/:category_type/:docid", myMiddleware, handleDeleteTips);
 
 // 사용자관련
 router.get('/point', myMiddleware, handlePointRead); // 포인트 조회

@@ -147,10 +147,11 @@ const handleTipsCreate = async (req, res) => {
             purchase_price: req.body.purchase_price,
         });
 
-        await mainInquiry.write(
-            { exp: 30 },
-            req.decryptedSessionId
-        );
+        // exp 값에 30 더하기
+        const newExp = (received.exp || 0) + 30;
+
+        // exp 업데이트
+        await mainInquiry.write({ exp: newExp }, req.decryptedSessionId);
 
         // 문서 저장 및 사용자 문서 리스트 업데이트
         await doc.save();
@@ -181,6 +182,14 @@ const handleTipsCreate = async (req, res) => {
             { $push: { [categoryListField]: doc._id } }, // 해당 카테고리 리스트에 문서 추가
             { new: true }
         );
+
+        if (!updateCommonCategory) {
+            console.error(
+                "Failed to update CommonCategory. categoryId:",
+                categoryId
+            );
+            return res.status(500).send("Failed to update CommonCategory");
+        }
         // console.log("updateCommonCategory", updateCommonCategory);
 
         console.log("Document and category updated successfully");
