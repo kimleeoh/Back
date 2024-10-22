@@ -43,7 +43,7 @@ const getCategoryTipsDocuments = async (categoryType, categoryData, limit) => {
 
 const getCategoryQnaDocuments = async (oneOrMany, categoryData, onlyA,limit, depth=1) => {
     const target = oneOrMany === "many" 
-        ? onlyA? { 'Rcategory': { $in: categoryData }, 'restricted_type': true} : { 'Rcategory': { $in: categoryData } } 
+        ? onlyA=="true"? { 'Rcategory': { $in: categoryData }, 'restricted_type': true} : { 'Rcategory': { $in: categoryData } } 
         : { _id: { $in: categoryData } };
 
     let query = QnaDocuments.find(target)

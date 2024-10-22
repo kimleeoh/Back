@@ -64,18 +64,31 @@ const handleUpdatePage = async (req, res) => {
         await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 4)
         if(doc.scrap%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7);
     }
-    
+    console.log("처리이전:",userDoc.toJSON());
+    const islk = Number(willchange.isLiked);
     switch (lk) {
         case -1 : 
+            if(islk==1) {userDoc.RmyLike_list.Rqna_list = userDoc.RmyLike_list.Rqna_list.filter(item => item.toString() !== id.toString());
+                userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());
+                userDoc.totalLike -=  1; console.log("문제", userDoc.RmyUnlike_list.Rqna_list);}
+            else if(islk==0) {userDoc.RmyUnlike_list.Rqna_list.push(id);userDoc.RmyLike_list.Rqna_list = userDoc.RmyLike_list.Rqna_list.filter(item => item.toString() !== id.toString());}
+            break;
         case -2:
-            userDoc.totalLike +=  lk;
-            if(willchange.isLiked==1) userDoc.RmyLike_list.Rqna_list.filter(item => item !== id);
+            userDoc.totalLike -=  1;
+            userDoc.RmyLike_list.Rqna_list = userDoc.RmyLike_list.Rqna_list.filter(item => item.toString() !== id.toString());
+            console.log(userDoc.RmyUnlike_list.Rqna_list);
             userDoc.RmyUnlike_list.Rqna_list.push(id);
             break;
         case 1: 
+            console.log(id.toString(), userDoc.RmyLike_list.Rqna_list[0].toString());
+            if(islk==-1) {
+                userDoc.RmyLike_list.Rqna_list = userDoc.RmyLike_list.Rqna_list.filter(item => item.toString() !== id.toString());
+                userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());}
+            else if(islk==0) {userDoc.RmyLike_list.Rqna_list.push(id);userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());userDoc.totalLike +=  1;}
+            break;
         case 2:
-            userDoc.totalLike  +=  lk;
-            if(willchange.isLiked==-1) userDoc.RmyUnlike_list.Rqna_list.filter(item => item !== id);
+            userDoc.totalLike  +=  1;
+            userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());
             userDoc.RmyLike_list.Rqna_list.push(id);
             break;
         case 0:
@@ -86,6 +99,7 @@ const handleUpdatePage = async (req, res) => {
             checkMiddleInvalid = true;
             break;
     }
+    console.log("처리이후:",userDoc.toJSON());
 
     if(checkMiddleInvalid) return;
 

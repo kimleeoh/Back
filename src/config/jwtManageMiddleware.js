@@ -85,7 +85,7 @@ const myMiddleware = async(req, res, next) => {
     jwt.verify(token, publicKey, async (err, decoded) => {
         if (err) {
             console.log(err);
-            return res.sendStatus(403).send("No token provided");
+            return res.status(403).send("No token provided");
         }
         const sessionId = decoded.sessionId;
         let sensitiveSessionID = decoded.sensitiveSessionID;
@@ -102,7 +102,11 @@ const myMiddleware = async(req, res, next) => {
         try {
             const sessionExists = await redisClient.exists(sessionId_D);
             console.log(sensitiveSessionID_D);
-            const sensitiveSessionExists = await redisClient.sIsMember(
+            let sensitiveSessionExists = await redisClient.sIsMember(
+                "refreshToken",
+                sensitiveSessionID_D
+            );
+            if(!sensitiveSessionExists) sensitiveSessionExists = await redisClient.sIsMember(
                 "refreshToken",
                 sensitiveSessionID_D
             );

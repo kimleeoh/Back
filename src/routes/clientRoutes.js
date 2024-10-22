@@ -41,7 +41,7 @@ import { loadBoardDetail } from '../api/Board/Board/BoardDetail.js'
 // import { getCachedMyPopularPosts } from '../utils/trendingcheck.js'
 import { handleMytrendingList } from '../api/User/Mytrending.js'
 import { handleGetScore, handleUploadScore } from '../api/User/score.js'
-import { handleHomeTipsList, handleHomeQnaList } from '../api/Home/Hometrending.js'
+import { handleHomeDataList } from '../api/Home/Hometrending.js'
 import { handleAnswerPossibleList } from "../api/Home/AnswerPossible.js";
 import { checkIsUserTips } from '../api/Board/Tips/managePage.js'
 import { handleRenderTipsPage } from "../api/Board/Tips/renderPage.js";
@@ -127,8 +127,7 @@ router.post("/mypage/trending", myMiddleware, handleMytrendingList); // 프로�
 
 // 홈 화면 관련 라우터
 // 인기 게시물 조회 관련
-router.post("/home/trending-tips", myMiddleware, handleHomeTipsList); // 홈 게시판별 인기 tips조회
-router.post("/home/trending-qna", myMiddleware, handleHomeQnaList); // 홈 게시판별 인기 qna조회
+router.post("/home/trending", myMiddleware, handleHomeDataList); // 홈 게시판별 인기 tips조회
 router.post("/home/answer-possible", myMiddleware, handleAnswerPossibleList); // 홈 게시판별 인기 qna조회
 
 // // 캐시 테스트

@@ -17,7 +17,9 @@ const handleEditBoard = async (req, res) => {
         );
 
         // subject 배열에서 id 값만 추출
-        const subjectIds = req.body.subject.map((item) => item.id);
+        console.log(req.body.subject);
+        const subjectIds = req.body.subject.map((subject) => subject.id);
+        console.log(subjectIds);
 
         // 요청 타입에 따라 적절한 리스트에 저장
         switch (req.body.type) {
@@ -32,6 +34,8 @@ const handleEditBoard = async (req, res) => {
             case 3:
                 await mainInquiry.write({Rlistened_list: subjectIds}, req.decryptedSessionId);
                 break;
+            default:
+                console.log("error!!!!!!");
         }
 
         res.status(200).send("OK"); // 성공 응답

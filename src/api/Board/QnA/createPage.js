@@ -7,6 +7,7 @@ import s3Handler from '../../../config/s3Handler.js';
 import { UserDocs } from '../../../schemas/userRelated.js';
 import fs from 'fs';
 import { LowestCategory } from '../../../schemas/category.js';
+import { DataRedundancy } from '@aws-sdk/client-s3';
 
 //decryptedSessionId: sessionId_D, 이건 해독된 세션아이디
 //decryptedUserData: decoded.userData -> 이건 이름이랑 프로필 사진만 가지고 있음
@@ -42,6 +43,7 @@ const handleQnACreate = async(req, res)=>{
         data.img_list = linkList;
         data.now_category_list = nc;
         data.time = req.body.time;
+        data.point = req.body.point;
         data.views = 0;
         data.likes = 0;
         data.scrap = 0;

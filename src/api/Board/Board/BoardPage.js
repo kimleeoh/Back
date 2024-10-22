@@ -17,7 +17,7 @@ const loadBoardPage = async (req, res) => {
         const decryptedSessionId = String(req.decryptedSessionId);
 
         // Redis에서 필요한 유저 정보(_id, Rcustom_brd) 읽기
-        const paramList = ["_id", "Rcustom_brd"];
+        const paramList = ["_id", "Rcustom_brd", "Renrolled_list", "Rbookmark_list", "Rlistened_list"];
         let userInfo;
         try {
             userInfo = await mainInquiry.read(paramList, decryptedSessionId);
@@ -28,73 +28,56 @@ const loadBoardPage = async (req, res) => {
         }
 
         // 유저가 설정한 커스텀 보드 가져오기
-        let customBoard;
-        try {
-            if (!userInfo.Rcustom_brd) {
-                return res
-                    .status(400)
-                    .json({ message: "Rcustom_brd not set for the user" });
-            }
-
-            customBoard = await CustomBoardView.findOne({
-                _id: userInfo.Rcustom_brd,
-            })
-                .select("Renrolled_list Rbookmark_list Rlistened_list")
-                .lean();
-
-            if (!customBoard) {
-                return res
-                    .status(404)
-                    .json({ message: "Custom board not found" });
-            }
-        } catch (error) {
-            return res.status(500).json({ message: "Internal server error" });
-        }
+        const {Renrolled_list,Rbookmark_list,Rlistened_list, ...thers} = userInfo;
 
         // 1. 각 리스트의 ObjectId 가져오기
-        const enrolledIds = customBoard.Renrolled_list;
-        const bookmarkIds = customBoard.Rbookmark_list;
-        const listenedIds = customBoard.Rlistened_list;
 
         // 2. ObjectId로 category_name 조회
-        const enrolledCategories = await CommonCategory.find({
-            _id: { $in: enrolledIds },
-        })
-            .select("category_name")
+        const enrolledCategories = await CommonCategory.find(
+            {
+                _id: { $in: Renrolled_list }
+            })
+            .select("_id category_name")
             .lean();
+            
+        console.log(enrolledCategories);
 
         const bookmarkCategories = await CommonCategory.find({
-            _id: { $in: bookmarkIds },
+            _id: { $in: Rbookmark_list },
         })
-            .select("category_name")
+            .select("_id category_name")
             .lean();
 
         const listenedCategories = await CommonCategory.find({
-            _id: { $in: listenedIds },
+            _id: { $in: Rlistened_list },
         })
-            .select("category_name")
+            .select("_id category_name")
             .lean();
 
         // 3. 각 board_type에 따른 데이터 형식 구성 및 원래 순서대로 정렬
-        const formatCategories = (categories, ids) =>
-            ids.map((id) => {
+        const formatCategories = (categories, ids) =>{
+            if(ids.length === 0) return [];
+
+            return ids.map((id) => {
                 const category = categories.find(
                     (category) => String(category._id) === String(id)
                 );
-                return {
+
+                if(category) {return {
                     id: category._id, // _id를 id로 변환
                     name: category.category_name,
-                };
-            });
+                };}else{return null;}
+            }).filter(item=>item!=null);}
 
         const response = {
-            enroll: formatCategories(enrolledCategories, enrolledIds),
-            bookmark: formatCategories(bookmarkCategories, bookmarkIds),
-            listened: formatCategories(listenedCategories, listenedIds),
+            enroll: formatCategories(enrolledCategories, Renrolled_list),
+            bookmark: formatCategories(bookmarkCategories, Rbookmark_list),
+            listened: formatCategories(listenedCategories, Rlistened_list),
         };
+        console.log(response);
 
         // 4. 프론트로 데이터 전송
-        res.status(200).json(response);
+        res.status(200).send(response);
     } catch (error) {
         console.error("Error fetching board data:", error);
         res.status(500).json({ message: "Server error" });

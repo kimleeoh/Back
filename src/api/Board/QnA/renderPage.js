@@ -44,11 +44,43 @@ const handleRenderQnaPage = async(req, res)=>{
     if(Qdoc.warn >9) { res.status(403).send({locked:true, message:"신고처리된 게시글입니다."});return;}
     console.log(shouldIshowLS);
     const idfy = id.toString();
+
+    const p = ()=>{
+        let pp = 1;
+        if(shouldIshowLS.RmyLike_list.Rqna_list==undefined){
+            pp +=3;
+        }
+        if(shouldIshowLS.RmyUnlike_list.Rqna_list==undefined){
+            pp+=5;
+        }
+        switch(pp){
+            case 1:
+                if(shouldIshowLS.RmyLike_list.Rqna_list.some(item => item.toString() === idfy)){
+                    pp+=1;
+                }if(shouldIshowLS.RmyUnlike_list.Rqna_list.some(item => item.toString() === idfy)){
+                    pp+=2;
+                }
+                if(pp==4)return -3;
+                else if(pp==2)return 1;
+                else if(pp==3)return -1;
+                else if(pp==1)return 0;
+            case 4:
+                if(shouldIshowLS.RmyUnlike_list.Rqna_list.some(item => item.toString() === idfy)){
+                    return -1;
+                }else return 0;
+
+            case 6:
+                if(shouldIshowLS.RmyLike_list.Rqna_list.some(item => item.toString() === idfy)) return 1;
+                else return 0;
+            case 9:
+                return 0;
+        }
+    }
     
     const currentDocs =
         {category: "QnA",
         category_id: Qdoc.Rcategory,
-        isLiked: shouldIshowLS.RmyLike_list.Rqna_list==undefined? 0 : shouldIshowLS.RmyLike_list.Rqna_list.some(item => item.toString() === idfy)? 1 : shouldIshowLS.RmyUnlike_list.Rqna_list!=undefined&&shouldIshowLS.RmyUnlike_list.Rqna_list.includes(idfy)? -1 : 0,
+        isLiked: p(),
         like: 0,
         isScrapped: shouldIshowLS.RmyScrap_list.Rqna_list.some(item => item.toString() === idfy),
         scrap:false,

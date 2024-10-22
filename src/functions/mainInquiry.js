@@ -93,7 +93,8 @@ const mainInquiry = (() => {
             // 전달된 paramObject에 따라 적절한 Chunk로 분리
             Object.keys(paramObject).forEach((key) => {
                 if(boardFields.includes(key)){
-                    BlistChunk[key] = paramObject[key];
+                    BlistChunk[key] = [...userInfo[key], ...paramObject[key]];
+                    console.log(BlistChunk[key]);
                 }
                 else if (stringFields.includes(key)) {
                     stringChunk[key] = paramObject[key];
@@ -142,9 +143,9 @@ const mainInquiry = (() => {
 
                     console.log("\nuserinfo: ",userInfo);
 
-                    const brd = { Renrolled_list:userInfo.Renrolled_list, Rlistened_list:userInfo.Rlistened_list, Rbookmark_list:userInfo.Rbookmark_list };
+                    let  brd = { Renrolled_list:userInfo.Renrolled_list, Rlistened_list:userInfo.Rlistened_list, Rbookmark_list:userInfo.Rbookmark_list };
 
-                    if(Object.keys(brdUpdateObject).length > 0 )await CustomBoardView.findByIdAndUpdate(result.Rcustom_brd,brdUpdateObject,{new:true}).select('-_id').lean();
+                    if(Object.keys(brdUpdateObject).length > 0 )brd = await CustomBoardView.findByIdAndUpdate(result.Rcustom_brd,brdUpdateObject,{new:true}).select('-_id').lean();
                     
 
                     if (!result) {
@@ -168,7 +169,22 @@ const mainInquiry = (() => {
                     throw new Error("Failed to update user in MongoDB");
                 }
             } else {
-                console.log("No updates needed for this user.");
+                let  brd = { Renrolled_list:userInfo.Renrolled_list, Rlistened_list:userInfo.Rlistened_list, Rbookmark_list:userInfo.Rbookmark_list };
+
+                if(Object.keys(brdUpdateObject).length > 0 )brd = await CustomBoardView.findByIdAndUpdate(userInfo.Rcustom_brd,brdUpdateObject,{new:true}).select('-_id').lean();
+                const { Renrolled_list, Rlistened_list, Rbookmark_list, ...willreturn } = userInfo;
+                const willreturn2 = {
+                    ...willreturn,
+                    ...brd
+                };
+                console.log(willreturn2);
+                await redisClient.set(
+                    redisId,
+                    JSON.stringify(willreturn2),
+                    "EX",
+                    3600 // 1시간 동안 Redis에 저장
+                );
+                console.log("user.");
             }
         },
     };
