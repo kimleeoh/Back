@@ -89,6 +89,7 @@ const qnaAnswerSchema = new mongoose.Schema({
     likes: { type: Number },
     QNAcategory: { type: [String], required: true },
     Rqna: { type: mongoose.SchemaTypes.ObjectId },
+    time: { type: Date},
     warn: { type: Number },
     warn_why_list: [{ type: Number }],
 });

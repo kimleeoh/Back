@@ -146,9 +146,9 @@ const handleLogin = async (req, res) => {
             ...selectedBoard
         }
 
-        req.session.recentDocs = new Queue();
+        //req.session.recentDocs = new Queue();
 
-        req.session.save();
+        //req.session.save();
 
         console.log(req.session.recentDocs);
         // Store session data in Redis with a 1-hour expiration

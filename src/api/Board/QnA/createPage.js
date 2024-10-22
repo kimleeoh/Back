@@ -50,7 +50,7 @@ const handleQnACreate = async(req, res)=>{
         data.user_main = `${received.hakbu} ${req.decryptedUserData.name}`;
         data.user_img = req.decryptedUserData.profile_img;
         data.preview_content = req.body.content.slice(0,100);
-        data.picked_index = 0;
+        data.picked_index = -1;
         data.answer_list = [];  
         data.restricted_type = req.body.limit;
         data.warn_why_list = [0,0,0,0,0,0,0,0];

@@ -53,7 +53,7 @@ const rewardOtherCheck = async (type, data, temporarySessionData) => {
     try {
         if (type == 1) {
             
-            if (temporarySessionData.joayo == 2 && data.totalLike % 10 == 0) {
+            if (temporarySessionData.like == 2 && data.totalLike % 10 == 0) {
                 return {
                     status: true,
                     type: "누적 좋아요 n개 달성!",

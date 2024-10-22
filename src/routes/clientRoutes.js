@@ -35,7 +35,7 @@ import { handleEditBoard } from '../api/Board/Board/editBoard.js'
 import { handleUpdatePage } from '../api/Board/QnA/updatePage.js'
 import { handleEditAnswer, handleQnaAnswer } from '../api/Board/QnA/answer.js'
 import { handleDeleteQna } from '../api/Board/QnA/deletePage.js'
-import { checkIsUserQna, handleManagePickPage, handleManageUpdatePage } from '../api/Board/QnA/managePage.js'
+import { handleManagePickPage, handleManageUpdatePage } from '../api/Board/QnA/managePage.js'
 import { loadBoardPage } from '../api/Board/Board/BoardPage.js'
 import { loadBoardDetail } from '../api/Board/Board/BoardDetail.js'
 // import { getCachedMyPopularPosts } from '../utils/trendingcheck.js'
@@ -80,9 +80,8 @@ router.put('/qna/update/post', myMiddleware, handleUpdatePage);
 router.delete('/qna/delete/post', myMiddleware, handleDeleteQna);
 router.post('/qna/manage/post', myMiddleware, upload.array('images'), handleManageUpdatePage);
 router.put('/qna/manage/pick', myMiddleware, handleManagePickPage);
-router.get('/qna/manage', myMiddleware, checkIsUserQna);
 
-router.get('/qna/:id', myMiddleware, handleRenderQnaPage); 
+router.get('/qna', myMiddleware, handleRenderQnaPage); 
 
 router.post('/qna/create/answer', myMiddleware, upload.array('images'), handleQnaAnswer);
 router.put('/qna/update/answer', myMiddleware, upload.array('images'),handleEditAnswer);

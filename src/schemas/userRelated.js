@@ -47,6 +47,12 @@ const userDocSchema = new mongoose.Schema({
         Rtest_list: { type: [mongoose.SchemaTypes.ObjectId] },
     },
     Rnotify_list: { type: [mongoose.SchemaTypes.ObjectId] },
+    RmyUnlike_list: {
+        Rqna_list: { type: [mongoose.SchemaTypes.ObjectId] },
+        Rpilgy_list: { type: [mongoose.SchemaTypes.ObjectId] },
+        Rhoney_list: { type: [mongoose.SchemaTypes.ObjectId] },
+        Rtest_list: { type: [mongoose.SchemaTypes.ObjectId] },
+    },
     final_views: { type: Number },
     final_scraped: { type: Number },
     final_liked: { type: Number },

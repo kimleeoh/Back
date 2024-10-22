@@ -39,7 +39,7 @@ const handleRenderQnaList = async (req, res) => {
       console.log("DOC:",DocIDs);
 
     }
-    const docs = await getCategoryQnaDocuments(req.query.type, DocIDs, 12, depth);
+    const docs = await getCategoryQnaDocuments(req.query.type, DocIDs, req.query.isAGradeOnly, 12, depth);
     // 결과 반환
     res.status(200).send({docList:docs});
   } catch (error) {

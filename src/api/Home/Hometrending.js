@@ -35,8 +35,12 @@ const handleHomeTipsList = async (req, res) => {
                     .status(200)
                     .json({ message: "No popular tips available1" });
             }
-            return res.status(200).json(parsedTipsPosts);
+            console.log("Cached Tips Data: ", parsedTipsPosts);
+            res.status(200).json(parsedTipsPosts);
         }
+        return res
+                    .status(200)
+                    .json({ message: "No popular tips available1" });
     } catch (error) {
         console.error("Error fetching popular tips: error");
         res.status(500).send("Internal Server Error");

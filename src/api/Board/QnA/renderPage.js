@@ -2,18 +2,20 @@ import mainInquiry from "../../../functions/mainInquiry.js";
 import { QnaAnswers, QnaDocuments } from "../../../schemas/docs.js";
 import { User } from "../../../schemas/user.js";
 import { Score, UserDocs } from "../../../schemas/userRelated.js";
-
+import redisHandler from "../../../config/redisHandler.js";
+import mongoose from "mongoose";
 
 const handleRenderQnaPage = async(req, res)=>{
-    const {id} = req.params;
+    const {id} = req.query;
+    console.log(id);
     try{
     if(mainInquiry.isNotRedis()){
         const redisClient = redisHandler.getRedisClient();
         mainInquiry.inputRedisClient(redisClient);
     }
-    const Doc = await mainInquiry.read(['Rdoc', '_id', 'Rscore'], req.decryptedSessionId);
-    const shouldIshowLS = await UserDocs.findById(Doc.Rdoc, {RmyLike_list:1, RmyScrap_list:1}).lean();
-    const Qdoc = await QnaDocuments.findById(id);
+    const Doc = await mainInquiry.read(['Rdoc', '_id', 'Rscore', 'level', 'hakbu', 'name', 'profile_img'], req.decryptedSessionId);
+    const shouldIshowLS = await UserDocs.findById(Doc.Rdoc, {RmyLike_list:1, RmyScrap_list:1, RmyUnlike_list:1}).lean();
+    const Qdoc = await QnaDocuments.findById(id).lean();
     let answerAble = true;
     let whatScore = null;
     const lastCategory = Object.values(Qdoc.now_category_list[Qdoc.now_category_list.length - 1])[0];
@@ -35,65 +37,79 @@ const handleRenderQnaPage = async(req, res)=>{
             }
         }
         whatScore = see == -1 ? null : sc.semester_list[see[1]].grade_list[see[0]];
+        if(whatScore !== null){
         const grades = ["A+", "A0", "A-", "B+", "B0", "B-", "C+", "C0", "C-", "F"];
-        whatScore = grades[whatScore];
+        whatScore = grades[whatScore];}
     }
     if(Qdoc.warn >9) { res.status(403).send({locked:true, message:"신고처리된 게시글입니다."});return;}
-    req.session.currentDocs =
+    console.log(shouldIshowLS);
+    const idfy = id.toString();
+    
+    const currentDocs =
         {category: "QnA",
         category_id: Qdoc.Rcategory,
-        isLiked: shouldIshowLS.RmyLike_list.Rqna_list.includes(id),
+        isLiked: shouldIshowLS.RmyLike_list.Rqna_list==undefined? 0 : shouldIshowLS.RmyLike_list.Rqna_list.some(item => item.toString() === idfy)? 1 : shouldIshowLS.RmyUnlike_list.Rqna_list!=undefined&&shouldIshowLS.RmyUnlike_list.Rqna_list.includes(idfy)? -1 : 0,
         like: 0,
-        isScrapped: shouldIshowLS.RmyScrap_list.Rqna_list.includes(id),
+        isScrapped: shouldIshowLS.RmyScrap_list.Rqna_list.some(item => item.toString() === idfy),
         scrap:false,
-        isAlarm:Qdoc.Rnotifyusers_list.includes(Doc._id),
+        isAlarm:Qdoc.Rnotifyusers_list.some(item=> item.toString()==Doc._id.toString()),
         alarm:false,
         answer_like_list : Array(Qdoc.answer_list.length).fill(0),
         score: whatScore,
         };
-    console.log(req.session.recentDocs);
-    req.session.recentDocs.enqueue({
-        category: "QnA",
-        _id: Qdoc._id,
-        title: Qdoc.title,
-        writer:Qdoc.user_main,
-        time: Qdoc.time,
-        like: Qdoc.likes,
-        view: Qdoc.views+1,
-        preview_content: Qdoc.preview_content,
-        img: Qdoc.img_list[0],
-        restrict_type: Qdoc.restricted_type,
-        point: Qdoc.point
-    });
-    const { answer_list, now_category_list, view, ...others} = Qdoc;
+        
+    //console.log("session",req.session.recentDocs);
+    // req.session.recentDocs.enqueue({
+    //     category: "QnA",
+    //     _id: Qdoc._id,
+    //     title: Qdoc.title,
+    //     writer:Qdoc.user_main,
+    //     time: Qdoc.time,
+    //     like: Qdoc.likes,
+    //     view: Qdoc.views+1,
+    //     preview_content: Qdoc.preview_content,
+    //     img: Qdoc.img_list[0],
+    //     restrict_type: Qdoc.restricted_type,
+    //     point: Qdoc.point
+    // });
+    const { answer_list, views,now_category_list, ...others} = Qdoc;
 
-    const onlyString = now_category_list.map(item => Object.values(item)[0]);
-
+    let res_list = [];
+    let answered = -1;
+    if(answer_list.length != 0){
     const RanswerList = answer_list.map(answer => answer.Ranswer);
     const RuserList = answer_list.map(answer => answer.Ruser);
     const gradeList = answer_list.map(answer => answer.user_grade);
-
-    const answers = await QnaAnswers.findById({_id:{$in:RanswerList}}, { Rqna:0, warn_why_list:0});
-    const users = await User.findById({_id:{$in:RuserList}}, {hakbu:1, name:1, profile_img:1, level:1});
+    const answers = await QnaAnswers.findById({_id:{$in:RanswerList}}, { Rqna:0, warn_why_list:0}).lean();
+    const users = await User.findById({_id:{$in:RuserList}}, {hakbu:1, name:1, profile_img:1, level:1}).lean();
+    answered = RuserList.findIndex((user) => user === Doc._id);
     
-    const res_list = answers.map((answer, index) => ({
+    res_list = answers.map((answer, index) => ({
             ...answer,
             ...users[index],
             ...RuserList[index],
             ...gradeList[index]
-        }));
+        }));}
     const returnData = {
         locked:false,
-        others,
-        view: view+1,
-        onlyString,
+        ...others,
+        view: views+1,
+        now_category_list: lastCategory,
         answer_list: res_list,
         isScore: answerAble,
         whatScore,
-        alarm: req.session.currentDocs.isAlarm
+        level:Doc.level,
+        major:Doc.hakbu,
+        name:Doc.name,
+        profile_img:Doc.profile_img,
+        alarm: currentDocs.isAlarm,
+        isMine: Doc._id == Qdoc.Ruser,
+        answered
     };
 
-    res.status(200).send(returnData);}
+    console.log(JSON.stringify(returnData));
+
+    res.status(200).send({returnData: JSON.stringify(returnData), currentDocs});}
     catch(err){
         console.error(err);
         res.status(500).send("Server Error");

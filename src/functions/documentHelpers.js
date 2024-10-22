@@ -41,9 +41,9 @@ const getCategoryTipsDocuments = async (categoryType, categoryData, limit) => {
     return documents;
 };
 
-const getCategoryQnaDocuments = async (oneOrMany, categoryData, limit, depth=1) => {
+const getCategoryQnaDocuments = async (oneOrMany, categoryData, onlyA,limit, depth=1) => {
     const target = oneOrMany === "many" 
-        ? { 'Rcategory': { $in: categoryData } } 
+        ? onlyA? { 'Rcategory': { $in: categoryData }, 'restricted_type': true} : { 'Rcategory': { $in: categoryData } } 
         : { _id: { $in: categoryData } };
 
     let query = QnaDocuments.find(target)
@@ -51,7 +51,11 @@ const getCategoryQnaDocuments = async (oneOrMany, categoryData, limit, depth=1) 
                             .sort({ time: -1 });
 
     if (oneOrMany === "many") {
-        const skip = (depth - 1) * limit;
+        const totalDocuments = await QnaDocuments.countDocuments(target); // Count total documents
+        console.log("Total QnA Documents: ", totalDocuments);
+        const skip = (depth - 1) * limit; // Adjust skip value
+        console.log("Skip: ", skip);
+        if(skip >= totalDocuments) return [];
         query = query.skip(skip);
     }
 

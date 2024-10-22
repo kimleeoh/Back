@@ -40,6 +40,7 @@ const handleQnaAnswer = async (req, res) => {
             warn_why_list: [0,0,0,0,0,0,0,0],
             QNAcategory: qna.now_category_list,
             likes: 0,
+            time: Date.now(),
             warn: 0,
             Rqna: id
         });
