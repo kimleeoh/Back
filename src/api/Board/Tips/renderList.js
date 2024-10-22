@@ -31,6 +31,7 @@ const loadBoardWithFilter = async (req, res) => {
             ...userInfo.Rbookmark_list,
             ...userInfo.Rlistened_list,
         ];
+
         const uniqueSubjectIds = [...new Set(allSubjectIds)];
 
         if (!uniqueSubjectIds || uniqueSubjectIds.length === 0) {
