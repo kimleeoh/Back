@@ -8,8 +8,9 @@ const handleMytrendingList = async (req, res) => {
     const decryptedSessionId = String(req.decryptedSessionId);
 
     try {
+        const redisClient = redisHandler.getRedisClient();
         if (mainInquiry.isNotRedis()) {
-            const redisClient = redisHandler.getRedisClient();
+            
             mainInquiry.inputRedisClient(redisClient);
         }
 
@@ -28,8 +29,7 @@ const handleMytrendingList = async (req, res) => {
         }
 
         const userId = userInfo._id; // 유저 ID를 가져옴
-        const redisClient = redisHandler.getRedisClient();
-
+    
         // 유저별 캐시된 인기 게시물 가져오기
         const cachedMyPopularPosts = await redisClient.get(
             `my_popular_posts:${userId}`

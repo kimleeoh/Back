@@ -21,23 +21,72 @@ const handleUpdatePage = async (req, res) => {
     const willchange = currentDocs;
 
     doc.views += 1;
-    const RanswerList = doc.answer_list.map(answer => answer.Ranswer);
+    const RanswerList = doc.answer_list.map(answer => answer.Ranswer.toString());
+    
     if(RanswerList.length!==0) {
-    const answers = await QnaAnswers.findById({_id:{$in:RanswerList}});
+    const answers = await QnaAnswers.find({_id:{$in:RanswerList}});
+
+    console.log(willchange);
+   
     if(willchange.answer_like_list!="" || willchange.answer_like_list.length!=0){
+        let wa = willchange.answer_like_list.split(',');
+        console.log("좋아요목록", willchange.isAnswerLiked);
+        
+        wa = wa.map(Number);
+        console.log("대상목록", wa);
+        console.log("좋아요목록", willchange.isAnswerLiked);
+
     await Promise.all(answers.map(async (answer, index) => {
-        if(willchange.answer_like_list[index]>2 || willchange.answer_like_list[index]<-2){
-            console.log(willchange.answer_like_list[index]>2 || willchange.answer_like_list[index]<-2);
+        if(wa[index]>2 || wa[index]<-2){
+            console.log(wa[index]>2 || wa[index]<-2);
             res.status(400).send('Invalid request');
             checkMiddleInvalid = true;
         }
-        answer.likes += willchange.answer_like_list[index];
+        
+        switch (wa[index]) {
+            case -1 :
+                if(willchange.isAnswerLiked[index]==1) {
+                userDoc.RmyLike_list.Ranswer_list = userDoc.RmyLike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
+                userDoc.RmyUnlike_list.Ranswer_list = userDoc.RmyUnlike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
+                userDoc.totalLike -=  1;}
+                else if(answer.likes==0) {userDoc.RmyUnlike_list.Rreply_list.push(answer._id);userDoc.RmyLike_list.Ranswer_list = userDoc.RmyLike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());}
+                break;
+            case -2:
+                userDoc.totalLike -=  1;
+                userDoc.RmyLike_list.Rreply_list = userDoc.RmyLike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
+                userDoc.RmyUnlike_list.Rreply_list.push(answer._id);
+                break;
+            case 1:
+                if(willchange.isAnswerLiked[index]==-1) {
+                    userDoc.RmyLike_list.Rreply_list = userDoc.RmyLike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
+                    userDoc.RmyUnlike_list.Rreply_list = userDoc.RmyUnlike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
+                }
+                else if(willchange.isAnswerLiked[index]==0) {userDoc.RmyLike_list.Rreply_list.push(answer._id);userDoc.RmyUnlike_list.Rreply_list = userDoc.RmyUnlike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());userDoc.totalLike +=  1;}
+                break;
+            case 2:
+                userDoc.totalLike  +=  1;
+                userDoc.RmyUnlike_list.Rreply_list = userDoc.RmyUnlike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
+                userDoc.RmyLike_list.Rreply_list.push(answer._id);
+                break;
+            case 0:
+                break;
+            default:
+                console.log("좋아요", wa[index]);
+                res.status(400).send('Invalid request');
+                checkMiddleInvalid = true;
+                break;
+        }
+
+        if(checkMiddleInvalid) return;
+
+        answer.likes += wa[index];
+
         await answer.save();
         if (answer.likes != 0) {
             const answerUser = doc.answer_list[index].Ruser;
-            await notify.Author(answerUser, doc._id, doc.title, req.decryptedUserData.name, 3);
+            await notify.Author(answerUser, doc._id, doc.title, req.decryptedUserData.name, 3, "/qna");
             if (answer.likes % 10 == 0) {
-                await notify.Author(answerUser, doc._id, doc.title, req.decryptedUserData.name, 7);
+                await notify.Author(answerUser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
             }
         }
     }));}
@@ -53,16 +102,16 @@ const handleUpdatePage = async (req, res) => {
         modal = rewardOtherCheck(1, userDoc, willchange);
     }
     if(modal.status){
-        await notify.Self(req.decryptedSessionId, doc._id, doc.title, req.decryptedUserData.name, 3);
+        await notify.Self(req.decryptedSessionId, doc._id, doc.title, req.decryptedUserData.name, 3, "/qna");
     }
 
     if(doc.likes!=0){
-        await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 3)
-        if(doc.likes%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7);
+        await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 3, "/qna");
+        if(doc.likes%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
     }
     if(doc.scrap!=0){
-        await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 4)
-        if(doc.scrap%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7);
+        await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 4, "/qna");
+        if(doc.scrap%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
     }
     console.log("처리이전:",userDoc.toJSON());
     const islk = Number(willchange.isLiked);
@@ -80,7 +129,6 @@ const handleUpdatePage = async (req, res) => {
             userDoc.RmyUnlike_list.Rqna_list.push(id);
             break;
         case 1: 
-            console.log(id.toString(), userDoc.RmyLike_list.Rqna_list[0].toString());
             if(islk==-1) {
                 userDoc.RmyLike_list.Rqna_list = userDoc.RmyLike_list.Rqna_list.filter(item => item.toString() !== id.toString());
                 userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());}

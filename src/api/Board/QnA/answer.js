@@ -4,13 +4,18 @@ import s3Handler from "../../../config/s3Handler.js";
 import redisHandler from "../../../config/redisHandler.js";
 import mainInquiry from "../../../functions/mainInquiry.js";
 import { notify } from "../../../functions/notifier.js";
+import { rewardNullCheck, rewardOtherCheck } from "../../../functions/rewardCheck.js";
 import fs from "fs";
 import mongoose from "mongoose";
 
 
 const handleQnaAnswer = async (req, res) => {
     try {
-        const { id, answer} = req.body;
+        console.log(req.decryptedUserData);
+        const js = JSON.parse(JSON.stringify(req.body));
+        const { id, answer, score} = js;
+
+        console.log("form:",req.body);
 
         if(mainInquiry.isNotRedis()){
             const redisClient = redisHandler.getRedisClient();
@@ -35,17 +40,18 @@ const handleQnaAnswer = async (req, res) => {
         const answerId = new mongoose.Types.ObjectId();
         await QnaAnswers.create({
             _id: answerId,
-            content: answer,
+            content: answer.target.value,
             img_list: linkList,
             warn_why_list: [0,0,0,0,0,0,0,0],
-            QNAcategory: qna.now_category_list,
+            QNAcategory: Object.keys(qna.now_category_list[qna.now_category_list.length-1])[0],
             likes: 0,
             time: Date.now(),
             warn: 0,
             Rqna: id
         });
-        qna.answer_list.push({Ruser: received._id, Ranswer : answerId, user_grade: req.session.currentDocs.score});
+        qna.answer_list.push({Ruser: received._id, Ranswer : answerId, user_grade: score});
         await qna.save();
+        delete req.currentDocs;
 
         let modal = rewardNullCheck(1, userDoc, {})
         userDoc.written+=1;
@@ -56,8 +62,8 @@ const handleQnaAnswer = async (req, res) => {
         // if(modal.status){
         //     await notify.Self(received._id, qna._id, qna.title, req.decryptedUserData.name, 3);
         // }
-        await notify.Author(qna.Ruser, qna._id, qna.title, req.decryptedUserData.name, 2);
-        await notify.Follower(qna.Rnotifyusers_list, qna._id, qna.title, req.decryptedUserData.name, 10);
+        await notify.Author(qna.Ruser, qna._id, qna.title, req.decryptedUserData.name, 2, "/qna");
+        await notify.Follower(qna.Rnotifyusers_list, qna._id, qna.title, req.decryptedUserData.name, 10, "/qna");
 
         res.status(200).send("OK");
     } catch (e) {

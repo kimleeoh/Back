@@ -45,19 +45,19 @@ const handleRenderQnaPage = async(req, res)=>{
     console.log(shouldIshowLS);
     const idfy = id.toString();
 
-    const p = ()=>{
+    const p = (targ,idfy)=>{
         let pp = 1;
-        if(shouldIshowLS.RmyLike_list.Rqna_list==undefined){
+        if(shouldIshowLS.RmyLike_list[targ]==undefined){
             pp +=3;
         }
-        if(shouldIshowLS.RmyUnlike_list.Rqna_list==undefined){
+        if(shouldIshowLS.RmyUnlike_list[targ]==undefined){
             pp+=5;
         }
         switch(pp){
             case 1:
-                if(shouldIshowLS.RmyLike_list.Rqna_list.some(item => item.toString() === idfy)){
+                if(shouldIshowLS.RmyLike_list[targ].some(item => item.toString() === idfy)){
                     pp+=1;
-                }if(shouldIshowLS.RmyUnlike_list.Rqna_list.some(item => item.toString() === idfy)){
+                }if(shouldIshowLS.RmyUnlike_list[targ].some(item => item.toString() === idfy)){
                     pp+=2;
                 }
                 if(pp==4)return -3;
@@ -65,30 +65,17 @@ const handleRenderQnaPage = async(req, res)=>{
                 else if(pp==3)return -1;
                 else if(pp==1)return 0;
             case 4:
-                if(shouldIshowLS.RmyUnlike_list.Rqna_list.some(item => item.toString() === idfy)){
+                if(shouldIshowLS.RmyUnlike_list[targ].some(item => item.toString() === idfy)){
                     return -1;
                 }else return 0;
 
             case 6:
-                if(shouldIshowLS.RmyLike_list.Rqna_list.some(item => item.toString() === idfy)) return 1;
+                if(shouldIshowLS.RmyLike_list[targ].some(item => item.toString() === idfy)) return 1;
                 else return 0;
             case 9:
                 return 0;
         }
     }
-    
-    const currentDocs =
-        {category: "QnA",
-        category_id: Qdoc.Rcategory,
-        isLiked: p(),
-        like: 0,
-        isScrapped: shouldIshowLS.RmyScrap_list.Rqna_list.some(item => item.toString() === idfy),
-        scrap:false,
-        isAlarm:Qdoc.Rnotifyusers_list.some(item=> item.toString()==Doc._id.toString()),
-        alarm:false,
-        answer_like_list : Array(Qdoc.answer_list.length).fill(0),
-        score: whatScore,
-        };
         
     //console.log("session",req.session.recentDocs);
     // req.session.recentDocs.enqueue({
@@ -112,16 +99,42 @@ const handleRenderQnaPage = async(req, res)=>{
     const RanswerList = answer_list.map(answer => answer.Ranswer);
     const RuserList = answer_list.map(answer => answer.Ruser);
     const gradeList = answer_list.map(answer => answer.user_grade);
-    const answers = await QnaAnswers.findById({_id:{$in:RanswerList}}, { Rqna:0, warn_why_list:0}).lean();
-    const users = await User.findById({_id:{$in:RuserList}}, {hakbu:1, name:1, profile_img:1, level:1}).lean();
-    answered = RuserList.findIndex((user) => user === Doc._id);
+    const answers = await QnaAnswers.find({_id:{$in:RanswerList}}, { Rqna:0, warn_why_list:0}).lean();
+    const users = await User.find({_id:{$in:RuserList}}, {hakbu:1, name:1, profile_img:1, level:1}).lean();
+    answered = RuserList.reduce((indices, user, index) => {
+    if (user.toString() === Doc._id.toString()) {
+        indices.push(index);
+    }
+    return indices;
+}, []); console.log("answered", answered);
     
     res_list = answers.map((answer, index) => ({
+        alread:p("Rreply_list", answer._id.toString()),
             ...answer,
             ...users[index],
             ...RuserList[index],
             ...gradeList[index]
-        }));}
+        }));
+    
+    
+    }
+
+    const islkd = res_list.map(answer => answer.alread);
+
+    const currentDocs =
+        {category: "QnA",
+        category_id: Qdoc.Rcategory,
+        isLiked: p("Rqna_list", idfy),
+        like: 0,
+        isScrapped: shouldIshowLS.RmyScrap_list.Rqna_list.some(item => item.toString() === idfy),
+        scrap:false,
+        isAlarm:Qdoc.Rnotifyusers_list.some(item=> item.toString()==Doc._id.toString()),
+        alarm:false,
+        answer_like_list : Array(Qdoc.answer_list.length).fill(0),
+        isAnswerLiked : islkd,
+        score: whatScore,
+        };
+
     const returnData = {
         locked:false,
         ...others,

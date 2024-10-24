@@ -39,6 +39,7 @@ const userDocSchema = new mongoose.Schema({
         Rpilgy_list: { type: [mongoose.SchemaTypes.ObjectId] },
         Rhoney_list: { type: [mongoose.SchemaTypes.ObjectId] },
         Rtest_list: { type: [mongoose.SchemaTypes.ObjectId] },
+        Rreply_list: { type: [mongoose.SchemaTypes.ObjectId] },
     },
     RmyScrap_list: {
         Rqna_list: { type: [mongoose.SchemaTypes.ObjectId] },
@@ -52,6 +53,7 @@ const userDocSchema = new mongoose.Schema({
         Rpilgy_list: { type: [mongoose.SchemaTypes.ObjectId] },
         Rhoney_list: { type: [mongoose.SchemaTypes.ObjectId] },
         Rtest_list: { type: [mongoose.SchemaTypes.ObjectId] },
+        Rreply_list: { type: [mongoose.SchemaTypes.ObjectId] },
     },
     final_views: { type: Number },
     final_scraped: { type: Number },

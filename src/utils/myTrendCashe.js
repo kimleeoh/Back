@@ -11,8 +11,10 @@ import mainInquiry from "../functions/mainInquiry.js";
 // 유저별 인기 게시물 캐시 갱신 함수
 const updateMyPopularPostsCache = async (userId) => {
     try {
+
+        const redisClient = redisHandler.getRedisClient();
+
         if (mainInquiry.isNotRedis()) {
-            const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
 
@@ -54,7 +56,7 @@ const updateMyPopularPostsCache = async (userId) => {
             }));
 
         // Redis에 유저별로 캐싱
-        const redisClient = redisHandler.getRedisClient();
+        
         await redisClient.set(
             `my_popular_posts:${userId}`,
             JSON.stringify(topDocuments)

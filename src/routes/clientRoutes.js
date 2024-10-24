@@ -78,7 +78,7 @@ router.post('/findPassword/changePassword', handleResetPassword)
 // QnA 관련 라우터
 router.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate)
 router.put('/qna/update/post', myMiddleware, handleUpdatePage);
-router.delete('/qna/delete/post', myMiddleware, handleDeleteQna);
+router.delete('/qna/:id', myMiddleware, handleDeleteQna);
 router.post('/qna/manage/post', myMiddleware, upload.array('images'), handleManageUpdatePage);
 router.put('/qna/manage/pick', myMiddleware, handleManagePickPage);
 
@@ -104,6 +104,7 @@ router.get('/notify', myMiddleware, handleNotify); // 알림 조회
 router.post('/notify/check', myMiddleware, handleNotifyCheck); // 알림 확인
 router.get('/notify/new', myMiddleware, handleNewNotify); // 새로운 알림 확인
 router.post('/notify/unnew', myMiddleware, handleUnNewNotify); // 예전 알림 확인
+
 router.post('/warn', myMiddleware, handleWarn); // 경고 조회
 
 // board 관련 라우터

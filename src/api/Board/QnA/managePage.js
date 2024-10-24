@@ -28,7 +28,7 @@ const handleManageUpdatePage = async (req, res) => {
     doc.title = title;
     doc.time = Date.now();
     await doc.save();
-    await notify.Follower(doc.Rnotifyusers_list, doc._id, doc.title, req.decryptedUserData.name, 1);
+    await notify.Follower(doc.Rnotifyusers_list, doc._id, doc.title, req.decryptedUserData.name, 1, "/qna");
     res.status(200).send('Successfully updated');}
     catch(e){
         console.error(e);
@@ -45,8 +45,8 @@ const handleManagePickPage = async (req, res) => {
 
     await doc.save();
 
-    await notify.Author(pickedPeople, doc._id, doc.title, req.decryptedUserData.name, 12);
-    await notify.Follower(doc.Rnotifyusers_list, doc._id, doc.title, req.decryptedUserData.name, 11);
+    await notify.Author(pickedPeople, doc._id, doc.title, req.decryptedUserData.name, 12, "/qna");
+    await notify.Follower(doc.Rnotifyusers_list, doc._id, doc.title, req.decryptedUserData.name, 11, "/qna");
     res.status(200).send('Successfully updated');
 }
 

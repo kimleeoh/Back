@@ -7,6 +7,7 @@ const notifySchema = new mongoose.Schema({
     badge_name: { type: String },
     who_user: { type: String },
     Rdoc: { type: mongoose.SchemaTypes.ObjectId },
+    category_types: { type: String },
     Rdoc_title: { type: String },
     time: { type: Number, default: Date.now },
     checked: { type: Boolean },

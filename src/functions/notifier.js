@@ -27,16 +27,16 @@ const othersMessageList = [
     "의 내 답변을 채택했어요!"
 ];
 
-const totalFormat = (type)=> [
-    `<h1>${senderName}님이 글 ${docTitle}${othersMessageList[type]}</h1><br></br><input type="button" value="확인하러 가기" onclick="window.open('https://localhost:3000/qna/${docId}', '_blank')">`
+const totalFormat = (type, caType)=> [
+    `<h1>${senderName}님이 글 ${docTitle}${othersMessageList[type]}</h1><br></br><input type="button" value="확인하러 가기" onclick="window.open('https://localhost:3000/${caType}/${docId}', '_blank')">`
 ];
 
-async function notiMailer(userEmail, isAnswerType, docId, docTitle, senderName){
+async function notiMailer(userEmail, isAnswerType, docId, docTitle, senderName, cType){
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: userEmail,
         subject: " [A-F Killer] 새로운 알림이 도착했습니다.",
-        html: totalFormat(isAnswerType)
+        html: totalFormat(isAnswerType, cType)
     };
 
     try{
@@ -57,7 +57,7 @@ const notify = (() => {
     //몇 분 내로 보낸 좋아요 알림은 무시하게 코드짜기
     //timer fire
     return {
-        Author:async(docAuthorId, docId, docTitle,senderName, typeNum, docPoint=0) => {  
+        Author:async(docAuthorId, docId, docTitle,senderName, typeNum, docPoint=0, caType="") => {  
             try{
                 const ID = new mongoose.Types.ObjectId();
                 const authorNotify = await User.findById(docAuthorId);
@@ -89,6 +89,7 @@ const notify = (() => {
                             Rdoc_title : docTitle,
                             count: 1, // Initialize count
                             checked:false,
+                            category_types:caType,
                             point:poin
                         });
 
@@ -101,9 +102,9 @@ const notify = (() => {
                 }else{
                     authorTimestamp = Date.now();
                     if(typeNum<3){
-                        await notiMailer(authorNotify.email, typeNum==2, docId, docTitle, senderName);
+                        await notiMailer(authorNotify.email, typeNum==2, docId, docTitle, senderName, caType);
                     }else if(typeNum==12){
-                        await notiMailer(authorNotify.email, 3, docId, docTitle, senderName);
+                        await notiMailer(authorNotify.email, 3, docId, docTitle, senderName, caType);
                         poin = docPoint;
                     }
                     await Notify.create({
@@ -115,6 +116,7 @@ const notify = (() => {
                         Rdoc_title : docTitle,
                         count: 1, // Initialize count
                         checked:false,
+                        category_types:caType,
                         point:poin
                     });
 
@@ -129,7 +131,7 @@ const notify = (() => {
                 return {state: false, message:"error"};
             }
         },
-        Follower:async (Rnotifyusers_list, docId, docTitle, senderName, typeNum) => {
+        Follower:async (Rnotifyusers_list, docId, docTitle, senderName, typeNum, caType) => {
             try{
                 const getResult = await User.find({ _id: { $in: Rnotifyusers_list } });
                 for(const user of getResult){
@@ -142,6 +144,7 @@ const notify = (() => {
                         Rdoc : docId,
                         Rdoc_title : docTitle,
                         checked:false,
+                        category_types:caType,
                         point:0,
                         count: 1 // Initialize count
                     };
@@ -149,7 +152,7 @@ const notify = (() => {
                     user.Rnotify_list.push(ID);
                     user.notify_meta_list.push({Type:typeNum, Sender:senderName});
                     await user.save();
-                    if(typeNum==11) await notiMailer(user.email, 2, docId, docTitle, senderName);
+                    if(typeNum==11) await notiMailer(user.email, 2, docId, docTitle, senderName, caType);
                     
                 }
             
@@ -159,7 +162,7 @@ const notify = (() => {
                 return {state: false, message:"error"};
             }
         },
-        Self:async (selfId, docId, docTitle, typeNum) => {
+        Self:async (selfId, docId, docTitle, typeNum, caType) => {
             //뱃지 획득을 알림창에 띄워두는거
             try{let poin = 0;
             if(typeNum==8)poin = 100;
@@ -173,6 +176,7 @@ const notify = (() => {
                 time: Date.now(),
                 Rdoc : docId,
                 Rdoc_title : docTitle,
+                category_types:caType,
                 checked:false,
                 point:poin,
                 count: 1 // Initialize count

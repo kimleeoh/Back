@@ -32,6 +32,7 @@ const qnaSchema = new mongoose.Schema({
     preview_content: { type: String },
     point: { type: Number },
     img_list: [{ type: String }],
+    preview_img: { type: String },
     likes: { type: Number },
     picked_index: { type: Number },
     Rnotifyusers_list: [{ type: mongoose.SchemaTypes.ObjectId }],

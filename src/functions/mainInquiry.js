@@ -68,7 +68,8 @@ const mainInquiry = (() => {
             // }, {});
         },
         write: async (paramObject, redisId) => {
-            const stringfiedJSON = await redisClient.get(redisId); // Redis에서 기존 데이터 가져오기
+            let RedisId = String(redisId); // Redis ID 문자열로 변환
+            const stringfiedJSON = await redisClient.get(RedisId); // Redis에서 기존 데이터 가져오기
             if (!stringfiedJSON) {
                 throw new Error(
                     "No data found in Redis for the given session ID"
@@ -159,7 +160,7 @@ const mainInquiry = (() => {
 
                     // 업데이트된 사용자 정보를 Redis에 다시 저장
                     await redisClient.set(
-                        redisId,
+                        RedisId,
                         JSON.stringify(willreturn),
                         "EX",
                         3600 // 1시간 동안 Redis에 저장
@@ -179,7 +180,7 @@ const mainInquiry = (() => {
                 };
                 console.log(willreturn2);
                 await redisClient.set(
-                    redisId,
+                    RedisId,
                     JSON.stringify(willreturn2),
                     "EX",
                     3600 // 1시간 동안 Redis에 저장

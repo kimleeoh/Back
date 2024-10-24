@@ -63,7 +63,8 @@ const handleManageUpdateTipsPage = async (req, res) => {
             doc._id,
             doc.title,
             req.decryptedUserData.name,
-            1
+            1,
+            "/tips/" + type
         );
 
         // 성공 메시지 전송

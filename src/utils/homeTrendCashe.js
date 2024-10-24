@@ -136,8 +136,10 @@ const updateHomePopularTipsCache = async (userId) => {
 // Q&A 인기 게시물 캐시 갱신 함수
 const updateHomePopularQnaCache = async (userId) => {
     try {
+
+        const redisClient = redisHandler.getRedisClient();
+
         if (mainInquiry.isNotRedis()) {
-            const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
 
@@ -189,7 +191,6 @@ const updateHomePopularQnaCache = async (userId) => {
         console.log("Data to cache in Redis: ", topQnaDocuments);
 
         // Redis에 캐싱
-        const redisClient = redisHandler.getRedisClient();
         await redisClient.set(
             `home_popular_qna:${userId}`,
             JSON.stringify(topQnaDocuments)
@@ -204,8 +205,8 @@ const updateHomePopularQnaCache = async (userId) => {
 // 답변가능한거 캐시 갱신 함수
 const updateAnswerPossibleCache = async (userId) => {
     try {
+        const redisClient = redisHandler.getRedisClient();
         if (mainInquiry.isNotRedis()) {
-            const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
 
@@ -259,7 +260,6 @@ const updateAnswerPossibleCache = async (userId) => {
         }));
 
         // Redis에 캐싱
-        const redisClient = redisHandler.getRedisClient();
         await redisClient.set(
             `answer_possible_qna:${userId}`,
             JSON.stringify(topQnaDocuments)

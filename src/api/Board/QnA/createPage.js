@@ -41,6 +41,7 @@ const handleQnACreate = async(req, res)=>{
         data.title = req.body.title;
         data.content = req.body.content;
         data.img_list = linkList;
+        data.preview_img=linkList[0];
         data.now_category_list = nc;
         data.time = req.body.time;
         data.point = req.body.point;
