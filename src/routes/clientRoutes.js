@@ -43,7 +43,7 @@ import { handleMytrendingList } from '../api/User/Mytrending.js'
 import { handleGetScore, handleUploadScore } from '../api/User/score.js'
 import { handleHomeDataList } from '../api/Home/Hometrending.js'
 import { handleAnswerPossibleList } from "../api/Home/AnswerPossible.js";
-import { checkIsUserTips } from '../api/Board/Tips/managePage.js'
+import { checkIsUserTips, handlePurchaseTipsPage } from '../api/Board/Tips/managePage.js'
 import { handleRenderTipsPage } from "../api/Board/Tips/renderPage.js";
 import { handleManageUpdateTipsPage } from '../api/Board/Tips/tipsModify.js'
 import { handleDeleteTips } from "../api/Board/Tips/deletePage.js";
@@ -94,6 +94,7 @@ router.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
 router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
 router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
 router.post("/tips/manage", myMiddleware, checkIsUserTips);
+router.post("/tips/purchase", myMiddleware, handlePurchaseTipsPage);
 router.get("/tips/:category_type/:docid", myMiddleware, handleRenderTipsPage);
 router.post("/tips/update", myMiddleware, handleManageUpdateTipsPage);
 router.delete("/tips/:category_type/:docid", myMiddleware, handleDeleteTips);

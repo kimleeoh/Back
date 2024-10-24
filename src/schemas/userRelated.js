@@ -55,6 +55,7 @@ const userDocSchema = new mongoose.Schema({
         Rtest_list: { type: [mongoose.SchemaTypes.ObjectId] },
         Rreply_list: { type: [mongoose.SchemaTypes.ObjectId] },
     },
+    Rpurchased_list: {type: [mongoose.SchemaTypes.ObjectId] },
     final_views: { type: Number },
     final_scraped: { type: Number },
     final_liked: { type: Number },

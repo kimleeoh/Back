@@ -2,9 +2,12 @@ import {
     PilgyDocuments,
     HoneyDocuments,
     TestDocuments,
+    QnaDocuments,
     AllFiles,
 } from "../../../schemas/docs.js";
 import mainInquiry from '../../../functions/mainInquiry.js'; // 세션에서 유저 정보 가져오기
+import { UserDocs } from "../../../schemas/userRelated.js";
+import redisHandler from "../../../config/redisHandler.js";
 
 const checkIsUserTips = async (req, res) => {
     try {
@@ -62,9 +65,9 @@ const checkIsUserTips = async (req, res) => {
         }
 
         // 구매 여부 확인
-        const fileIds = document.Rfile;
+        //const fileIds = document.Rfile;
         const purchasedFiles = await AllFiles.find({
-            _id: { $in: fileIds },
+            _id: document.Rfile,
             Rpurchase_list: userId,
         });
         const hasPurchased = purchasedFiles.length > 0;
@@ -82,4 +85,72 @@ const checkIsUserTips = async (req, res) => {
     }
 };
 
-export { checkIsUserTips};
+const handlePurchaseTipsPage = async(req, res) => {
+    const decryptedSessionId = String(req.decryptedSessionId);
+    console.log("decryptedSessionId: ", decryptedSessionId); // 세션 ID 확인
+
+    const { docid, category_type } = req.body;
+    const paramList = ["_id", "Rdoc"]; // 필요한 필드 (유저 ID)
+
+    try{
+        if (mainInquiry.isNotRedis()) {
+        const redisClient = redisHandler.getRedisClient();
+        mainInquiry.inputRedisClient(redisClient);
+    }
+
+    const userInfo = await mainInquiry.read(paramList, decryptedSessionId); // 세션에서 유저 정보 가져오기
+
+    if (!userInfo || !userInfo._id) {
+        return res.status(400).json({
+            message: "Failed to retrieve user information from Redis",
+        });
+    }
+
+    let documentSchema;
+    switch (category_type) {
+        case "pilgy":
+            documentSchema = PilgyDocuments;
+            break;
+        case "honey":
+            documentSchema = HoneyDocuments;
+            break;
+        case "test":
+            documentSchema = TestDocuments;
+            break;
+
+        default:
+            return res
+                .status(400)
+                .send({ message: "Invalid category_type" });
+    };
+
+    // 문서 정보 가져오기
+    const document = await documentSchema.findById(docid, {point:1, Rfile:1}).lean();
+    if (!document) {
+        return res.status(404).send({ message: "Document not found" });
+    }
+
+    const updatePurchased = await UserDocs.find({
+        _id: userInfo.Rdoc,
+    });
+    //const fileIds = document.Rfile;
+    const purchasedFiles = await AllFiles.find({
+        _id: document.Rfile,
+    });
+
+    updatePurchased.Rpurchased_list.push(docid);
+    purchasedFiles.Rpurchase_list.push(userInfo._id);
+
+    await purchasedFiles.save();
+    await updatePurchased.save();
+
+    await mainInquiry.write({POINT: -document.point}, decryptedSessionId);
+    res.status(200).send({message:"Success"});
+}
+    catch (error) {
+        console.error("Error checking document:", error);
+        res.status(500).send("Server Error");
+    }
+}
+
+export { checkIsUserTips, handlePurchaseTipsPage};
