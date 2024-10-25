@@ -47,6 +47,7 @@ import { checkIsUserTips, handlePurchaseTipsPage } from '../api/Board/Tips/manag
 import { handleRenderTipsPage } from "../api/Board/Tips/renderPage.js";
 import { handleManageUpdateTipsPage } from '../api/Board/Tips/tipsModify.js'
 import { handleDeleteTips } from "../api/Board/Tips/deletePage.js";
+import { handlePurchased } from "../api/User/myPurchased.js";
 
 const router = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
@@ -123,6 +124,7 @@ router.post('/menu/scraplist', myMiddleware, handleUserScrapList); // 스크랩 
 router.post('/menu/likelist', myMiddleware, handleUserLikeList); // 좋아요 리스트 조회
 router.post('/menu/postlist', myMiddleware, handleUserPostList); // 내가 쓴 글 리스트 조회
 router.get("/menu/recentlist", myMiddleware, handleRecentRead); // 최근 본 글 리스트 조회
+router.get("/menu/purchased", myMiddleware, handlePurchased);
 
 // 인기 게시물 조회 관련
 router.post("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필페이지의 인기게시글 조회

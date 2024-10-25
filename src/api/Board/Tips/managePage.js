@@ -125,26 +125,38 @@ const handlePurchaseTipsPage = async(req, res) => {
     };
 
     // 문서 정보 가져오기
-    const document = await documentSchema.findById(docid, {point:1, Rfile:1}).lean();
+    const document = await documentSchema.findById(docid, {purchase_price:1, Rfile:1}).lean();
     if (!document) {
         return res.status(404).send({ message: "Document not found" });
     }
 
-    const updatePurchased = await UserDocs.find({
+    console.log("document: ", document);
+
+    const updatePurchased = await UserDocs.findOne({
         _id: userInfo.Rdoc,
     });
     //const fileIds = document.Rfile;
-    const purchasedFiles = await AllFiles.find({
+    const purchasedFiles = await AllFiles.findOne({
         _id: document.Rfile,
     });
 
+    console.log(updatePurchased, purchasedFiles);
+
+    console.log("Rpurchase_list: ", updatePurchased.Rpurchased_list);
     updatePurchased.Rpurchased_list.push(docid);
     purchasedFiles.Rpurchase_list.push(userInfo._id);
+    // if(updatePurchased.Rpurchased_list.length>0){
+    // }
+    // else{updatePurchased.Rpurchased_list=[docid];}
+
+    // if(purchasedFiles.Rpurchase_list==undefined){
+    // purchasedFiles.Rpurchase_list=[userInfo._id];}
+    // else{}
 
     await purchasedFiles.save();
     await updatePurchased.save();
-
-    await mainInquiry.write({POINT: -document.point}, decryptedSessionId);
+    await mainInquiry.write({POINT: -document.purchase_price}, decryptedSessionId);
+    
     res.status(200).send({message:"Success"});
 }
     catch (error) {

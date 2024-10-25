@@ -65,7 +65,7 @@ const qnaAlreadySchema = new mongoose.Schema({
 });
 
 const tipsSchema = new mongoose.Schema({
-    // _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
+    _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     Ruser: { type: mongoose.SchemaTypes.ObjectId },
     target: { type: String },
     now_category: { type: mongoose.SchemaTypes.ObjectId },

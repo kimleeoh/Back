@@ -22,7 +22,7 @@ const handleRenderQnaList = async (req, res) => {
       }
       
       const end = -12 * (depth - 1) || undefined;
-      const start = end - 12;
+      const start = end==undefined? -12 : end - 12;
 
       // Rqna_list에서 마지막 20개의 문서 ID 가져오기
       DocIDs = category.Rqna_list.slice(start, end);

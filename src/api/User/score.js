@@ -19,7 +19,7 @@ const handleGetScore = async (req, res) => {
         }
 
         const result = await Score.findById(r.Rscore, {semester_list:1});
-        res.status(200).json({score:r.POINT});
+        res.status(200).json(result);
     }catch(e){
         console.error(e);
         res.status(500).send("Internal Server Error");
@@ -28,8 +28,10 @@ const handleGetScore = async (req, res) => {
 
 const handleUploadScore = async (req, res) => {
     try{
-        const { score, semester } = req.body;
-
+        console.log(req.body);
+        let { score, semester } = req.body;
+        score = JSON.parse(score);
+        semester = Number(semester);
         //score의 형식
         // Rcategory_list: Types.ObjectId[];
         // subject_list: string[];
@@ -38,13 +40,14 @@ const handleUploadScore = async (req, res) => {
 
         //semester는 0부터 시작, 2018년 1학기 기준
 
+        console.log(score, semester);
         if(mainInquiry.isNotRedis()){
             const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
         const received = await mainInquiry.read(['Rscore','_id'], req.decryptedSessionId);
 
-        const sc = await Score.findByIdAndUpdate(received.Rscore);
+        const sc = await Score.findById(received.Rscore);
         
         const indexes = score.subject_list.reduce((acc, cur, idx) => {
             if(!sc.semester_list[semester].subject_list.includes(cur)){
@@ -53,7 +56,9 @@ const handleUploadScore = async (req, res) => {
             return acc;
         }, []);
 
-        const credit = Array.length(score.subject_list.length).fill(false);
+        const credit = Array(score.subject_list.length).fill(false);
+
+        console.log("credit",credit);
 
         for (const field in score) {
             score[field] = indexes.map(idx => score[field][idx]);
@@ -64,6 +69,10 @@ const handleUploadScore = async (req, res) => {
         sc.semester_list[semester].is_show_list.push(...credit);
         sc.semester_list[semester].confirmed = 1;
         sc.semester_list[semester].filled = true;
+
+        sc.save();
+
+        console.log(req.files, req.file);
 
         const fileStream = fs.createReadStream(req.file.path);
         const link = await s3Handler.put('confirm', fileStream);

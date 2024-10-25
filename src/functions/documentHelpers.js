@@ -6,9 +6,11 @@ import {
 } from "../schemas/docs.js";
 import { User } from "../schemas/user.js";
 
-const getCategoryTipsDocuments = async (categoryType, categoryData, limit) => {
+const getCategoryTipsDocuments = async (categoryType, categoryData, limit, depth) => {
     let model;
     let docList;
+
+    console.log(categoryData);
 
     // 카테고리에 맞는 모델 설정
     if (categoryType === "test") {
@@ -28,15 +30,26 @@ const getCategoryTipsDocuments = async (categoryType, categoryData, limit) => {
     }
     console.log("docList: ", docList);
 
+    const end = -limit * (depth - 1) || undefined;
+    const start = end==undefined? -limit : end - limit;
+
+    // Rqna_list에서 마지막 20개의 문서 ID 가져오기
+
+    if(docList.length>limit) docList = docList.slice(start, end);
+    else if(docList.length<limit&&depth>1)docList=[];
+
+    console.log(start,end,docList);
+
     // 문서 조회 및 populate
     const documents = await model
-        .find({ _id: { $in: docList.slice().reverse().slice(0, limit) } })
-        .limit(limit) // 제한된 수의 문서만 가져옴
+        .find({ '_id': { $in: docList } })
         .select(
-            "_id title preview_img target Ruser time views likes purchase_price"
+        "_id title preview_img target Ruser time views likes purchase_price"
         )
         .populate({ path: "Ruser", model: User, select: "name hakbu" })
         .lean();
+
+    console.log("doc", documents);
 
     return documents;
 };
@@ -47,7 +60,6 @@ const getCategoryQnaDocuments = async (oneOrMany, categoryData, onlyA,limit, dep
         : { _id: { $in: categoryData } };
 
     let query = QnaDocuments.find(target)
-                            .select("_id title preview_img preview_content user_main time views likes point restricted_type now_category_list")
                             .sort({ time: -1 });
 
     if (oneOrMany === "many") {
@@ -59,7 +71,7 @@ const getCategoryQnaDocuments = async (oneOrMany, categoryData, onlyA,limit, dep
         query = query.skip(skip);
     }
 
-    query = query.limit(limit);
+    query = query.limit(limit).select("_id title preview_img preview_content user_main time views likes point restricted_type now_category_list");
 
     const result = await query.lean();
 

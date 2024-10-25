@@ -8,7 +8,9 @@ import { CustomBoardView } from "../../../schemas/userRelated.js";
 // 필터를 통해 게시판 데이터 로드
 const loadBoardWithFilter = async (req, res) => {
     try {
-        let { filters, lastDocTime } = req.body; // 마지막 문서의 time을 함께 받음
+        let { filters, 
+            //lastDocTime, 
+            depth } = req.body; // 마지막 문서의 time을 함께 받음
 
         if (!filters || filters.length === 0) {
             filters = ["test", "pilgy", "honey"];
@@ -55,6 +57,8 @@ const loadBoardWithFilter = async (req, res) => {
             return res.status(404).json({ message: "Category not found" });
         }
 
+        console.log(categories.length);
+
         let documents = [];
 
         for (const filter of filters) {
@@ -67,8 +71,15 @@ const loadBoardWithFilter = async (req, res) => {
                     filter,
                     category,
                     limit,
-                    lastDocTime // 마지막 문서의 시간 기준으로 추가된 인자
+                    //lastDocTime, // 마지막 문서의 시간 기준으로 추가된 인자
+                    depth
                 );
+
+                console.log(docs);
+
+                if(docs.length === 0){
+                    continue;
+                }
 
                 docs.forEach((doc) => {
                     doc.category_name = category.category_name;
@@ -82,8 +93,11 @@ const loadBoardWithFilter = async (req, res) => {
         // 모든 문서를 모은 후 최신순으로 정렬
         documents.sort((a, b) => new Date(b.time) - new Date(a.time));
 
+        console.log("documents: ", documents);
+
         // 결과를 클라이언트로 반환
         res.json(documents);
+        
     } catch (error) {
         console.error("Error fetching board data:", error);
         res.status(500).json({ message: "Server error" });
