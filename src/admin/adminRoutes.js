@@ -202,6 +202,7 @@ const handleAdminMongoose = async (req, res) => {
     const handleConfirmU = async () => {
         console.log(req.body.type);
         await removeFromList(AdminConfirm, "unconfirmed_list", idd);
+        await AdminUsers.updateOne({ _id: 2 }, { $inc: { all_user_sum: 1 } });
 
         if (req.body.type === "confirm") {
             try {
