@@ -245,8 +245,8 @@ const handleRegister=async(req,res)=>{
             Rbadge_list: [],
             Rcustom_brd: custom,
             Rdoc: doc,
-            notify_list: [],
-            notify_type: [],
+            Rnotify_list: [],
+            notify_meta_list: [],
             Rscore: score,
             badge_img: "",
             email: mySavedData.email,
@@ -256,6 +256,7 @@ const handleRegister=async(req,res)=>{
             level: 0,
             password: mySavedData.password,
             picked: 0,
+            warned: 0,
             intro: "",
             newNotify:false,
             profile_img: ""

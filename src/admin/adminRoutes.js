@@ -134,11 +134,19 @@ const handleAdminMongoose = async (req, res) => {
             Rtest_list: [],
             Rqna_list: [],
             Rreply_list: [],
-            RmyLike: {
+            RmyLike_list: {
                 Rqna_list: [],
                 Rpilgy_list: [],
                 Rhoney_list: [],
                 Rtest_list: [],
+                Rreply_list: [],
+            },
+            RmyUnlike_list: {
+                Rqna_list: [],
+                Rpilgy_list: [],
+                Rhoney_list: [],
+                Rtest_list: [],
+                Rreply_list: [],
             },
             RmyScrap_list: {
                 Rqna_list: [],
@@ -146,6 +154,7 @@ const handleAdminMongoose = async (req, res) => {
                 Rhoney_list: [],
                 Rtest_list: [],
             },
+            Rpurchased_list: [],
             Rnotify_list: [],
             final_views: 0,
             final_scraped: 0,
@@ -164,7 +173,7 @@ const handleAdminMongoose = async (req, res) => {
             is_show_list: [],
         };
 
-        const semesterArray = Array.from({ length: 8 }, () => ({ ...defaultObject }));
+        const semesterArray = Array.from({ length: 14 }, () => ({ ...defaultObject }));
 
         const myScore = new Score({
             _id: result.Rscore,
