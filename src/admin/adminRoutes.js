@@ -114,6 +114,7 @@ const handleAdminMongoose = async (req, res) => {
     };
 
     const updateUserConfirmation = async (userId, confirmationStatus) => {
+        console.log(userId, typeof userId);
         return User.findOneAndUpdate({ _id: userId }, { confirmed: confirmationStatus }, { new: true });
     };
 
@@ -189,6 +190,7 @@ const handleAdminMongoose = async (req, res) => {
     };
 
     const handleConfirmU = async () => {
+        console.log(req.body.type);
         await removeFromList(AdminConfirm, "unconfirmed_list", idd);
 
         if (req.body.type === "confirm") {
@@ -196,6 +198,7 @@ const handleAdminMongoose = async (req, res) => {
                 const result = await updateUserConfirmation(idd, 2);
                 await createAndSaveDocuments(result);
                 if (result.confirmed === 2) res.status(200).send("Success : set to confirmed");
+                else res.status(500).send("Internal Server Error-mongoose");
             } catch (err) {
                 console.error(err);
                 res.status(500).send("Internal Server Error-mongoose");
@@ -283,15 +286,17 @@ const handleAdminMongoose = async (req, res) => {
 
     const handleScoreU = async () => {
         await removeFromList(AdminScore, "score_list", idd);
+        const whatSem = Number(req.body.whatSem);
 
+        console.log(req.body);
         if (req.body.type === "confirm") {
             const sc = await Score.findById(req.body.docid);
-            sc.semester_list[req.body.type].confirmed = 2;
-            const cred = sc.semester_list[req.body.type].credit_list.length;
-            sc.semester_list[req.body.type].credit_list = Array(cred).fill(true);
+            sc.semester_list[whatSem].confirmed = 2;
+            const cred = sc.semester_list[whatSem].credit_list.length;
+            sc.semester_list[whatSem].credit_list = Array(cred).fill(true);
 
             const scores = [];
-            const indexes = sc.semester_list[req.body.type].grade_list.reduce((acc, a, index) => {
+            const indexes = sc.semester_list[whatSem].grade_list.reduce((acc, a, index) => {
                 if (a === 1 || a === 2 || a === 0) {
                     acc.push(index);
                     scores.push(a);
@@ -299,7 +304,7 @@ const handleAdminMongoose = async (req, res) => {
                 return acc;
             }, []);
 
-            const subjects = indexes.map(index => sc.semester_list[req.body.type].subject_list[index]);
+            const subjects = indexes.map(index => sc.semester_list[whatSem].subject_list[index]);
             subjects.forEach((a, i) => {
                 if (!sc.overA_subject_list.includes(a)) {
                     sc.overA_subject_list.push(a);
@@ -310,7 +315,7 @@ const handleAdminMongoose = async (req, res) => {
             await sc.save();
         }else{
             const sc = await Score.findById(req.body.docid);
-            sc.semester_list[req.body.type].confirmed = 0;
+            sc.semester_list[whatSem].confirmed = 0;
             await sc.save();
         }
     };

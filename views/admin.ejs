@@ -31,7 +31,7 @@
     <h2>검증 대기 유저</h2>
     <div class="listContainer" id="waitingUserList">
         <% if(waitingUser!=undefined&&selected!=undefined){waitingUser.forEach((Item, index) => { %>
-          <div class="divItem" id="div1-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes(index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
+          <div class="divItem" id="div1-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes('1-'+index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
             <p class="userObjectID" onclick=alertUserInfo(this) disabled><%= Item.Ruser %></p>
             <p class="imgLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.confirm_img%></p>
             <p><%=Item.time%></p>

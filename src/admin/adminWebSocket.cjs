@@ -97,11 +97,14 @@ function confirmUser(element){
     const check = ind.split('-')[0];
     const target = check==1? "confirmU" : check==2? "warnU" : check==3? "scoreU" : "error";
     const len = parentDiv.children.length;
-    const type = len>4? parentDiv.children[4].innerHTML : null;
+    const type = len>7? parentDiv.children[4].innerHTML : "confirm";
+    const whatsem = len>3? parentDiv.children[3].innerHTML : null;
     const docid = len>1? parentDiv.children[1].innerHTML : null;
-    $.post('/admin/mongoose', {type: 'confirm', id: parentDiv.children[0].innerHTML, where:target, type: type, docid:docid}, (data,status) => {
+    $.post('/admin/mongoose', {type: 'confirm', id: parentDiv.children[0].innerHTML, where:target, type: type, docid:docid, whatsem:whatsem}, (data,status) => {
+        console.log(status);
         if(status=='success'){
             $('#div'+ind).remove();
+            console.log("divremoving");
             socket.emit('finishWork', ind);
         }else{
             alert('Failed to confirm user, retry.');
@@ -116,9 +119,10 @@ function rejectUser(element){
     const check = ind.split('-')[0];
     const target = check==1? "confirmU" : check==2? "warnU" : check==3? "scoreU" : "error";
     const len = parentDiv.children.length;
-    const type = len>4? parentDiv.children[4].innerHTML : null;
+    const type = len>7? parentDiv.children[4].innerHTML : "unconfirm";
+    const whatsem = len>3? parentDiv.children[3].innerHTML : null;
     const docid = len>1? parentDiv.children[1].innerHTML : null;
-    $.post('/admin/mongoose', {type: 'unconfirm', id: parentDiv.children[0].innerHTML, where:target, type: type, docid:docid}, (data,status) => {
+    $.post('/admin/mongoose', {type: 'unconfirm', id: parentDiv.children[0].innerHTML, where:target, type: type, docid:docid,whatsem:whatsem}, (data,status) => {
         if(status=='success'){
             $('#div'+ind).remove();
             socket.emit('finishWork', ind);
