@@ -9,7 +9,7 @@ import {notify} from "../../../functions/notifier.js"
 import { Category } from "../../../schemas/category.js"; // Category 스키마
 
 const handleManageUpdateTipsPage = async (req, res) => {
-    const { id, board, target, purchase_price, content, title, type } = req.body;
+    const { docid, board, target, purchase_price, content, title, type } = req.body;
     
     try {
         let DocumentsModel;
@@ -26,14 +26,14 @@ const handleManageUpdateTipsPage = async (req, res) => {
         console.log("categoryId: " + categoryId);
 
         // category_type에 따라 문서 스키마 선택
-        switch (type) {
-            case "pilgy":
+        switch (type.trim()) {
+            case "필기공유":
                 DocumentsModel = PilgyDocuments;
                 break;
-            case "test":
+            case "시험정보":
                 DocumentsModel = TestDocuments;
                 break;
-            case "honey":
+            case "수업꿀팁":
                 DocumentsModel = HoneyDocuments;
                 break;
             default:
@@ -41,7 +41,7 @@ const handleManageUpdateTipsPage = async (req, res) => {
         }
 
         // 문서 ID로 해당 문서 찾기
-        const doc = await DocumentsModel.findById(id);
+        const doc = await DocumentsModel.findById(docid);
         if (!doc) {
             return res.status(404).send("Document not found");
         }
