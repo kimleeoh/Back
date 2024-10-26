@@ -286,11 +286,12 @@ const handleAdminMongoose = async (req, res) => {
 
     const handleScoreU = async () => {
         await removeFromList(AdminScore, "score_list", idd);
-        const whatSem = Number(req.body.whatSem);
+        const whatSem = Number(req.body.whatsem);
 
         console.log(req.body);
         if (req.body.type === "confirm") {
             const sc = await Score.findById(req.body.docid);
+            console.log(whatSem, sc.semester_list);
             sc.semester_list[whatSem].confirmed = 2;
             const cred = sc.semester_list[whatSem].credit_list.length;
             sc.semester_list[whatSem].credit_list = Array(cred).fill(true);
@@ -313,10 +314,12 @@ const handleAdminMongoose = async (req, res) => {
             });
 
             await sc.save();
+            res.status(200).send("Success : set to confirmed");
         }else{
             const sc = await Score.findById(req.body.docid);
             sc.semester_list[whatSem].confirmed = 0;
             await sc.save();
+            res.status(200).send("Success : set to rejected");
         }
     };
 
