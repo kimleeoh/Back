@@ -106,8 +106,18 @@ const handleAdminMongoose = async (req, res) => {
     console.log(idd);
 
     const removeFromList = async (model, listName, userId) => {
+        let num;
+        if(listName === "score_list"){
+            num = 4;
+        }else if(listName === "warn_list"){
+            num = 1;
+        }else if(listName === "unconfirmed_list"){
+            num = 0;
+        }else{
+            return res.status(400).json({ success: false, message: "Invalid list" });
+        }
         await model.updateOne(
-            { _id: "0" },
+            { _id: num.toString() },
             { $pull: { [listName]: { Ruser: userId } } }
         );
         console.log("Deleted the complete request from MongoDB");
