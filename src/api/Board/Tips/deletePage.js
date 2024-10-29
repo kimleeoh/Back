@@ -49,7 +49,7 @@ const handleDeleteTips = async (req, res) => {
         // exp 업데이트
         await mainInquiry.write({ exp: newExp }, req.decryptedSessionId);
 
-        let categoryIdToUse = req.session.currentDocs.category_id; // 기본값은 세션의 카테고리 ID
+        let categoryIdToUse; // 기본값은 세션의 카테고리 ID
 
         // category_type에 맞춰 적절한 Documents 스키마에서 now_category ID 가져오기
         if (category_type === "pilgy") {
