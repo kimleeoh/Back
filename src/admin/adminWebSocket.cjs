@@ -158,8 +158,10 @@ function openNewWindow(element){
 
 function alertUserInfo(element){
     //element.innerHTML
+    let ty = "user";
+    if(element.parentElement.children[1].innerHTML==element.innerHTML)ty="score";
     console.log(element.innerHTML);
-    $.post('/admin/getM', {id: element.innerHTML}, (data,status) => {
+    $.post('/admin/getM', {id: element.innerHTML, type:ty}, (data,status) => {
         if(status=='success'){
             console.log(data);
             const blob = new Blob([data], { type: 'text/html; charset=utf-8' });

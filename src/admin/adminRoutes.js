@@ -351,6 +351,8 @@ const handleAdminMongoose = async (req, res) => {
 
 
 const handleAdminGetMongoose = async (req, res) => {
+if(req.body.type=="user"){
+        
     User.findById(req.body.id, {name:1, hakbu:1, hakbun:1, _id:1})
     .then((result)=>{
         console.log(result);
@@ -359,7 +361,17 @@ const handleAdminGetMongoose = async (req, res) => {
     .catch((err)=>{
         console.error(err);
         res.status(500).send('Internal Server Error-mongoose');
-    });
+    });}
+    else{
+        Score.findById(req.body.id).lean().then((result)=>{
+            console.log(result);
+            res.status(200).send(`<p>${JSON.stringify(result)}</p>`);
+        })
+        .catch((err)=>{
+            console.error(err);
+            res.status(500).send('Internal Server Error-mongoose');
+        });
+    }
 }
 
 //router.post('/admin/return')

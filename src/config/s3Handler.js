@@ -176,7 +176,7 @@ const s3Handler = (() => {
             // });
             await u.done();
             const link = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}.${extension}`;
-            currentFileNums[fileDestination]++;
+            currentFileNums[fileDestination]+=1;
             return link;
         },
         uploadPDFWithPreview: async (pdfFile, fileDestination) => {
@@ -216,7 +216,7 @@ const s3Handler = (() => {
             await previewUpload.done();
             const previewLink = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}_preview.jpg`;
 
-            currentFileNums[fileDestination]++;
+	    currentFileNums[fileDestination]+=1;
             return { link: pdfLink, preview: previewLink };
         },
         delete: async (imgLinks) => {
