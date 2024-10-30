@@ -102,7 +102,7 @@ const updateUserProfile = async (req, res) => {
         }
 
         // Redis 캐시에 업데이트된 정보 반영
-        await mainInquiry.write(
+        const updatedUser = await mainInquiry.write(
             {
                 name,
                 intro,
