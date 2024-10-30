@@ -153,7 +153,6 @@ const s3Handler = (() => {
             );
         },
         put: async (fileDestination, img) => {
-            
             const mimeType = img.mimetype || "image/jpeg";  // MIME 타입이 없으면 기본적으로 image/jpeg 사용
             const extension = mimeType.split("/")[1]; // 확장자 추출 (예: "png")
 
@@ -176,7 +175,7 @@ const s3Handler = (() => {
             // });
             await u.done();
             const link = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}.${extension}`;
-            currentFileNums[fileDestination]++;
+            currentFileNums[fileDestination]+=1;
             return link;
         },
         uploadPDFWithPreview: async (pdfFile, fileDestination) => {
@@ -216,7 +215,7 @@ const s3Handler = (() => {
             await previewUpload.done();
             const previewLink = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}_preview.jpg`;
 
-            currentFileNums[fileDestination]++;
+            currentFileNums[fileDestination]+=1;
             return { link: pdfLink, preview: previewLink };
         },
         delete: async (imgLinks) => {
