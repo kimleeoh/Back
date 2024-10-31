@@ -14,6 +14,7 @@ const scoreSchema = new mongoose.Schema({
     overA_subject_list: { type: [String] },
     overA_type_list: { type: [Number] },
     semester_list: [{
+	_id:{ type: [mongoose.SchemaTypes.ObjectId] },
         confirmed: { type: Number },
         filled: { type: Boolean },
         Rcategory_list: { type: [mongoose.SchemaTypes.ObjectId] }, // 참조할 과목 id 
