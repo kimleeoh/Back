@@ -39,4 +39,3 @@ jobs:
             cd Back
             git pull production server
             npm install
-            npm start
