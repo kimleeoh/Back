@@ -25,7 +25,7 @@ jobs:
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.HOST_DNS }}  # 호스트 이름 또는 IP 주소
+          HOSTNAME: ${{ secrets.HOST_DNS }}  # 호스트 이름 또는 IP 주소
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ secrets.TARGET_DIR }}
 
