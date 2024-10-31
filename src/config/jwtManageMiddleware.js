@@ -139,7 +139,6 @@ const myMiddleware = async(req, res, next) => {
             .privateEncrypt(privateKey, newSensitiveSessionID)
             .toString("base64");
         newSensitiveSessionID = newSensitiveSessionID.toString("hex");
-        await redisClient.sRem("refreshToken", sensitiveSessionID_D);
         await redisClient.sAdd("refreshToken", newSensitiveSessionID);
         
         const payload = {
@@ -157,6 +156,7 @@ const myMiddleware = async(req, res, next) => {
             secure: true,
             maxAge: 3600000,
         });
+        await redisClient.sRem("refreshToken", sensitiveSessionID_D);
         // 유저 캐시정보담겨있는 세션아이디
         req.decryptedSessionId = sessionId_D;
         console.log("Session ID:", req.decryptedSessionId);
