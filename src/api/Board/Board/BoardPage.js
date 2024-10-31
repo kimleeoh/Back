@@ -39,8 +39,6 @@ const loadBoardPage = async (req, res) => {
             })
             .select("_id category_name")
             .lean();
-            
-        console.log(enrolledCategories);
 
         const bookmarkCategories = await CommonCategory.find({
             _id: { $in: Rbookmark_list },
@@ -74,7 +72,7 @@ const loadBoardPage = async (req, res) => {
             bookmark: formatCategories(bookmarkCategories, Rbookmark_list),
             listened: formatCategories(listenedCategories, Rlistened_list),
         };
-        console.log(response);
+        // console.log(response);
 
         // 4. 프론트로 데이터 전송
         res.status(200).send(response);
