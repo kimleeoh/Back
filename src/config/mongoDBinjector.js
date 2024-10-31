@@ -160,7 +160,7 @@ const names = [
     ],
     [
         ["공동체/리더십,숭실품성-인성과리더십",[]],
-        ["공동체/리더십,숭실품성-자기개발과진로탐색",[]],
+        ["공동체/리더십,숭실품성-자기계발과진로탐색",[]],
         ["의사소통/글로벌,기초역량-국제어문",[]],
         ["의사소통/글로벌,기초역량-한국어의사소통",[]],
         ["창의/융합,균형교양-문학·예술",[]],
@@ -183,6 +183,8 @@ const names = [
         ["숭실사이버대과목",[]]
     ]
 ];
+
+const tt = ["공동체/리더십,숭실품성-자기계발과진로탐색",[]];
 
 const gs = [
     "(외국인을위한)대학글쓰기",
@@ -318,37 +320,41 @@ const readExcelFile = async (filePath) => {
 // }
 // console.log("all set to go");
 
-// for (let i = 0; i < 5; i++) {
-//     //const categoryData = readExcelFile("src/data/category.xlsx");
-//     const lowestCategoryData = await readExcelFile(
-//         `C:/Users/cathy/Downloads/교선/${i}.xlsx`
-//     ); 
-//     console.log(lowestCategoryData);
+for (let i = 0; i < 5; i++) {
+    //const categoryData = readExcelFile("src/data/category.xlsx");
+    const lowestCategoryData = await readExcelFile(
+        `C:/Users/cathy/Downloads/교선/${i}.xlsx`
+    ); 
+    console.log(lowestCategoryData);
     
-//     const processedData = [];
-//     for (const v of lowestCategoryData) {
-//         // const objID = new mongoose.Types.ObjectId();
-//         const objID = await LowestCategory.findOne({category_name: v.category_name}, {_id: 1});
-//         console.log("찾은놈:",objID);
-//         let seeCat = v.교과영역;
-//         seeCat = seeCat.split('.').map(category => category.trim()).filter(category => category.length > 0);
-//         for(const cat of seeCat){
-//             let qit = false;
-//             for(const name of names){
-//                 for(const x of name){
-//                     if(x[0] == cat){
-//                         x[1].push(objID._id);
-//                         qit = true;
-//                         break;
-//                     }
-//                 }
-//                 if(qit)break;
-//             }
-//         }
+    const processedData = [];
+    for (const v of lowestCategoryData) {
+        // const objID = new mongoose.Types.ObjectId();
+        const objID = await LowestCategory.findOne({category_name: 
+            v.category_name
+        }, {_id: 1});
+        console.log("찾은놈:",objID);
+        let seeCat = v.교과영역;
+        seeCat = seeCat.split('.').map(category => category.trim()).filter(category => category.length > 0);
+        for(const cat of seeCat){
+            let qit = false;
+            //for(const name of names){
+              //  for(const x of name){
+                    if(tt[0]
+                        //x[0]
+                         == cat){
+                        tt[1].push(objID._id);
+                        qit = true;
+                        break;
+                    //}
+                //}
+                if(qit)break;
+            }
+        }
         
-        
+    
 
-//         const { 교과영역, ...w } = v;
+        // const { 교과영역, ...w } = v;
         
         
         // processedData.push({
@@ -360,13 +366,44 @@ const readExcelFile = async (filePath) => {
         //     Rtest_list: [],
         //     Rhoney_list: [],
         // });
-  //  }
+   }
 
     // await LowestCategory.insertMany(processedData)
     //     .then(() => console.log("Successfully inserted lowest category data"))
     //     .catch((e) => console.error(e));
-//}
+}
 
+await Category.findOneAndUpdate({category_name: tt[0]}, {sub_category_list: tt[1]}, {new: true}).then((result)=>console.log(result));
+const fe = [
+    '670cf64af65766da4930d4db',
+    '670cf64af65766da4930d4dc',
+    '670cf64af65766da4930d4dd',
+    '670cf64af65766da4930d4de',
+    '670cf64af65766da4930d4df',
+    '670cf64af65766da4930d4e0',
+    '670cf64af65766da4930d4e1',
+    '670cf64af65766da4930d4e2',
+    '670cf64af65766da4930d4e3',
+    '670cf64af65766da4930d4e4',
+    '670cf64af65766da4930d4e5',
+    '670cf64af65766da4930d4e6',
+    '670cf64af65766da4930d4e7',
+    '670cf64bf65766da4930d4ea',
+    '670cf64bf65766da4930d4eb',
+    '670cf64bf65766da4930d4ec',
+    '670cf64bf65766da4930d4ed',
+    '670cf64bf65766da4930d4ee',
+    '670cf64bf65766da4930d4ef',
+    '670cf64bf65766da4930d4f0',
+    '670cf64bf65766da4930d4f1',
+    '670cf64bf65766da4930d4f2',
+    '670cf64bf65766da4930d4f3',
+    '670cf64bf65766da4930d4f4',
+    '670cf64bf65766da4930d4f5',
+    '670cf64bf65766da4930d4f6',
+    '670cf64bf65766da4930d4f7'
+];
+await LowestCategory.deleteMany({_id:{$in:fe}}).then(()=>console.log("deleted"));
 // names.forEach(async(Name, index) => {
 // // Map strings to Mongoose ObjectIds
 // //const objectIds = stringIds[index].map(id => new mongoose.Types.ObjectId(id));
@@ -379,13 +416,13 @@ const readExcelFile = async (filePath) => {
 //         result.sub_category_list = v[1];
 //         console.log(result);
 //         await result.save();
-//     });}
+//     });}});
     
         
        
-//     // const csd = await Category.findOneAndUpdate({category_name: bigs[index]}, {sub_category_list: idcollect}, {new: true});
-//     // console.log(csd);
-// }
+    // const csd = await Category.findOneAndUpdate({category_name: bigs[index]}, {sub_category_list: idcollect}, {new: true});
+    // console.log(csd);
+
 
 
 // const obj = new mongoose.Types.ObjectId();
@@ -400,7 +437,7 @@ const readExcelFile = async (filePath) => {
 // await Dat.save();}
 // // const csd = await Category.findOneAndUpdate({category_name: bigs[index]}, {sub_category_list: idcollect}, {new: true});
 // console.log(csd);
-//);
+
 
 
 
@@ -494,45 +531,45 @@ const readExcelFile = async (filePath) => {
 //     return jsonData;
 // };
 
-for (let i = 0; i < 2; i++) {
-    //const categoryData = readExcelFile("src/data/category.xlsx");
-    const lowestCategoryData = await readExcelFile(
-        `C:/Users/cathy/Downloads/교직/${i}.xlsx`
-    ); 
-    console.log(lowestCategoryData);
-    const objID_list = [];
-    const processedData = [];
-    for (const v of lowestCategoryData) {
-        const objID = new mongoose.Types.ObjectId();
-        objID_list.push(objID);
-        processedData.push({
-            _id: objID,
-            ...v,
-            type: 1,
-            Rqna_list: [],
-            Rpilgy_list: [],
-            Rtest_list: [],
-            Rhoney_list: [],
-        });
-    }
+// for (let i = 0; i < 2; i++) {
+//     //const categoryData = readExcelFile("src/data/category.xlsx");
+//     const lowestCategoryData = await readExcelFile(
+//         `C:/Users/cathy/Downloads/교직/${i}.xlsx`
+//     ); 
+//     console.log(lowestCategoryData);
+//     const objID_list = [];
+//     const processedData = [];
+//     for (const v of lowestCategoryData) {
+//         const objID = new mongoose.Types.ObjectId();
+//         objID_list.push(objID);
+//         processedData.push({
+//             _id: objID,
+//             ...v,
+//             type: 1,
+//             Rqna_list: [],
+//             Rpilgy_list: [],
+//             Rtest_list: [],
+//             Rhoney_list: [],
+//         });
+//     }
 
-    await LowestCategory.insertMany(processedData)
-        .then(() => console.log("Successfully inserted lowest category data"))
-        .catch((e) => console.error(e));
-    const ress = await Category.findOneAndUpdate(
-        { category_name: "교직" },
-        { $push: { sub_category_list: objID_list } },
-        { new: true }
-    );
-    if(ress==null){
-        await Category.findOneAndUpdate(
-            { category_name: "교직" },
-            { $push: { sub_category_list: objID_list } },
-            { new: true }
-        );
-    }
-    console.log(ress);
-}
+//     await LowestCategory.insertMany(processedData)
+//         .then(() => console.log("Successfully inserted lowest category data"))
+//         .catch((e) => console.error(e));
+//     const ress = await Category.findOneAndUpdate(
+//         { category_name: "교직" },
+//         { $push: { sub_category_list: objID_list } },
+//         { new: true }
+//     );
+//     if(ress==null){
+//         await Category.findOneAndUpdate(
+//             { category_name: "교직" },
+//             { $push: { sub_category_list: objID_list } },
+//             { new: true }
+//         );
+//     }
+//     console.log(ress);
+// }
 
 
 // await Category.find({type:2})
