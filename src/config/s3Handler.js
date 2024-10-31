@@ -110,8 +110,11 @@
 
 import { S3 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
+import redisHandler from "./redisHandler";
 
 const s3Handler = (() => {
+    const r = redisHandler.getRedisClient();
+
     let currentFileNums = {
         "profile": 0,
         "preview": 0,
@@ -121,6 +124,15 @@ const s3Handler = (() => {
         "confirm": 0,
         "badge": 0,
     };
+
+    // Fetch currentFileNums from Redis
+    r.get('currentFileNums', (err, data) => {
+        if (err) {
+            console.error('Error fetching currentFileNums from Redis:', err);
+        } else if (data) {
+            currentFileNums = JSON.parse(data);
+        }
+    });
 
     let S3client = 0;
     let bucketName = "nah";
@@ -165,7 +177,6 @@ const s3Handler = (() => {
                 },
             });
 
-            console.log(currentFileNums[fileDestination]);
             // await S3client.putObject({
             //     Bucket: bucketName,
             //     Key:
@@ -178,7 +189,11 @@ const s3Handler = (() => {
             await u.done();
             const link = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}.${extension}`;
             currentFileNums[fileDestination]+=1;
-            console.log(currentFileNums[fileDestination]);
+            r.set('currentFileNums', JSON.stringify(currentFileNums), (err) => {
+                if (err) {
+                    console.error('Error saving currentFileNums to Redis:', err);
+                }
+            });
             return link;
         },
         uploadPDFWithPreview: async (pdfFile, fileDestination) => {
@@ -219,6 +234,11 @@ const s3Handler = (() => {
             const previewLink = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}_preview.jpg`;
 
             currentFileNums[fileDestination]+=1;
+            r.set('currentFileNums', JSON.stringify(currentFileNums), (err) => {
+                if (err) {
+                    console.error('Error saving currentFileNums to Redis:', err);
+                }
+            });
             return { link: pdfLink, preview: previewLink };
         },
         delete: async (imgLinks) => {
