@@ -164,6 +164,8 @@ const s3Handler = (() => {
                     Body: img, 
                 },
             });
+
+            console.log(currentFileNums[fileDestination]);
             // await S3client.putObject({
             //     Bucket: bucketName,
             //     Key:
