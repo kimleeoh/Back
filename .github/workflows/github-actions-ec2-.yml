@@ -25,14 +25,14 @@ jobs:
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          HOSTNAME: ${{ secrets.HOST_DNS }}  # 호스트 이름 또는 IP 주소
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}  # 호스트 이름 또는 IP 주소
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ secrets.TARGET_DIR }}
 
       - name: Executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@master
         with:
-          hostname: ${{ secrets.HOST_DNS }}  # 호스트 이름 또는 IP 주소
+          host: ${{ secrets.HOST_DNS }}  # 호스트 이름 또는 IP 주소
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}  # 올바른 SSH 키 사용
           script: |
