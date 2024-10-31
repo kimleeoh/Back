@@ -37,6 +37,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}  # 올바른 SSH 키 사용
           script: |
             cd Back
-            git pull origin server
+            git pull production server
             npm install
             npm start
