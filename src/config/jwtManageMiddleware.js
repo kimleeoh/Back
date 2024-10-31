@@ -113,18 +113,19 @@ const myMiddleware = async(req, res, next) => {
   
             console.log(sensitiveSessionExists, sensitiveSessionID_D);
             if (sessionExists != 1 && sensitiveSessionExists == 0)
-                return res
+		{await redisClient.sRem("refreshToken", sensitiveSessionID_D);
+		return res
                     .status(403)
-                    .send("Security Issue, Please Login Again");
+                    .send("Security Issue, Please Login Again");}
             else if (sensitiveSessionExists == 0) {
-                await redisClient.del(sessionId_D);
+                await redisClient.del(sessionId_D);    
+                await redisClient.sRem("refreshToken", sensitiveSessionID_D);
                 return res
                     .status(403)
                     .send(
                         "Session Expired due to security issues, Please Login Again"
                     );
             }
-            await redisClient.sRem("refreshToken", sensitiveSessionID_D);
             //await redisClient.
         } catch (err) {
             return res.status(403).send(err);

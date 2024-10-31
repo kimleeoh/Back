@@ -150,7 +150,7 @@ const handleLogin = async (req, res) => {
 
         //req.session.save();
 
-        //console.log(req.session.recentDocs);
+        ////console.log(req.session.recentDocs);
         // Store session data in Redis with a 1-hour expiration
         await redisClient.set(sessionId, JSON.stringify(cache), "EX", 3600);
         await redisClient.sAdd(
@@ -168,6 +168,7 @@ const handleLogin = async (req, res) => {
             httpOnly: true,
             secure: true,
             maxAge: 3600000,
+	    
         });
         await redisClient.hDel("idempotency", idempotencyKey);
         res.status(200).json({ message: "Logged in successfully" });

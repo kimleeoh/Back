@@ -351,7 +351,7 @@ const handleAdminMongoose = async (req, res) => {
 
 
 const handleAdminGetMongoose = async (req, res) => {
-    if(req.body.type=="user"){
+if(req.body.type=="user"){
         
     User.findById(req.body.id, {name:1, hakbu:1, hakbun:1, _id:1})
     .then((result)=>{

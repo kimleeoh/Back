@@ -59,7 +59,7 @@
       <% if(scored!=undefined&&selected!=undefined){scored.forEach((Item, index) => { %>
         <div class="divItem" id="div3-<%= index %>" onclick=fireSelected(this) style=<%= selected.includes('3-'+index.toString())? "background-color:yellow; pointer-events:none;" : "background-color:white" %> >
           <p class="userObjectID" onclick=alertUserInfo(this) disabled><%= Item.Ruser %></p>
-          <p class="docLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.Rscore%></p>
+          <p class="docLink" onclick=alertUserInfo(this) style="pointer-events: none;"><%= Item.Rscore%></p>
           <p class="imgLink" onclick=openNewWindow(this) style="pointer-events: none;"><%= Item.confirm_img%></p>
           <p class="whatSem"><%= Item.index%></p>
           <button type="button" class="btn btn-success" onclick=confirmUser(this) disabled>성적인증</button>

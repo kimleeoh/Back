@@ -79,7 +79,7 @@ clientApp.use(express.json());
 clientApp.use(rateLimiter);
 clientApp.use(
     cors({
-        origin: "http://localhost:3000", // 접근 권한을 부여하는 도메인
+	    origin: ["https://13.124.232.124", "https://afkiller.com", "https://www.afkiller.com"], // 접근 권한을 부여하는 도메인
         credentials: true,
         optionsSuccessStatus: 200,
     })
