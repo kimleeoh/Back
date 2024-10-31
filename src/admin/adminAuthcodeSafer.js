@@ -12,7 +12,7 @@ const ADMIN_AUTH_CODE = (() => {
     const updateAuthCode = () => {
         authCode = generateAuthCode();
         console.log(`Auth code updated to: ${authCode}`);
-        axios.get('/admin/session-time-left')
+        axios.get('http://localhost:4502/admin/session-time-left')
     .then((response) => {
         if (response.status === 200) {
             response.data.message.session.user.authCode = authCode;
