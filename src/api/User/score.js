@@ -84,8 +84,7 @@ const handleUploadScore = async (req, res) => {
             index:semester,
             confirm_img:link,
         };
-        
-Date()
+
         await AdminScore.findByIdAndUpdate("4", {$push: {score_list: scoreChunk}});
         
         res.status(200).send("OK");
