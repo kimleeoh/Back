@@ -127,7 +127,7 @@ const s3Handler = (() => {
     let bucketName = "nah";
 
     return {
-        create: (envWrap, redisH) => {
+        create: (envWrap) => {
             S3client = new S3({
                 region: envWrap[0],
                 credentials: {
@@ -136,6 +136,15 @@ const s3Handler = (() => {
                 },
             });
             bucketName = envWrap[3];
+        },
+        connect: async (redisH) => {
+            await S3client.getObject({ Bucket: bucketName, Key: "test.png" })
+                .then((result) => {
+                    if (result != undefined) {
+                        console.log("Successfully connected to S3");
+                    }
+                })
+                .catch((e) => console.error(e));
             r = redisH;
             // Fetch currentFileNums from Redis
             r.get('currentFileNums', (err, data) => {
@@ -145,15 +154,6 @@ const s3Handler = (() => {
                     currentFileNums = JSON.parse(data);
                 }
             });
-        },
-        connect: async () => {
-            await S3client.getObject({ Bucket: bucketName, Key: "test.png" })
-                .then((result) => {
-                    if (result != undefined) {
-                        console.log("Successfully connected to S3");
-                    }
-                })
-                .catch((e) => console.error(e));
         },
         get: async (imgLink) => {
             S3client.getObject({ Bucket: bucketName, Key: imgLink }).then(
