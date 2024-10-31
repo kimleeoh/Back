@@ -110,7 +110,7 @@
 
 import { S3 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import redisHandler from "./redisHandler";
+import redisHandler from "./redisHandler.js";
 
 const s3Handler = (() => {
     const r = redisHandler.getRedisClient();
