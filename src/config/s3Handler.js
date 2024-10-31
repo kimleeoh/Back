@@ -110,11 +110,9 @@
 
 import { S3 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import redisHandler from "./redisHandler.js";
 
 const s3Handler = (() => {
-    const r = redisHandler.getRedisClient();
-
+    let r = "";
     let currentFileNums = {
         "profile": 0,
         "preview": 0,
@@ -125,20 +123,11 @@ const s3Handler = (() => {
         "badge": 0,
     };
 
-    // Fetch currentFileNums from Redis
-    r.get('currentFileNums', (err, data) => {
-        if (err) {
-            console.error('Error fetching currentFileNums from Redis:', err);
-        } else if (data) {
-            currentFileNums = JSON.parse(data);
-        }
-    });
-
     let S3client = 0;
     let bucketName = "nah";
 
     return {
-        create: (envWrap) => {
+        create: (envWrap, redisH) => {
             S3client = new S3({
                 region: envWrap[0],
                 credentials: {
@@ -147,6 +136,15 @@ const s3Handler = (() => {
                 },
             });
             bucketName = envWrap[3];
+            r = redisH;
+            // Fetch currentFileNums from Redis
+            r.get('currentFileNums', (err, data) => {
+                if (err) {
+                    console.error('Error fetching currentFileNums from Redis:', err);
+                } else if (data) {
+                    currentFileNums = JSON.parse(data);
+                }
+            });
         },
         connect: async () => {
             await S3client.getObject({ Bucket: bucketName, Key: "test.png" })
