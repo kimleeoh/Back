@@ -1,6 +1,5 @@
 name: Push-to-EC2
 
-# Trigger deployment only on push to server branch
 on:
   push:
     branches:
@@ -18,8 +17,8 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/afkiller_private_key
+          chmod 600 ~/.ssh/afkiller_private_key
           ssh-keyscan -H ${{ secrets.HOST_DNS }} >> ~/.ssh/known_hosts
 
       - name: Deploy to Server 1
@@ -35,7 +34,7 @@ jobs:
         with:
           host: ${{ secrets.HOST_DNS }}  # 호스트 이름 또는 IP 주소
           username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}  # 올바른 SSH 키 사용
           script: |
             cd Back
             git pull origin server
