@@ -4,7 +4,8 @@ const badgeSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     b_img: { type: String },
     b_name: { type: String },
-});
+    b_explain: { type: String }
+}, { versionKey: false });
 
 const Badge = mongoose.model("Badge", badgeSchema, "Badge");
 
