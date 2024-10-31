@@ -17,8 +17,8 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/afkiller_private_key
-          chmod 600 ~/.ssh/afkiller_private_key
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key_Amazon 
+          chmod 600 ~/.ssh/deploy_key_Amazon
           ssh-keyscan -H ${{ secrets.HOST_DNS }} >> ~/.ssh/known_hosts
 
       - name: Deploy to Server 1
