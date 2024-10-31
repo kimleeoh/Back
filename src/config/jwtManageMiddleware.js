@@ -125,8 +125,6 @@ const myMiddleware = async(req, res, next) => {
                     .send(
                         "Session Expired due to security issues, Please Login Again"
                     );
-            }else{
-                await redisClient.sRem("refreshToken", sensitiveSessionID_D);
             }
             //await redisClient.
         } catch (err) {
@@ -153,6 +151,7 @@ const myMiddleware = async(req, res, next) => {
             algorithm: "RS256",
             expiresIn: "1h",
         });
+        await redisClient.sRem("refreshToken", sensitiveSessionID_D);
         res.cookie("token", newToken, {
             httpOnly: true,
             secure: true,
