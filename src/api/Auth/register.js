@@ -267,9 +267,9 @@ const handleRegister=async(req,res)=>{
             const now = new Date();
             now.setHours(now.getHours() + 9);
             const n =now.toLocaleString('ko-KR');
-	    //"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"
-            await AdminConfirm.updateOne({_id:"0"}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:decryptedData2, time:n}}});//나중에 이미지 추가
-            await AdminConfirm.updateOne({_id:"2"}, {$inc : {all_user_sum : 1}});
+            //"https://afkiller-img-db.s3.ap-northeast-2.amazonaws.com/test.png"
+            await AdminConfirm.updateOne({_id:0}, {$push : {unconfirmed_list : {Ruser:final._id, confirm_img:decryptedData2, time:n}}});//나중에 이미지 추가
+            await AdminConfirm.updateOne({_id:2}, {$inc : {all_user_sum : 1}});
             console.log("new user created");
 
         }

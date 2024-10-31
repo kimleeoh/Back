@@ -93,26 +93,30 @@ const mainInquiry = (() => {
 
             // 전달된 paramObject에 따라 적절한 Chunk로 분리
             Object.keys(paramObject).forEach((key) => {
-                if(boardFields.includes(key)){
-                    BlistChunk[key] = [...userInfo[key], ...paramObject[key]];
-                    console.log(BlistChunk[key]);
-                }
-                else if (stringFields.includes(key)) {
-                    stringChunk[key] = paramObject[key];
-                } else if (listFields.includes(key)) {
-                    listChunk[key] = paramObject[key];
-                } else if(rlistFields.includes(key)){
-                    rlistChunk[key] = paramObject[key];
-                }
-                else if (
-                    typeof paramObject[key] === "number" &&
-                    key !== "level"
-                ) {
-                    // level에는 $inc 적용하지 않음
-                    numChunk[key] = paramObject[key];
-                } else {
-                    stringChunk[key] = paramObject[key]; // $set으로 처리
-                }
+                        if (boardFields.includes(key)) {
+                            // 기존 데이터와 새로운 데이터를 병합
+                            const existingData = userInfo[key] || [];
+                            BlistChunk[key] = paramObject[key]; // 새로운 데이터로 덮어쓰기
+
+                            // 중복된 데이터 제거 (중복 제거를 원하지 않을 경우 이 부분 생략)
+                            BlistChunk[key] = Array.from(
+                                new Set(BlistChunk[key])
+                            );
+                        } else if (stringFields.includes(key)) {
+                            stringChunk[key] = paramObject[key];
+                        } else if (listFields.includes(key)) {
+                            listChunk[key] = paramObject[key];
+                        } else if (rlistFields.includes(key)) {
+                            rlistChunk[key] = paramObject[key];
+                        } else if (
+                            typeof paramObject[key] === "number" &&
+                            key !== "level"
+                        ) {
+                            // level에는 $inc 적용하지 않음
+                            numChunk[key] = paramObject[key];
+                        } else {
+                            stringChunk[key] = paramObject[key]; // $set으로 처리
+                        }
             });
 
             // MongoDB 업데이트용 updateObject 구성

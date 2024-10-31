@@ -158,9 +158,9 @@ function openNewWindow(element){
 
 function alertUserInfo(element){
     //element.innerHTML
-    let ty = "user";
-    if(element.parentElement.children[1].innerHTML==element.innerHTML)ty="score";
     console.log(element.innerHTML);
+    let ty = "user";
+    if(element.parentElement.children[1].innerHTML==element.innerHTML)ty = "score";
     $.post('/admin/getM', {id: element.innerHTML, type:ty}, (data,status) => {
         if(status=='success'){
             console.log(data);
