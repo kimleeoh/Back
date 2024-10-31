@@ -130,7 +130,7 @@ const handlePurchaseTipsPage = async(req, res) => {
         return res.status(404).send({ message: "Document not found" });
     }
 
-    if(userInfo.POINT<document.purchase_price){ return res.status(400).send({message:"Not enough POINT"}); }
+    if(userInfo.POINT<document.purchase_price){ return res.status(201).send({message:"Not enough POINT"}); }
 
     console.log("document: ", document);
 
