@@ -139,6 +139,7 @@ const myMiddleware = async(req, res, next) => {
             .privateEncrypt(privateKey, newSensitiveSessionID)
             .toString("base64");
         newSensitiveSessionID = newSensitiveSessionID.toString("hex");
+        await redisClient.sRem("refreshToken", sensitiveSessionID_D);
         await redisClient.sAdd("refreshToken", newSensitiveSessionID);
         
         const payload = {
@@ -151,7 +152,6 @@ const myMiddleware = async(req, res, next) => {
             algorithm: "RS256",
             expiresIn: "1h",
         });
-        await redisClient.sRem("refreshToken", sensitiveSessionID_D);
         res.cookie("token", newToken, {
             httpOnly: true,
             secure: true,
