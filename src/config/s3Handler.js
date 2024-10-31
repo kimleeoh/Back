@@ -178,6 +178,7 @@ const s3Handler = (() => {
             await u.done();
             const link = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}.${extension}`;
             currentFileNums[fileDestination]+=1;
+            console.log(currentFileNums[fileDestination]);
             return link;
         },
         uploadPDFWithPreview: async (pdfFile, fileDestination) => {
