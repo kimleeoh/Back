@@ -90,7 +90,7 @@ const handlePurchaseTipsPage = async(req, res) => {
     console.log("decryptedSessionId: ", decryptedSessionId); // 세션 ID 확인
 
     const { docid, category_type } = req.body;
-    const paramList = ["_id", "Rdoc"]; // 필요한 필드 (유저 ID)
+    const paramList = ["_id", "Rdoc", "POINT"]; // 필요한 필드 (유저 ID)
 
     try{
         if (mainInquiry.isNotRedis()) {
@@ -120,7 +120,7 @@ const handlePurchaseTipsPage = async(req, res) => {
 
         default:
             return res
-                .status(400)
+                .status(201)
                 .send({ message: "Invalid category_type" });
     };
 
@@ -129,6 +129,8 @@ const handlePurchaseTipsPage = async(req, res) => {
     if (!document) {
         return res.status(404).send({ message: "Document not found" });
     }
+
+    if(userInfo.POINT<document.purchase_price){ return res.status(400).send({message:"Not enough POINT"}); }
 
     console.log("document: ", document);
 

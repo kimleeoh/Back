@@ -15,8 +15,8 @@ const ADMIN_AUTH_CODE = (() => {
         axios.get('http://localhost:4502/admin/session-time-left')
     .then((response) => {
         if (response.status === 200) {
-            response.data.message.session.user.authCode = authCode;
-            alert(`남은 로그인 시간: ${response.data.message.time}\n시간 초과 시 재로그인하세요.`);
+            response.data.session.user.authCode = authCode;
+            alert(`남은 로그인 시간: ${response.data.time}\n시간 초과 시 재로그인하세요.`);
         }
     })
     .catch((error) => {
