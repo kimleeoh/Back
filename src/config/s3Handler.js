@@ -113,13 +113,13 @@ import { Upload } from "@aws-sdk/lib-storage";
 
 const s3Handler = (() => {
     let currentFileNums = {
-        profile: 0,
-        preview: 0,
-        files: 0,
-        Q: 0,
-        A: 0,
-        confirm: 0,
-        badge: 0,
+        "profile": 0,
+        "preview": 0,
+        "files": 0,
+        "Q": 0,
+        "A": 0,
+        "confirm": 0,
+        "badge": 0,
     };
 
     let S3client = 0;
