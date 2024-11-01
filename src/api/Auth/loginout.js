@@ -157,6 +157,7 @@ const handleLogin = async (req, res) => {
             `${sessionId}_refreshToken`,
             sensitiveSessionID.toString("hex")
         );
+        await redisClient.expire(`${sessionId}_refreshToken`, 3600);
         // Create JWT with a 1-hour expiration
         const token = jwt.sign(payload, privateKey, {
             expiresIn: "1h",
