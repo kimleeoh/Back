@@ -139,7 +139,7 @@ const myMiddleware = async(req, res, next) => {
             .privateEncrypt(privateKey, newSensitiveSessionID)
             .toString("base64");
         newSensitiveSessionID = newSensitiveSessionID.toString("hex");
-        await redisClient.sRem(`${sessionId_D}_refreshToken`, sensitiveSessionID_D);
+        //await redisClient.sRem(`${sessionId_D}_refreshToken`, sensitiveSessionID_D);
         await redisClient.sAdd(`${sessionId_D}_refreshToken`, newSensitiveSessionID);
         
         const payload = {
