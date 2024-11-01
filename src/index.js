@@ -6,7 +6,7 @@ import s3Handler from "./config/s3Handler.js";
 import rateLimiter from "./functions/rateLimiter.js";
 
 import adminRoutes from "./routes/adminRoutes.js";
-import clientRoutes from "./routes/clientRoutes.js";
+import { lightRouter, heavyRouter, loginRouter} from "./routes/clientRoutes.js";
 
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
@@ -14,6 +14,7 @@ import { setupSocketIO } from "./io.js";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import limiter from "./functions/rateLimiter.js";
 
 dotenv.config();
 const adminApp = express();
@@ -76,7 +77,7 @@ clientApp.use(express.urlencoded({ extended: true }));
 clientApp.use(clientSessionMiddleware);
 clientApp.use(cookieParser());
 clientApp.use(express.json());
-clientApp.use(rateLimiter);
+//clientApp.use(rateLimiter);
 clientApp.use(
     cors({
 	    origin: ["https://13.124.232.124", "https://afkiller.com", "https://www.afkiller.com"], // 접근 권한을 부여하는 도메인
@@ -94,7 +95,9 @@ mongoose
     .catch((e) => console.error(e));
 
 adminApp.use("/", adminRoutes);
-clientApp.use("/api", clientRoutes);
+clientApp.use("/api", limiter.loginRate(), loginRouter);
+clientApp.use("/api", limiter.lightRate(), lightRouter);
+clientApp.use("/api", limiter.heavyRate(), heavyRouter);
 clientApp.get("/", (req, res) => {
     res.send("<h1>서버 실행 중</h1>");
 });

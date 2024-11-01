@@ -49,92 +49,94 @@ import { handleManageUpdateTipsPage } from '../api/Board/Tips/tipsModify.js'
 import { handleDeleteTips } from "../api/Board/Tips/deletePage.js";
 import { handlePurchased } from "../api/User/myPurchased.js";
 
-const router = express.Router()
+const lightRouter = express.Router()
+const loginRouter = express.Router()
+const heavyRouter = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
 
 // Dummy 관련 라우터
-router.get('/dummy/testqna', getQnaData)
-router.get('/dummy/testtip', getTipData)
+lightRouter.get('/dummy/testqna', getQnaData)
+lightRouter.get('/dummy/testtip', getTipData)
 
 // 카테고리 관련 라우터
-router.post('/category', getCategory)
+heavyRouter.post('/category', getCategory)
 
 // 로그인 관련 라우터
-router.post('/login', handleLogin)
-router.delete('/logout',logoutMiddleware, handleLogout)
-router.post('/login/key', handleKeyRequest)
+loginRouter.post('/login', handleLogin)
+lightRouter.delete('/logout',logoutMiddleware, handleLogout)
+loginRouter.post('/login/key', handleKeyRequest)
 
 // 회원가입 관련 라우터
-router.post('/register/page/:page', handleRegister)
-router.post('/register/emailAlready', handleCheckAlreadyEmail)
-router.post('/register/email', handleEmailAuthSend)
-router.post('/register/emailAuthNum', handleEmailAuthCheck)
-router.post('/register/imgUpload', upload.single('img'), handleConfirmImgUpload)
+lightRouter.post('/register/page/:page', handleRegister)
+lightRouter.post('/register/emailAlready', handleCheckAlreadyEmail)
+lightRouter.post('/register/email', handleEmailAuthSend)
+lightRouter.post('/register/emailAuthNum', handleEmailAuthCheck)
+lightRouter.post('/register/imgUpload', upload.single('img'), handleConfirmImgUpload)
 
 //비번찾기 관련 라우터
-router.post('/findPassword/email', handleFindPassword)
-router.post('/findPassword/emailAuthNum', handleAuthFindPassword)
-router.post('/findPassword/changePassword', handleResetPassword)
+lightRouter.post('/findPassword/email', handleFindPassword)
+lightRouter.post('/findPassword/emailAuthNum', handleAuthFindPassword)
+lightRouter.post('/findPassword/changePassword', handleResetPassword)
 
 // QnA 관련 라우터
-router.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate)
-router.put('/qna/update/post', myMiddleware, handleUpdatePage);
-router.delete('/qna/:id', myMiddleware, handleDeleteQna);
-router.post('/qna/manage/post', myMiddleware, upload.array('images'), handleManageUpdatePage);
-router.put('/qna/manage/pick', myMiddleware, handleManagePickPage);
+lightRouter.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate)
+lightRouter.put('/qna/update/post', myMiddleware, handleUpdatePage);
+lightRouter.delete('/qna/:id', myMiddleware, handleDeleteQna);
+lightRouter.post('/qna/manage/post', myMiddleware, upload.array('images'), handleManageUpdatePage);
+lightRouter.put('/qna/manage/pick', myMiddleware, handleManagePickPage);
 
-router.get('/qna', myMiddleware, handleRenderQnaPage); 
+lightRouter.get('/qna', myMiddleware, handleRenderQnaPage); 
 
-router.post('/qna/create/answer', myMiddleware, upload.array('images'), handleQnaAnswer);
-router.put('/qna/update/answer', myMiddleware, upload.array('images'),handleEditAnswer);
-router.delete('/qna/delete/answer', myMiddleware, handleEditAnswer);
+lightRouter.post('/qna/create/answer', myMiddleware, upload.array('images'), handleQnaAnswer);
+lightRouter.put('/qna/update/answer', myMiddleware, upload.array('images'),handleEditAnswer);
+lightRouter.delete('/qna/delete/answer', myMiddleware, handleEditAnswer);
 
-router.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
+lightRouter.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
 
 // tips 관련 라우터
-router.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
-router.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
-router.post("/tips/manage", myMiddleware, checkIsUserTips);
-router.post("/tips/purchase", myMiddleware, handlePurchaseTipsPage);
-router.get("/tips/:category_type/:docid", myMiddleware, handleRenderTipsPage);
-router.post("/tips/update", myMiddleware, handleManageUpdateTipsPage);
-router.delete("/tips/:category_type/:docid", myMiddleware, handleDeleteTips);
+heavyRouter.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
+lightRouter.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
+lightRouter.post("/tips/manage", myMiddleware, checkIsUserTips);
+lightRouter.post("/tips/purchase", myMiddleware, handlePurchaseTipsPage);
+lightRouter.get("/tips/:category_type/:docid", myMiddleware, handleRenderTipsPage);
+lightRouter.post("/tips/update", myMiddleware, handleManageUpdateTipsPage);
+lightRouter.delete("/tips/:category_type/:docid", myMiddleware, handleDeleteTips);
 
 // 사용자관련
-router.get('/point', myMiddleware, handlePointRead); // 포인트 조회
-router.get('/notify', myMiddleware, handleNotify); // 알림 조회
-router.post('/notify/check', myMiddleware, handleNotifyCheck); // 알림 확인
-router.get('/notify/new', myMiddleware, handleNewNotify); // 새로운 알림 확인
-router.post('/notify/unnew', myMiddleware, handleUnNewNotify); // 예전 알림 확인
+heavyRouter.get('/point', myMiddleware, handlePointRead); // 포인트 조회
+lightRouter.get('/notify', myMiddleware, handleNotify); // 알림 조회
+lightRouter.post('/notify/check', myMiddleware, handleNotifyCheck); // 알림 확인
+heavyRouter.get('/notify/new', myMiddleware, handleNewNotify); // 새로운 알림 확인
+lightRouter.post('/notify/unnew', myMiddleware, handleUnNewNotify); // 예전 알림 확인
 
-router.post('/warn', myMiddleware, handleWarn); // 경고 조회
+lightRouter.post('/warn', myMiddleware, handleWarn); // 경고 조회
 
 // board 관련 라우터
-router.post('/board/edit', myMiddleware, handleEditBoard); // 보드편집
-router.get('/board', myMiddleware, loadBoardPage); // 보드메인페이지 조회
-router.post('/board/detail', loadBoardDetail); // 보드과목별 상세페이지 조회
+lightRouter.post('/board/edit', myMiddleware, handleEditBoard); // 보드편집
+lightRouter.get('/board', myMiddleware, loadBoardPage); // 보드메인페이지 조회
+lightRouter.post('/board/detail', loadBoardDetail); // 보드과목별 상세페이지 조회
 
-router.get('/score', myMiddleware, handleGetScore); // 성적가져오기
-router.post('/score', myMiddleware, upload.single('img'), handleUploadScore); // 성적업로드
+lightRouter.get('/score', myMiddleware, handleGetScore); // 성적가져오기
+lightRouter.post('/score', myMiddleware, upload.single('img'), handleUploadScore); // 성적업로드
 
 // 마이페이지 관련 라우터
-router.get('/mypage/profile', myMiddleware, handleUserProfile); // 마이페이지 기본값 조회
-router.post('/update-profile', myMiddleware, updateUserProfile); // 마이페이지 수정
-router.post('/menu/scraplist', myMiddleware, handleUserScrapList); // 스크랩 리스트 조회
-router.post('/menu/likelist', myMiddleware, handleUserLikeList); // 좋아요 리스트 조회
-router.post('/menu/postlist', myMiddleware, handleUserPostList); // 내가 쓴 글 리스트 조회
-router.get("/menu/recentlist", myMiddleware, handleRecentRead); // 최근 본 글 리스트 조회
-router.get("/menu/purchased", myMiddleware, handlePurchased);
+heavyRouter.get('/mypage/profile', myMiddleware, handleUserProfile); // 마이페이지 기본값 조회
+lightRouter.post('/update-profile', myMiddleware, updateUserProfile); // 마이페이지 수정
+lightRouter.post('/menu/scraplist', myMiddleware, handleUserScrapList); // 스크랩 리스트 조회
+lightRouter.post('/menu/likelist', myMiddleware, handleUserLikeList); // 좋아요 리스트 조회
+lightRouter.post('/menu/postlist', myMiddleware, handleUserPostList); // 내가 쓴 글 리스트 조회
+lightRouter.get("/menu/recentlist", myMiddleware, handleRecentRead); // 최근 본 글 리스트 조회
+lightRouter.get("/menu/purchased", myMiddleware, handlePurchased);
 
 // 인기 게시물 조회 관련
-router.post("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필페이지의 인기게시글 조회
+heavyRouter.post("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필페이지의 인기게시글 조회
 
 // 홈 화면 관련 라우터
 // 인기 게시물 조회 관련
-router.post("/home/trending", myMiddleware, handleHomeDataList); // 홈 게시판별 인기 tips조회
-router.post("/home/answer-possible", myMiddleware, handleAnswerPossibleList); // 홈 게시판별 인기 qna조회
+heavyRouter.post("/home/trending", myMiddleware, handleHomeDataList); // 홈 게시판별 인기 tips조회
+heavyRouter.post("/home/answer-possible", myMiddleware, handleAnswerPossibleList); // 홈 게시판별 인기 qna조회
 
 // // 캐시 테스트
 // router.get('/cache/popular-posts', getCachedPopularPosts);
 
-export default router;
+export {lightRouter, loginRouter, heavyRouter};
