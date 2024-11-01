@@ -11,8 +11,13 @@ const limiter =(()=>{
             message: "Too many requests, please try again later."
         }),
         heavyRate : ()=> rateLimit({
-            windowMs: 1* 30 * 1000, // 30 sec
-            max: 300, // limit each IP to 5 requests per windowMs
+            windowMs: 1* 60 * 1000, 
+            max: 500, // limit each IP to 5 requests per windowMs
+            message: "Too many requests, please try again later."
+        }),
+        categoryRate:()=>rateLimit({
+            windowMs: 1* 60 * 1000, // 1 minute
+            max: 500, 
             message: "Too many requests, please try again later."
         }),
         lightRate : ()=> rateLimit({
