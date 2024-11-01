@@ -103,23 +103,23 @@ const myMiddleware = async(req, res, next) => {
             const sessionExists = await redisClient.exists(sessionId_D);
             console.log(sensitiveSessionID_D);
             let sensitiveSessionExists = await redisClient.sIsMember(
-                "refreshToken",
+                `${sessionId_D}_refreshToken`,
                 sensitiveSessionID_D
             );
             if(!sensitiveSessionExists) sensitiveSessionExists = await redisClient.sIsMember(
-                "refreshToken",
+                `${sessionId_D}_refreshToken`,
                 sensitiveSessionID_D
             );
   
             console.log(sensitiveSessionExists, sensitiveSessionID_D);
             if (sessionExists != 1 && sensitiveSessionExists == 0)
-		{await redisClient.sRem("refreshToken", sensitiveSessionID_D);
+		{await redisClient.sRem(`${sessionId_D}_refreshToken`, sensitiveSessionID_D);
 		return res
                     .status(403)
                     .send("Security Issue, Please Login Again");}
             else if (sensitiveSessionExists == 0) {
                 await redisClient.del(sessionId_D);    
-                await redisClient.sRem("refreshToken", sensitiveSessionID_D);
+                await redisClient.sRem(`${sessionId_D}_refreshToken`, sensitiveSessionID_D);
                 return res
                     .status(403)
                     .send(
@@ -139,8 +139,8 @@ const myMiddleware = async(req, res, next) => {
             .privateEncrypt(privateKey, newSensitiveSessionID)
             .toString("base64");
         newSensitiveSessionID = newSensitiveSessionID.toString("hex");
-        await redisClient.sRem("refreshToken", sensitiveSessionID_D);
-        await redisClient.sAdd("refreshToken", newSensitiveSessionID);
+        await redisClient.sRem(`${sessionId_D}_refreshToken`, sensitiveSessionID_D);
+        await redisClient.sAdd(`${sessionId_D}_refreshToken`, newSensitiveSessionID);
         
         const payload = {
             sessionId,

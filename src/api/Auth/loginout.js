@@ -154,7 +154,7 @@ const handleLogin = async (req, res) => {
         // Store session data in Redis with a 1-hour expiration
         await redisClient.set(sessionId, JSON.stringify(cache), "EX", 3600);
         await redisClient.sAdd(
-            "refreshToken",
+            `${sessionId}_refreshToken`,
             sensitiveSessionID.toString("hex")
         );
         // Create JWT with a 1-hour expiration
@@ -186,7 +186,7 @@ const handleLogout = async (req, res) => {
         const redisClient = redisHandler.getRedisClient();
 
         await redisClient.del(req.decryptedSessionId);
-        await redisClient.sRem("refreshToken", req.body.decryptedSensitiveId);
+        await redisClient.del(`${req.decryptedSessionId}_refreshToken`);
 
         delete req.decryptedSessionId, req.decryptedUserData;
 
