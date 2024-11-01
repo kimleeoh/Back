@@ -49,37 +49,38 @@ import { handleManageUpdateTipsPage } from '../api/Board/Tips/tipsModify.js'
 import { handleDeleteTips } from "../api/Board/Tips/deletePage.js";
 import { handlePurchased } from "../api/User/myPurchased.js";
 
-const lightRouter = express.Router()
-const loginRouter = express.Router()
-const heavyRouter = express.Router()
+const lightRouter = express.Router();
+const loginRouter = express.Router();
+const heavyRouter = express.Router();
+//const categoryRouter = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
 
 // Dummy 관련 라우터
-lightRouter.get('/dummy/testqna', getQnaData)
-lightRouter.get('/dummy/testtip', getTipData)
+lightRouter.get('/dummy/testqna', getQnaData);
+lightRouter.get('/dummy/testtip', getTipData);
 
 // 카테고리 관련 라우터
-heavyRouter.post('/category', getCategory)
+heavyRouter.post('/category', getCategory);
 
 // 로그인 관련 라우터
-loginRouter.post('/login', handleLogin)
-lightRouter.delete('/logout',logoutMiddleware, handleLogout)
-loginRouter.post('/login/key', handleKeyRequest)
+loginRouter.post('/login', handleLogin);
+lightRouter.delete('/logout',logoutMiddleware, handleLogout);
+loginRouter.post('/login/key', handleKeyRequest);
 
 // 회원가입 관련 라우터
-lightRouter.post('/register/page/:page', handleRegister)
-lightRouter.post('/register/emailAlready', handleCheckAlreadyEmail)
-lightRouter.post('/register/email', handleEmailAuthSend)
-lightRouter.post('/register/emailAuthNum', handleEmailAuthCheck)
-lightRouter.post('/register/imgUpload', upload.single('img'), handleConfirmImgUpload)
+lightRouter.post('/register/page/:page', handleRegister);
+lightRouter.post('/register/emailAlready', handleCheckAlreadyEmail);
+lightRouter.post('/register/email', handleEmailAuthSend);
+lightRouter.post('/register/emailAuthNum', handleEmailAuthCheck);
+lightRouter.post('/register/imgUpload', upload.single('img'), handleConfirmImgUpload);
 
 //비번찾기 관련 라우터
-lightRouter.post('/findPassword/email', handleFindPassword)
-lightRouter.post('/findPassword/emailAuthNum', handleAuthFindPassword)
-lightRouter.post('/findPassword/changePassword', handleResetPassword)
+lightRouter.post('/findPassword/email', handleFindPassword);
+lightRouter.post('/findPassword/emailAuthNum', handleAuthFindPassword);
+lightRouter.post('/findPassword/changePassword', handleResetPassword);
 
 // QnA 관련 라우터
-lightRouter.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate)
+lightRouter.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate);
 lightRouter.put('/qna/update/post', myMiddleware, handleUpdatePage);
 lightRouter.delete('/qna/:id', myMiddleware, handleDeleteQna);
 lightRouter.post('/qna/manage/post', myMiddleware, upload.array('images'), handleManageUpdatePage);
@@ -95,7 +96,7 @@ lightRouter.get('/bulletin/qnas', myMiddleware, handleRenderQnaList);
 
 // tips 관련 라우터
 heavyRouter.post('/bulletin/tips', myMiddleware, loadBoardWithFilter) // 게시판 필터링 및 초기 렌더링
-lightRouter.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate) // 게시판 작성
+lightRouter.post('/tips/create/post', myMiddleware, upload.array('images'), handleTipsCreate); // 게시판 작성
 lightRouter.post("/tips/manage", myMiddleware, checkIsUserTips);
 lightRouter.post("/tips/purchase", myMiddleware, handlePurchaseTipsPage);
 lightRouter.get("/tips/:category_type/:docid", myMiddleware, handleRenderTipsPage);
