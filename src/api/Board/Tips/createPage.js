@@ -20,8 +20,8 @@ const handleTipsCreate = async (req, res) => {
         const categoryId = Object.keys(nc[nc.length - 1])[0];
         console.log("categoryid:", Object.keys(nc[nc.length - 1])[0]);
 
-        // // 고유한 ObjectId를 Rfile로 생성
-        // const Rfile = new mongoose.Types.ObjectId();
+        // 고유한 ObjectId를 Rfile로 생성
+        const Rfile = new mongoose.Types.ObjectId();
         if (!req.decryptedSessionId) {
             return res.status(400).send("세션 ID가 없습니다.");
         }
@@ -58,20 +58,20 @@ const handleTipsCreate = async (req, res) => {
         }
 
         // // 파일 처리 (이미지 또는 PDF)
-        // if (files && files.length > 0) {
+        // if (req.files && req.files.length > 0) {
         //     // 첫 번째 파일의 MIME 타입 확인 (PDF 여부)
-        //     const isPDF = files[0].mimetype === "application/pdf";
+        //     const isPDF = req.files[0].mimetype === "application/pdf";
         //     if (isPDF) {
         //         // PDF 파일 처리
-        //         const pdfFile = files[0]; // 첫 번째 파일이 PDF인 경우
+        //         const pdfFile = req.files[0]; // 첫 번째 파일이 PDF인 경우
         //         const fileStream = fs.createReadStream(pdfFile.path);
 
         //         // 1. S3에 PDF 파일 저장 (files 경로)
         //         const pdfLink = await s3Handler.put("files", fileStream);
         //         linkList.push(pdfLink); // PDF 파일 링크 저장
         //     } else {
-        //         for (let i = 0; i < files.length; i++) {
-        //             const fileStream = fs.createReadStream(files[i].path);
+        //         for (let i = 0; i < req.files.length; i++) {
+        //             const fileStream = fs.createReadStream(req.files[i].path);
         //             const imgLink = await s3Handler.put("files", fileStream);
         //             linkList.push(imgLink);
 
@@ -82,7 +82,7 @@ const handleTipsCreate = async (req, res) => {
         //                     fileStream
         //                 );
         //             }
-        //             fs.unlinkSync(files[i].path); // 임시 파일 삭제
+        //             fs.unlinkSync(req.files[i].path); // 임시 파일 삭제
         //         }
         //     }
         // } else {
@@ -112,28 +112,6 @@ const handleTipsCreate = async (req, res) => {
             default:
                 return res.status(400).send("Invalid document type");
         }
-    
-        // let categoryId;
-        // const lastBoardElement = req.body.board[req.body.board.length - 1];
-
-        // // 마지막 요소가 객체일 경우 첫 번째 키를 추출하여 categoryId로 사용
-        // if (typeof lastBoardElement === "object" && lastBoardElement !== null) {
-        //     const objectIdKey = Object.keys(lastBoardElement)[0];
-        //     if (mongoose.Types.ObjectId.isValid(objectIdKey)) {
-        //         categoryId = objectIdKey; // 유효한 ObjectId 값이 추출된 경우에만 사용
-        //         console.log("categoryid", categoryId);
-        //     } else {
-        //         console.error("Invalid ObjectId in board data:", objectIdKey);
-        //         return res
-        //             .status(400)
-        //             .send("Invalid category ID in board data");
-        //     }
-        // } else {
-        //     console.error(
-        //         "Invalid board structure. Expected object in board array."
-        //     );
-        //     return res.status(400).send("Invalid board structure.");
-        // }
 
         // 새로운 문서 생성
         const doc = new DocumentsModel({
@@ -164,13 +142,14 @@ const handleTipsCreate = async (req, res) => {
         await doc.save();
         console.log("Document saved:", doc._id, "now", doc.now_category);
 
-        // // AllFiles에 추가
-        // const allFileDoc = new AllFiles({
-        //     _id: Rfile, // 문서의 Rfile 값을 AllFiles의 _id로 설정
-        //     Rpurchase_list: [], // 초기화
-        //     file_link_list: linkList, // 파일 링크 리스트 저장
-        // });
-        // await allFileDoc.save();
+        // AllFiles에 추가
+        const allFileDoc = new AllFiles({
+            _id: Rfile, // 문서의 Rfile 값을 AllFiles의 _id로 설정
+            Rpurchase_list: [], // 초기화
+            file_link_list: linkList, // 파일 링크 리스트 저장
+        });
+        await allFileDoc.save();
+        console.log("allfile:", allFileDoc);
 
         const updatedUserDocs = await UserDocs.findOneAndUpdate(
             { _id: received.Rdoc },
