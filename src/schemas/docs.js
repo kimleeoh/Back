@@ -10,7 +10,7 @@ const AllFilesSchema = new mongoose.Schema({
         type: [String], // S3 파일 링크들의 배열
         default: [],
     },
-});
+}, { collection: "AllFiles" });  // 컬렉션 이름을 명시적으로 설정
 
 const qnaSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
