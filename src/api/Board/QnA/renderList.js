@@ -12,21 +12,27 @@ const handleRenderQnaList = async (req, res) => {
   try {
     let DocIDs;
     if(req.query.type=="one"){
-      // commonCategorySchema에서 Rqna_list의 마지막 20개 문서 추출
-      const category = await CommonCategory.findOne({"_id":req.query.id[0]})
-        .select("Rqna_list")
-        .lean();
+        // commonCategorySchema에서 Rqna_list의 마지막 20개 문서 추출
+        const category = await CommonCategory.findOne({ _id: req.query.id[0] })
+            .select("Rqna_list")
+            .lean();
 
-      if (!category || !category.Rqna_list) {
-        return res.status(404).json({ message: "Rqna_list not found" });
-      }
-      
-      const end = -12 * (depth - 1) || undefined;
-      const start = end==undefined? -12 : end - 12;
+        // category가 비어있으면 200 상태 코드와 "uniquecategory is null" 메시지 반환
+        if (!category) {
+            return res.status(200).json({ message: "uniquecategory is null" });
+        }
 
-      // Rqna_list에서 마지막 20개의 문서 ID 가져오기
-      DocIDs = category.Rqna_list.slice(start, end);
-      // 해당 doc_id로 QnaDocuments에서 필요한 정보 조회
+        // category는 존재하지만 Rqna_list가 비어있으면 200 상태 코드와 "qnalist is null" 메시지 반환
+        if (!category.Rqna_list || category.Rqna_list.length === 0) {
+            return res.status(200).json({ message: "qnalist is null" });
+        }
+
+        const end = -12 * (depth - 1) || undefined;
+        const start = end == undefined ? -12 : end - 12;
+
+        // Rqna_list에서 마지막 20개의 문서 ID 가져오기
+        DocIDs = category.Rqna_list.slice(start, end);
+        // 해당 doc_id로 QnaDocuments에서 필요한 정보 조회
     }
     else if(req.query.type=="many"){
       if(mainInquiry.isNotRedis()){
