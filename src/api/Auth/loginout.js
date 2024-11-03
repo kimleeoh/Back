@@ -9,6 +9,7 @@ import { decipherAES, hashPassword } from "./register.js";
 import { timeStamp } from "console";
 import { Queue } from "../../utils/recentPageClass.js";
 import { CustomBoardView } from "../../schemas/userRelated.js";
+import { rewardNullCheck } from "../../functions/rewardCheck.js";
 
 //이거는 jwt인증용 rsa키가 될 것.
 const privateKeyPem = fs.readFileSync(
@@ -88,12 +89,13 @@ const handleLogin = async (req, res) => {
     await redisClient.hSet("idempotency", idempotencyKey, unixTimestamp);
 
     try {
-        const user = await User.findOne({ email: username }).lean();
+        const rawUser = await User.findOne({ email: username });
+        const user = rawUser.lean();
 
         if (user == null) {
             return res
                 .status(401)
-                .json({ message: "아이디 또는 비밀번호가 일치하지 않습니다." });
+                .json({ message: "존재하지 않는 아이디입니다." });
         }
         if (user.confirmed == 0) {
             return res.status(401).json({
@@ -102,6 +104,12 @@ const handleLogin = async (req, res) => {
             });
         } else if (user.confirmed == 1) {
             return res.status(401).json({ message: "승인 대기중인 유저입니다." });
+        }else if(user.confirmed == 2){
+            rawUser.confirmed = 3;
+            await rawUser.save();
+        }
+        else if(user.confirmed == 4){
+            return res.status(401).json({ message: "신고 누적으로 인해 차단된 계정입니다." });
         }
 
         const hashedPassword = user.password;
@@ -116,6 +124,11 @@ const handleLogin = async (req, res) => {
                 .json({ message: "아이디 또는 비밀번호가 일치하지 않습니다." });
         }
 
+        const isModal = await rewardNullCheck(user._id);
+
+        if(isModal.status){
+            user.POINT+=isModal.point;
+        }
         const sessionId = uuidv4();
         const sensitiveSessionID = crypto.randomBytes(16);
         console.log("세션아이디:", sessionId);
@@ -172,7 +185,8 @@ const handleLogin = async (req, res) => {
 	    
         });
         await redisClient.hDel("idempotency", idempotencyKey);
-        res.status(200).json({ message: "Logged in successfully" });
+        
+        res.status(200).json({ message: "Logged in successfully" , isModal});
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Internal Server Error" });
