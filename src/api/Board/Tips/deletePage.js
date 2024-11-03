@@ -3,6 +3,7 @@ import s3Handler from "../../../config/s3Handler.js";
 import mainInquiry from "../../../functions/mainInquiry.js";
 import { Category, LowestCategory } from "../../../schemas/category.js";
 import {
+    AllFiles,
     PilgyDocuments,
     TestDocuments,
     HoneyDocuments,
@@ -24,24 +25,16 @@ const handleDeleteTips = async (req, res) => {
         );
 
         // UserDocs에서 해당 문서 삭제
-        const userdoc = await UserDocs.findById(received.Rdoc);
-
-        // category_type에 따라 적절한 리스트에서 문서 삭제
-        if (category_type === "pigly") {
-            userdoc.Rpilgy_list = userdoc.Rpilgy_list.filter(
-                (item) => item !== docid
-            );
+        const updateUserDocs = {};
+        if (category_type === "pilgy") {
+            updateUserDocs.$pull = { Rpilgy_list: docid };
         } else if (category_type === "honey") {
-            userdoc.Rhoney_list = userdoc.Rhoney_list.filter(
-                (item) => item !== docid
-            );
+            updateUserDocs.$pull = { Rhoney_list: docid };
         } else if (category_type === "test") {
-            userdoc.Rtest_list = userdoc.Rtest_list.filter(
-                (item) => item !== docid
-            );
+            updateUserDocs.$pull = { Rtest_list: docid };
         }
 
-        await userdoc.save(); // UserDocs 저장
+        await UserDocs.findByIdAndUpdate(received.Rdoc, updateUserDocs); // UserDocs에서 문서 ID 제거
 
         // exp 값에 30 빼기
         const newExp = (received.exp || 0) - 30;
@@ -50,37 +43,58 @@ const handleDeleteTips = async (req, res) => {
         await mainInquiry.write({ exp: newExp }, req.decryptedSessionId);
 
         let categoryIdToUse; // 기본값은 세션의 카테고리 ID
+        let Rfile; // AllFiles에서 삭제할 Rfile ID
 
-        // category_type에 맞춰 적절한 Documents 스키마에서 now_category ID 가져오기
+        // category_type에 맞춰 적절한 Documents 스키마에서 now_category ID 및 Rfile 가져오기
         if (category_type === "pilgy") {
             const pilgyDoc = await PilgyDocuments.findById(docid);
             if (pilgyDoc) {
                 categoryIdToUse = pilgyDoc.now_category;
+                Rfile = pilgyDoc.Rfile;
+                await pilgyDoc.deleteOne();
             }
         } else if (category_type === "honey") {
             const honeyDoc = await HoneyDocuments.findById(docid);
             if (honeyDoc) {
                 categoryIdToUse = honeyDoc.now_category;
+                Rfile = honeyDoc.Rfile;
+                await honeyDoc.deleteOne();
             }
         } else if (category_type === "test") {
             const testDoc = await TestDocuments.findById(docid);
             if (testDoc) {
                 categoryIdToUse = testDoc.now_category;
+                Rfile = testDoc.Rfile;
+                await testDoc.deleteOne();
+            }
+        }
+
+        // // AllFiles에서 Rfile로 삭제
+        // if (Rfile) {
+        //     await AllFiles.deleteOne({ _id: Rfile });
+        // }
+        
+        // AllFiles에서 Rfile에 해당하는 문서 삭제 및 S3에서 파일 삭제
+        if (Rfile) {
+            const allFileDoc = await AllFiles.findById(Rfile);
+            if (allFileDoc) {
+                // S3에서 모든 파일을 한 번에 삭제
+                await s3Handler.delete(allFileDoc.file_link_list);
+                await allFileDoc.deleteOne(); // AllFiles에서 삭제
             }
         }
 
         // 카테고리에서 해당 문서 삭제
-        const cat = await LowestCategory.findById(categoryIdToUse);
-
+        const updateCategory = {};
         if (category_type === "pilgy") {
-            cat.Rpilgy_list = cat.Rpilgy_list.filter((item) => item !== docid);
+            updateCategory.$pull = { Rpilgy_list: docid };
         } else if (category_type === "honey") {
-            cat.Rhoney_list = cat.Rhoney_list.filter((item) => item !== docid);
+            updateCategory.$pull = { Rhoney_list: docid };
         } else if (category_type === "test") {
-            cat.Rtest_list = cat.Rtest_list.filter((item) => item !== docid);
+            updateCategory.$pull = { Rtest_list: docid };
         }
 
-        await cat.save(); // 카테고리 저장
+        await LowestCategory.findByIdAndUpdate(categoryIdToUse, updateCategory); // LowestCategory에서 문서 ID 제거
 
         // 성공 응답
         res.status(200).send("Document successfully deleted from lists");
