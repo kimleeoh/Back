@@ -120,6 +120,7 @@ const handleTipsCreate = async (req, res) => {
             content: req.body.content,
             target: req.body.target,
             img_list: linkList,
+            Rfile,
             now_category: categoryId, // 문서가 속한 카테고리
             time: req.body.time,
             Ruser: received._id,
