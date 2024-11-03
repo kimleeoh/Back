@@ -69,11 +69,6 @@ const handleDeleteTips = async (req, res) => {
             }
         }
 
-        // // AllFiles에서 Rfile로 삭제
-        // if (Rfile) {
-        //     await AllFiles.deleteOne({ _id: Rfile });
-        // }
-        
         // AllFiles에서 Rfile에 해당하는 문서 삭제 및 S3에서 파일 삭제
         if (Rfile) {
             const allFileDoc = await AllFiles.findById(Rfile);
