@@ -28,13 +28,14 @@ const handleDeleteQna = async (req, res) => {
             updateUserDocs.$pull = { Rqna_list: docid };
         } else {
             return res.status(404).send("not found");
-        };
+        }
 
         await UserDocs.findByIdAndUpdate(received.Rdoc, updateUserDocs); // UserDocs에서 문서 ID 제거
 
+        console.log("Current exp:", received.exp); // 현재 exp 값 확인
         // exp 값에 30 빼기
         const newExp = (received.exp || 0) - 30;
-
+        console.log("Updated exp:", newExp); // 계산된 exp 값 확인
         // exp 업데이트
         await mainInquiry.write({ exp: newExp }, req.decryptedSessionId);
 
@@ -52,12 +53,17 @@ const handleDeleteQna = async (req, res) => {
                     ];
                 categoryIdToUse = Object.keys(nowCategoryObject)[0];
                 console.log("categoryIdToUse:", categoryIdToUse);
-                await s3Handler.delete(qnaDoc.img_list);
+
+                // S3에서 img_list 파일 삭제 (img_list가 비어있거나 존재하지 않는 경우 건너뜀)
+                if (qnaDoc.img_list && qnaDoc.img_list.length > 0) {
+                    await s3Handler.delete(qnaDoc.img_list);
+                }
+
                 await qnaDoc.deleteOne();
             }
         } else {
             return res.status(404).send("not found");
-        };
+        }
 
         // 카테고리에서 해당 문서 삭제
         const updateCategory = {};

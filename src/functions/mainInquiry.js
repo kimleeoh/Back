@@ -68,17 +68,16 @@ const mainInquiry = (() => {
             // }, {});
         },
         write: async (paramObject, redisId) => {
-            let RedisId = String(redisId); // Redis ID 문자열로 변환
-            const stringfiedJSON = await redisClient.get(RedisId); // Redis에서 기존 데이터 가져오기
+            let RedisId = String(redisId);
+            const stringfiedJSON = await redisClient.get(RedisId);
             if (!stringfiedJSON) {
                 throw new Error(
                     "No data found in Redis for the given session ID"
                 );
             }
 
-            const userInfo = JSON.parse(stringfiedJSON); // 사용자 정보 파싱
+            const userInfo = JSON.parse(stringfiedJSON);
 
-            // Redis에서 가져온 userInfo가 유효하지 않을 경우 예외 처리
             if (!userInfo || !userInfo._id) {
                 throw new Error("Invalid user data found in Redis");
             }
@@ -91,32 +90,31 @@ const mainInquiry = (() => {
             let updateObject = {};
             let brdUpdateObject = {};
 
-            // 전달된 paramObject에 따라 적절한 Chunk로 분리
+            // 전달된 paramObject에 따라 필드 분류
             Object.keys(paramObject).forEach((key) => {
-                        if (boardFields.includes(key)) {
-                            // 기존 데이터와 새로운 데이터를 병합
-                            const existingData = userInfo[key] || [];
-                            BlistChunk[key] = paramObject[key]; // 새로운 데이터로 덮어쓰기
-
-                            // 중복된 데이터 제거 (중복 제거를 원하지 않을 경우 이 부분 생략)
-                            BlistChunk[key] = Array.from(
-                                new Set(BlistChunk[key])
-                            );
-                        } else if (stringFields.includes(key)) {
-                            stringChunk[key] = paramObject[key];
-                        } else if (listFields.includes(key)) {
-                            listChunk[key] = paramObject[key];
-                        } else if (rlistFields.includes(key)) {
-                            rlistChunk[key] = paramObject[key];
-                        } else if (
-                            typeof paramObject[key] === "number" &&
-                            key !== "level"
-                        ) {
-                            // level에는 $inc 적용하지 않음
-                            numChunk[key] = paramObject[key];
-                        } else {
-                            stringChunk[key] = paramObject[key]; // $set으로 처리
-                        }
+                if (boardFields.includes(key)) {
+                    const existingData = userInfo[key] || [];
+                    BlistChunk[key] = paramObject[key];
+                    BlistChunk[key] = Array.from(new Set(BlistChunk[key]));
+                } else if (stringFields.includes(key)) {
+                    stringChunk[key] = paramObject[key];
+                } else if (listFields.includes(key)) {
+                    listChunk[key] = paramObject[key];
+                } else if (rlistFields.includes(key)) {
+                    rlistChunk[key] = paramObject[key];
+                } else if (
+                    typeof paramObject[key] === "number" &&
+                    key !== "level"
+                ) {
+                    // exp는 직접 설정하기 위해 $inc 대신 $set 사용
+                    if (key === "exp") {
+                        stringChunk[key] = paramObject[key]; // $set으로 exp 직접 설정
+                    } else {
+                        numChunk[key] = paramObject[key];
+                    }
+                } else {
+                    stringChunk[key] = paramObject[key];
+                }
             });
 
             // MongoDB 업데이트용 updateObject 구성
@@ -143,15 +141,25 @@ const mainInquiry = (() => {
                     const result = await User.findOneAndUpdate(
                         { _id: userInfo._id }, // userInfo의 _id를 사용하여 업데이트
                         updateObject,
-                        {new:true}
+                        { new: true }
                     ).lean();
 
-                    console.log("\nuserinfo: ",userInfo);
+                    console.log("\nuserinfo: ", userInfo);
 
-                    let  brd = { Renrolled_list:userInfo.Renrolled_list, Rlistened_list:userInfo.Rlistened_list, Rbookmark_list:userInfo.Rbookmark_list };
+                    let brd = {
+                        Renrolled_list: userInfo.Renrolled_list,
+                        Rlistened_list: userInfo.Rlistened_list,
+                        Rbookmark_list: userInfo.Rbookmark_list,
+                    };
 
-                    if(Object.keys(brdUpdateObject).length > 0 )brd = await CustomBoardView.findByIdAndUpdate(result.Rcustom_brd,brdUpdateObject,{new:true}).select('-_id').lean();
-                    
+                    if (Object.keys(brdUpdateObject).length > 0)
+                        brd = await CustomBoardView.findByIdAndUpdate(
+                            result.Rcustom_brd,
+                            brdUpdateObject,
+                            { new: true }
+                        )
+                            .select("-_id")
+                            .lean();
 
                     if (!result) {
                         throw new Error("Failed to update user in MongoDB");
@@ -159,8 +167,8 @@ const mainInquiry = (() => {
 
                     const willreturn = {
                         ...result,
-                        ...brd
-                    }
+                        ...brd,
+                    };
 
                     // 업데이트된 사용자 정보를 Redis에 다시 저장
                     await redisClient.set(
@@ -174,13 +182,29 @@ const mainInquiry = (() => {
                     throw new Error("Failed to update user in MongoDB");
                 }
             } else {
-                let  brd = { Renrolled_list:userInfo.Renrolled_list, Rlistened_list:userInfo.Rlistened_list, Rbookmark_list:userInfo.Rbookmark_list };
+                let brd = {
+                    Renrolled_list: userInfo.Renrolled_list,
+                    Rlistened_list: userInfo.Rlistened_list,
+                    Rbookmark_list: userInfo.Rbookmark_list,
+                };
 
-                if(Object.keys(brdUpdateObject).length > 0 )brd = await CustomBoardView.findByIdAndUpdate(userInfo.Rcustom_brd,brdUpdateObject,{new:true}).select('-_id').lean();
-                const { Renrolled_list, Rlistened_list, Rbookmark_list, ...willreturn } = userInfo;
+                if (Object.keys(brdUpdateObject).length > 0)
+                    brd = await CustomBoardView.findByIdAndUpdate(
+                        userInfo.Rcustom_brd,
+                        brdUpdateObject,
+                        { new: true }
+                    )
+                        .select("-_id")
+                        .lean();
+                const {
+                    Renrolled_list,
+                    Rlistened_list,
+                    Rbookmark_list,
+                    ...willreturn
+                } = userInfo;
                 const willreturn2 = {
                     ...willreturn,
-                    ...brd
+                    ...brd,
                 };
                 console.log(willreturn2);
                 await redisClient.set(
