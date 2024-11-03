@@ -78,9 +78,23 @@ clientApp.use(clientSessionMiddleware);
 clientApp.use(cookieParser());
 clientApp.use(express.json());
 //clientApp.use(rateLimiter);
+
+// 실배포 환경과 로컬 환경에서의 접근 권한 도메인 설정
+const allowedOrigins =
+    process.env.NODE_ENV === "production"
+        ? ["https://13.124.232.124", "https://afkiller.com", "https://www.afkiller.com"]
+        : ["http://localhost:3000"];
+
+// clientApp에 CORS 설정 적용
 clientApp.use(
     cors({
-	    origin: ["https://13.124.232.124", "https://afkiller.com", "https://www.afkiller.com"], // 접근 권한을 부여하는 도메인
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
         credentials: true,
         optionsSuccessStatus: 200,
     })
