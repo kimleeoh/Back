@@ -31,7 +31,7 @@ const handleRenderQnaPage = async(req, res)=>{
         for (let i = sc.semester_list.length - 1; i >= 0; i--) {
             const semester = sc.semester_list[i];
             const index = semester.subject_list.findIndex(subj => subj === lastCategory);
-            if (index !== -1) {
+            if (index !== -1&& semester.confirmed==2) {
                 see = [index, i];
                 break;
             }
