@@ -87,6 +87,11 @@ const loadBoardWithFilter = async (req, res) => {
                 });
 
                 documents.push(...docs);
+                
+                // documents가 비어있을 경우 상태 200으로 메시지 반환
+                if (documents.length === 0) {
+                    return res.status(200).json({ message: "Filtered category lists are null" });
+                }
             }
         }
 
