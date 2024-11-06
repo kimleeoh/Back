@@ -16,9 +16,9 @@ const handleTipsCreate = async (req, res) => {
     try {
         console.log("Received board data:", req.body.board);
         const nc = JSON.parse(req.body.board);
-        console.log("nc:", nc);
+        // console.log("nc:", nc);
         const categoryId = Object.keys(nc[nc.length - 1])[0];
-        console.log("categoryid:", Object.keys(nc[nc.length - 1])[0]);
+        // console.log("categoryid:", Object.keys(nc[nc.length - 1])[0]);
 
         // 고유한 ObjectId를 Rfile로 생성
         const Rfile = new mongoose.Types.ObjectId();
@@ -48,46 +48,58 @@ const handleTipsCreate = async (req, res) => {
                 .send("Error: No data found in Redis for the given session ID");
         }
 
+        // 파일 업로드 및 삭제 처리
         const linkList = [];
-        console.log(req.files);
-        for (const a of req.files) {
-            const fileStream = fs.createReadStream(a.path);
-            const imgLink = await s3Handler.put("files", fileStream);
-            linkList.push(imgLink);
-            fs.unlinkSync(a.path);
+        let preview_img = "";
+        if (req.files && req.files.length > 0) {
+            const isPDF = req.files[0].mimetype === "application/pdf";
+
+            if (isPDF) {
+                const pdfFile = req.files[0];
+                if (fs.existsSync(pdfFile.path)) {
+                    const fileStream = fs.createReadStream(pdfFile.path);
+                    const pdfLink = await s3Handler.put("files", fileStream);
+                    linkList.push(pdfLink);
+
+                    // 업로드 후 파일 삭제
+                    await fs.promises.unlink(pdfFile.path);
+                } else {
+                    console.error("PDF file not found:", pdfFile.path);
+                    return res.status(500).send("PDF file not found");
+                }
+            } else {
+                for (const file of req.files) {
+                    if (fs.existsSync(file.path)) {
+                        // 파일 경로 유효성 확인
+                        const fileStream = fs.createReadStream(file.path);
+                        const imgLink = await s3Handler.put(
+                            "files",
+                            fileStream
+                        );
+                        linkList.push(imgLink);
+
+                        // 첫 번째 이미지를 preview에 저장
+                        if (req.files.indexOf(file) === 0) {
+                            preview_img = await s3Handler.put(
+                                "preview",
+                                fileStream
+                            );
+                            console.log("previewimg", preview_img);
+                        }
+
+                        // 파일 업로드 후 삭제
+                        await fs.promises.unlink(file.path);
+                    } else {
+                        console.error("Image file not found:", file.path);
+                        return res
+                            .status(500)
+                            .send(`Image file not found: ${file.path}`);
+                    }
+                }
+            }
+        } else {
+            console.log("No images received, proceeding without images.");
         }
-
-        // // 파일 처리 (이미지 또는 PDF)
-        // if (req.files && req.files.length > 0) {
-        //     // 첫 번째 파일의 MIME 타입 확인 (PDF 여부)
-        //     const isPDF = req.files[0].mimetype === "application/pdf";
-        //     if (isPDF) {
-        //         // PDF 파일 처리
-        //         const pdfFile = req.files[0]; // 첫 번째 파일이 PDF인 경우
-        //         const fileStream = fs.createReadStream(pdfFile.path);
-
-        //         // 1. S3에 PDF 파일 저장 (files 경로)
-        //         const pdfLink = await s3Handler.put("files", fileStream);
-        //         linkList.push(pdfLink); // PDF 파일 링크 저장
-        //     } else {
-        //         for (let i = 0; i < req.files.length; i++) {
-        //             const fileStream = fs.createReadStream(req.files[i].path);
-        //             const imgLink = await s3Handler.put("files", fileStream);
-        //             linkList.push(imgLink);
-
-        //             // 첫 번째 이미지를 preview에 저장
-        //             if (i === 0) {
-        //                 preview_img = await s3Handler.put(
-        //                     "preview",
-        //                     fileStream
-        //                 );
-        //             }
-        //             fs.unlinkSync(req.files[i].path); // 임시 파일 삭제
-        //         }
-        //     }
-        // } else {
-        //     console.log("No images received, proceeding without images.");
-        // }
 
         // 문서 유형에 따라 Pilgy, Test, Honey 선택
         let DocumentsModel;
@@ -121,6 +133,7 @@ const handleTipsCreate = async (req, res) => {
             target: req.body.target,
             img_list: linkList,
             Rfile,
+            preview_img,
             now_category: categoryId, // 문서가 속한 카테고리
             time: req.body.time,
             Ruser: received._id,
