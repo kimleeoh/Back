@@ -90,7 +90,7 @@ const handleLogin = async (req, res) => {
 
     try {
         const rawUser = await User.findOne({ email: username });
-        const user = rawUser.lean();
+        const user = rawUser.toObject();
 
         if (user == null) {
             return res
