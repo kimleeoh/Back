@@ -3,6 +3,7 @@ import redisHandler from "../../config/redisHandler.js";
 import { Modal } from "../../schemas/notify.js";
 
 const handleModal = async(req,res)=>{
+    try{
     if(mainInquiry.isNotRedis()){
         const redisClient = redisHandler.getRedisClient();
         mainInquiry.inputRedisClient(redisClient);
@@ -17,7 +18,11 @@ const handleModal = async(req,res)=>{
     await Modal.deleteMany({_id : {$in:r.Rmodal_noti_list}});
     await mainInquiry.write({'-Rmodal_noti_list':r.Rmodal_noti_list, 'POINT':totalAddPoint}, req.decryptedSessionId);
 
-    res.status(200).send(totalHTMLfy);
+    res.status(200).send(totalHTMLfy);}
+    catch(e){
+        console.error(e);
+        res.status(500).send("Internal Server Error");
+    }
 };
 
 export {handleModal};

@@ -154,13 +154,18 @@ const handleLogin = async (req, res) => {
             .privateEncrypt(privateKey, Buffer.from(sensitiveSessionID))
             .toString("base64");
 
-        const EditedLastAttendance = user.last_attendance.setHours(0,0,0,0);
-        const yesterday = new Date().setDate(new Date().getDate()-1);
-        yesterday.setHours(0,0,0,0);
-        if(EditedLastAttendance < yesterday){
+        // Ensure user.last_attendance is a Date object
+        const lastAttendance = new Date(user.last_attendance);
+        lastAttendance.setHours(0, 0, 0, 0);
+        
+        // Get yesterday's date and set time to midnight
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(0, 0, 0, 0);
+        
+        if (lastAttendance.getTime() < yesterday.getTime()) {
             user.attendance = 0;
-        }
-        else if(EditedLastAttendance == yesterday){
+        } else if (lastAttendance.getTime() === yesterday.getTime()) {
             user.attendance += 1;
         }
         const re = rewardNullCheck(8, user, "", user.uNullRewardList);
