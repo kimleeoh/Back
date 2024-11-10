@@ -76,7 +76,7 @@ const handleUserProfile = async (req, res) => {
 };
 
 const updateUserProfile = async (req, res) => {
-    const { name, intro } = req.body;
+    const { name, intro, file } = req.body;
     const decryptedSessionId = String(req.decryptedSessionId);
 
     if (!decryptedSessionId) {
@@ -101,11 +101,25 @@ const updateUserProfile = async (req, res) => {
                 .json({ message: "유효하지 않은 세션입니다." });
         }
 
+        // 프로필 이미지 파일 처리
+        let profileImageUrl = userInfo.profile_img; // 기존 프로필 이미지 유지
+        if (req.file) {
+            // 이미지가 업로드된 경우
+            const fileStream = fs.createReadStream(req.file.path);
+
+            // S3에 이미지 업로드
+            profileImageUrl = await s3Handler.put("profile", fileStream);
+
+            // 로컬 파일 삭제
+            await fs.promises.unlink(req.file.path);
+        }
+
         // Redis 캐시에 업데이트된 정보 반영
         const updatedUser = await mainInquiry.write(
             {
                 name,
                 intro,
+                profile_img: profileImageUrl,
             },
             decryptedSessionId
         );
