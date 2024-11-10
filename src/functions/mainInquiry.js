@@ -180,6 +180,8 @@ const mainInquiry = (() => {
                         ...brd,
                     };
 
+                    console.log("Updated user info:", willreturn);
+
                     // 업데이트된 사용자 정보를 Redis에 다시 저장
                     await redisClient.set(
                         RedisId,
