@@ -73,6 +73,7 @@ const handleRenderTipsPage = async (req, res) => {
             title: document.title,
             content: document.content,
             likes: document.likes,
+            target: document.target,
             views: document.views + 1, // 조회수 증가
             time: document.time,
             warn: document.warn,

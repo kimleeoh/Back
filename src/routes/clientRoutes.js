@@ -83,7 +83,7 @@ lightRouter.post('/findPassword/changePassword', handleResetPassword);
 // QnA 관련 라우터
 lightRouter.post('/qna/create/post', myMiddleware, upload.array('images'),handleQnACreate);
 lightRouter.put('/qna/update/post', myMiddleware, handleUpdatePage);
-lightRouter.delete('/qna/:id', myMiddleware, handleDeleteQna);
+lightRouter.delete('/:category_type/:docid', myMiddleware, handleDeleteQna);
 lightRouter.post('/qna/manage/post', myMiddleware, upload.array('images'), handleManageUpdatePage);
 lightRouter.put('/qna/manage/pick', myMiddleware, handleManagePickPage);
 

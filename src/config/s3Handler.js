@@ -147,9 +147,12 @@ const s3Handler = (() => {
                 .catch((e) => console.error(e));
             r = redisH;
             // Fetch currentFileNums from Redis
-            r.get('currentFileNums', (err, data) => {
+            r.get("currentFileNums", (err, data) => {
                 if (err) {
-                    console.error('Error fetching currentFileNums from Redis:', err);
+                    console.error(
+                        "Error fetching currentFileNums from Redis:",
+                        err
+                    );
                 } else if (data) {
                     currentFileNums = JSON.parse(data);
                 }
@@ -163,7 +166,7 @@ const s3Handler = (() => {
             );
         },
         put: async (fileDestination, img) => {
-            const mimeType = img.mimetype || "image/jpeg";  // MIME 타입이 없으면 기본적으로 image/jpeg 사용
+            const mimeType = img.mimetype || "image/jpeg"; // MIME 타입이 없으면 기본적으로 image/jpeg 사용
             const extension = mimeType.split("/")[1]; // 확장자 추출 (예: "png")
 
             const u = new Upload({
@@ -171,7 +174,7 @@ const s3Handler = (() => {
                 params: {
                     Bucket: bucketName,
                     Key: `${fileDestination}/${currentFileNums[fileDestination]}.${extension}`, // 확장자를 동적으로 설정
-                    Body: img, 
+                    Body: img,
                 },
             });
 
@@ -186,10 +189,13 @@ const s3Handler = (() => {
             // });
             await u.done();
             const link = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}.${extension}`;
-            currentFileNums[fileDestination]+=1;
-            r.set('currentFileNums', JSON.stringify(currentFileNums), (err) => {
+            currentFileNums[fileDestination] += 1;
+            r.set("currentFileNums", JSON.stringify(currentFileNums), (err) => {
                 if (err) {
-                    console.error('Error saving currentFileNums to Redis:', err);
+                    console.error(
+                        "Error saving currentFileNums to Redis:",
+                        err
+                    );
                 }
             });
             return link;
@@ -231,28 +237,45 @@ const s3Handler = (() => {
             await previewUpload.done();
             const previewLink = `https://d1bp3kp7g4awpu.cloudfront.net/${fileDestination}/${currentFileNums[fileDestination]}_preview.jpg`;
 
-            currentFileNums[fileDestination]+=1;
-            r.set('currentFileNums', JSON.stringify(currentFileNums), (err) => {
+            currentFileNums[fileDestination] += 1;
+            r.set("currentFileNums", JSON.stringify(currentFileNums), (err) => {
                 if (err) {
-                    console.error('Error saving currentFileNums to Redis:', err);
+                    console.error(
+                        "Error saving currentFileNums to Redis:",
+                        err
+                    );
                 }
             });
             return { link: pdfLink, preview: previewLink };
         },
+        // s3Handler.js 수정
         delete: async (imgLinks) => {
             if (!Array.isArray(imgLinks)) {
                 imgLinks = [imgLinks];
             }
-            const objectsToDelete = imgLinks.map(link => ({
-                Key: link.replace('https://d1bp3kp7g4awpu.cloudfront.net/', '')
+            const objectsToDelete = imgLinks.map((link) => ({
+                Key: link.replace("https://d1bp3kp7g4awpu.cloudfront.net/", ""),
             }));
-            await S3client.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: objectsToDelete,
-                    Quiet: true
-                }
-            }).promise();
+
+            // deleteObjects를 Promise로 감싸기
+            await new Promise((resolve, reject) => {
+                S3client.deleteObjects(
+                    {
+                        Bucket: bucketName,
+                        Delete: {
+                            Objects: objectsToDelete,
+                            Quiet: true,
+                        },
+                    },
+                    (err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    }
+                );
+            });
         },
     };
 })();
