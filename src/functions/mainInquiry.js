@@ -5,9 +5,10 @@ import { CustomBoardView } from "../schemas/userRelated.js";
 const mainInquiry = (() => {
     let redisClient = null;
     const stringFields = ["hakbu", "intro", "profile_img"];
-    const listFields = ["Rbadge_list", "Rnotify_list", "notify_meta_list"];
-    const rlistFields = ["-Rbadge_list", "-Rnotify_list", "-notify_meta_list"];
+    const listFields = ["Rbadge_list", "Rnotify_list", "notify_meta_list", "Rmodal_noti_list"];
+    const rlistFields = ["-Rbadge_list", "-Rnotify_list", "-notify_meta_list", "-Rmodal_noti_list"];
     const boardFields = ["Renrolled_list", "Rbookmark_list", "Rlistened_list"];
+    const checkFields = ["uNullRewardList", "uMultiRewardList"];
 
     return {
         isNotRedis: () => {
@@ -87,6 +88,7 @@ const mainInquiry = (() => {
             let listChunk = {};
             let rlistChunk = {};
             let BlistChunk = {};
+            let checkListChunk = {};
             let numChunk = {};
             let updateObject = {};
             let brdUpdateObject = {};
@@ -108,7 +110,10 @@ const mainInquiry = (() => {
                             listChunk[key] = paramObject[key];
                         } else if (rlistFields.includes(key)) {
                             rlistChunk[key] = paramObject[key];
-                        } else if (
+                        } else if(checkFields.includes(key)){
+                            checkListChunk[key] = paramObject[key];
+                        }
+                        else if (
                             typeof paramObject[key] === "number" &&
                             key !== "level"
                         ) {
@@ -134,6 +139,9 @@ const mainInquiry = (() => {
             }
             if (Object.keys(BlistChunk).length > 0) {
                 brdUpdateObject.$set = BlistChunk;
+            }
+            if(Object.keys(checkListChunk).length > 0){
+                updateObject.$set = checkListChunk;
             }
 
             // MongoDB에서 사용자 정보 업데이트
@@ -173,6 +181,7 @@ const mainInquiry = (() => {
                     console.error("Error updating MongoDB:", err);
                     throw new Error("Failed to update user in MongoDB");
                 }
+                return willreturn;
             } else {
                 let  brd = { Renrolled_list:userInfo.Renrolled_list, Rlistened_list:userInfo.Rlistened_list, Rbookmark_list:userInfo.Rbookmark_list };
 
@@ -190,6 +199,7 @@ const mainInquiry = (() => {
                     3600 // 1시간 동안 Redis에 저장
                 );
                 console.log("user.");
+                return willreturn2;
             }
         },
     };

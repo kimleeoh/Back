@@ -259,7 +259,12 @@ const handleRegister=async(req,res)=>{
             warned: 0,
             intro: "",
             newNotify:false,
-            profile_img: ""
+            profile_img: "",
+            uNullRewardList: [false, false, false, false,false, false, false, false, false, false],
+            uMulitRewardList: [0, 0, 0, 0, 0],
+            Rmodal_noti_list: [],
+            attendance: 0,
+            last_attendance: new Date(),
         });
 
         try{

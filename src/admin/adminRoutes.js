@@ -140,11 +140,13 @@ const handleAdminMongoose = async (req, res) => {
             _id: result.Rdoc,
             written: 0,
             totalLike: 0,
+            Ipicked: 0,
             Rpilgy_list: [],
             Rhoney_list: [],
             Rtest_list: [],
             Rqna_list: [],
             Rreply_list: [],
+            Rreply_category_map: {},
             RmyLike_list: {
                 Rqna_list: [],
                 Rpilgy_list: [],

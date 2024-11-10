@@ -10,6 +10,8 @@ import { timeStamp } from "console";
 import { Queue } from "../../utils/recentPageClass.js";
 import { CustomBoardView } from "../../schemas/userRelated.js";
 import { rewardNullCheck } from "../../functions/rewardCheck.js";
+import { notify } from "../../functions/notifier.js";
+import { Modal } from "../../schemas/notify.js";
 
 //이거는 jwt인증용 rsa키가 될 것.
 const privateKeyPem = fs.readFileSync(
@@ -105,6 +107,22 @@ const handleLogin = async (req, res) => {
         } else if (user.confirmed == 1) {
             return res.status(401).json({ message: "승인 대기중인 유저입니다." });
         }else if(user.confirmed == 2){
+            const isModal = await rewardNullCheck(0,"", "", user.uNullRewardList);
+
+            if(isModal.status){
+                user.uNullRewardList = isModal.uNullList;
+                const ID = new mongoose.Types.ObjectId();
+                await Modal.create({
+                    _id:ID,
+                    time: Date.now(),
+                    types: isModal.type,
+                    reward: isModal.reward,
+                    who_user: "system",
+                    point: isModal.point
+                });
+                user.Rmodal_noti_list.push(ID);
+                //user.POINT+=isModal.point;
+            }
             rawUser.confirmed = 3;
             await rawUser.save();
         }
@@ -124,11 +142,7 @@ const handleLogin = async (req, res) => {
                 .json({ message: "아이디 또는 비밀번호가 일치하지 않습니다." });
         }
 
-        const isModal = await rewardNullCheck(user._id);
-
-        if(isModal.status){
-            user.POINT+=isModal.point;
-        }
+        
         const sessionId = uuidv4();
         const sensitiveSessionID = crypto.randomBytes(16);
         console.log("세션아이디:", sessionId);
@@ -139,6 +153,32 @@ const handleLogin = async (req, res) => {
         const sensitiveSessionID_E = crypto
             .privateEncrypt(privateKey, Buffer.from(sensitiveSessionID))
             .toString("base64");
+
+        const EditedLastAttendance = user.last_attendance.setHours(0,0,0,0);
+        const yesterday = new Date().setDate(new Date().getDate()-1);
+        yesterday.setHours(0,0,0,0);
+        if(EditedLastAttendance < yesterday){
+            user.attendance = 0;
+        }
+        else if(EditedLastAttendance == yesterday){
+            user.attendance += 1;
+        }
+        const re = rewardNullCheck(8, user, "", user.uNullRewardList);
+        if(re.status){
+            user.uNullRewardList = re.uNullRewardList;
+            user.Rbadge_list.push(re.bid);
+            const ID = new mongoose.Types.ObjectId();
+            await Modal.create({
+                _id: ID,
+                time: Date.now(),
+                types: re.type,
+                reward: re.reward,
+                who_user: "system",
+                point: re.point
+            });
+            user.Rmodal_noti_list.push(ID);
+        }
+        user.last_attendance = new Date();
 
         // 유저의 MongoDB _id도 추가하여 나중에 조회 가능하도록 함
         const userData = {

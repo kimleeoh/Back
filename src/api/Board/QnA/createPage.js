@@ -8,6 +8,8 @@ import { UserDocs } from '../../../schemas/userRelated.js';
 import fs from 'fs';
 import { LowestCategory } from '../../../schemas/category.js';
 import { DataRedundancy } from '@aws-sdk/client-s3';
+import { rewardNullCheck, rewardOtherCheck } from '../../../functions/rewardCheck.js';
+import { notify } from '../../../functions/notifier.js';
 
 //decryptedSessionId: sessionId_D, 이건 해독된 세션아이디
 //decryptedUserData: decoded.userData -> 이건 이름이랑 프로필 사진만 가지고 있음
@@ -23,7 +25,7 @@ const handleQnACreate = async(req, res)=>{
             mainInquiry.inputRedisClient(a);
         }
         console.log("Decrypted Session ID in handleQnACreate:",req.decryptedSessionId);
-        const received = await mainInquiry.read(['_id','hakbu','POINT','Rdoc'], req.decryptedSessionId);
+        const received = await mainInquiry.read(['_id','hakbu','POINT','Rdoc', 'uNullRewardList', 'uMultiRewardList'], req.decryptedSessionId);
         console.log(received);
         const linkList = [];
         console.log(req.files);
@@ -59,8 +61,10 @@ const handleQnACreate = async(req, res)=>{
         data.warn_why_list = [0,0,0,0,0,0,0,0];
         data.Rcategory = Object.keys(nc[nc.length-1])[0];
         const p = req.body.point*-1;
+
+        let willwrite = {};
         if(p*-1<0) {res.status(400).send('Not enough points');return;}
-        else await mainInquiry.write({'POINT':p},req.decryptedSessionId);
+        else willwrite.POINT=p;
         delete req.decryptedSessionId;
         delete req.decryptedUserData;
         console.log(data);
@@ -69,6 +73,35 @@ const handleQnACreate = async(req, res)=>{
         const lastCheck = await UserDocs.findOneAndUpdate({_id:i},{$inc:{written:1}, $push:{Rqna_list:objId}},{new:true});
         await LowestCategory.findByIdAndUpdate(data.Rcategory,{$push:{Rqna_list:objId}});
         console.log(lastCheck);
+        const nw = rewardNullCheck(1, {written:lastCheck.written}, "", received.uNullRewardList);
+        
+        if(nw.status) {
+            willwrite.uNullRewardList = nw.uNullRewardList;
+            
+            const ID = new mongoose.Types.ObjectId();
+            await Modal.create({
+                _id:ID,
+                time: Date.now(),
+                types: nw.type,
+                reward: nw.reward,
+                who_user: "system",
+                point: nw.point
+            });
+
+            willwrite.Rmodal_noti_list = ID;
+        }
+
+        if(!nw.status){
+        const mr = rewardOtherCheck(5, lastCheck, "", received.uMultiRewardList);
+        if(mr[0].status){
+            await notify.Self(req.decryptedSessionId, mr[0], "", 8, "/qna", "");
+            received.uMultiRewardList[4] += 1;
+            willwrite.uMultiRewardList = received.uMultiRewardList;
+        }
+        }
+
+        await mainInquiry.write(willwrite, req.decryptedSessionId);
+
         res.status(200).send({message:'Success'});
         return;
     }catch(e){
