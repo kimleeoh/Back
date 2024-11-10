@@ -4,7 +4,7 @@ import { CustomBoardView } from "../schemas/userRelated.js";
 
 const mainInquiry = (() => {
     let redisClient = null;
-    const stringFields = ["hakbu", "intro", "profile_img"];
+    const stringFields = ["hakbu", "intro", "profile_img", "exp"];
     const listFields = ["Rbadge_list", "Rnotify_list", "notify_meta_list", "Rmodal_noti_list"];
     const rlistFields = ["-Rbadge_list", "-Rnotify_list", "-notify_meta_list", "-Rmodal_noti_list"];
     const boardFields = ["Renrolled_list", "Rbookmark_list", "Rlistened_list"];
@@ -116,11 +116,9 @@ const mainInquiry = (() => {
                             key !== "level"
                         ) {
                            // exp는 직접 설정하기 위해 $inc 대신 $set 사용
-                            if (key === "exp") {
-                                stringChunk[key] = paramObject[key]; // $set으로 exp 직접 설정
-                            } else {
-                                numChunk[key] = paramObject[key];
-                            }
+                            
+                            numChunk[key] = paramObject[key];
+                            
                         } else {
                             stringChunk[key] = paramObject[key]; // $set으로 처리
                         }
