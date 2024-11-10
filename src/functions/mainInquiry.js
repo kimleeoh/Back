@@ -180,8 +180,6 @@ const mainInquiry = (() => {
                         ...brd,
                     };
 
-                    console.log("Updated user info:", willreturn);
-
                     // 업데이트된 사용자 정보를 Redis에 다시 저장
                     await redisClient.set(
                         RedisId,
@@ -189,11 +187,12 @@ const mainInquiry = (() => {
                         "EX",
                         3600 // 1시간 동안 Redis에 저장
                     );
+                    return willreturn;
                 } catch (err) {
                     console.error("Error updating MongoDB:", err);
                     throw new Error("Failed to update user in MongoDB");
                 }
-                return willreturn;
+                
             } else {
                 let brd = {
                     Renrolled_list: userInfo.Renrolled_list,
