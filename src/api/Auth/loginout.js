@@ -231,7 +231,7 @@ const handleLogin = async (req, res) => {
         });
         await redisClient.hDel("idempotency", idempotencyKey);
         
-        res.status(200).json({ message: "Logged in successfully" , isModal});
+        res.status(200).json({ message: "Logged in successfully"});
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Internal Server Error" });
