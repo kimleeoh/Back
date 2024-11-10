@@ -115,6 +115,9 @@ const handleUserLikeList = async (req, res) => {
             });
         }
 
+        // 모든 문서를 모은 후 최신순으로 정렬
+        documents.sort((a, b) => new Date(b.time) - new Date(a.time));
+
         // documents가 있을 경우
         res.status(200).json({
             userId: userInfo._id,

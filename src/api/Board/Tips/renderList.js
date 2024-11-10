@@ -57,7 +57,7 @@ const loadBoardWithFilter = async (req, res) => {
             return res.status(404).json({ message: "Category not found" });
         }
 
-        console.log(categories.length);
+        console.log("카테고리길이",categories.length);
 
         let documents = [];
 
@@ -75,7 +75,7 @@ const loadBoardWithFilter = async (req, res) => {
                     depth
                 );
 
-                console.log(docs);
+                console.log("docs",docs);
 
                 if(docs.length === 0){
                     continue;
@@ -87,6 +87,11 @@ const loadBoardWithFilter = async (req, res) => {
                 });
 
                 documents.push(...docs);
+                
+                // documents가 비어있을 경우 상태 200으로 메시지 반환
+                if (documents.length === 0 ) {
+                    return res.status(200).json({ message: "Filtered category lists are null" });
+                }
             }
         }
 

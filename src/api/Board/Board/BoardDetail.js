@@ -7,7 +7,6 @@ const loadBoardDetail = async (req, res) => {
     const { subjectId, filters } = req.body; // 프론트로부터 과목 ID와 필터 받기
 
     try {
-
         // 과목 ID로 CommonCategory에서 해당 과목 정보 조회
         const subjectCategory = await CommonCategory.findOne({
             _id: subjectId,
@@ -78,6 +77,9 @@ const loadBoardDetail = async (req, res) => {
         if (documents.length === 0) {
             return res.status(200).json({ message: "No documents found." });
         }
+
+        // 모든 문서를 모은 후 최신순으로 정렬
+        documents.sort((a, b) => new Date(b.time) - new Date(a.time));
 
         // 문서와 함께 응답
         res.status(200).json({ documents });
