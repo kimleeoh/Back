@@ -14,8 +14,19 @@ const notifySchema = new mongoose.Schema({
     point: { type: Number },
 });
 
+const modalSchema = new mongoose.Schema
+({
+    _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
+    types: { type: Number },
+    reward: { type: String },
+    who_user: { type: String },
+    time: { type: Number, default: Date.now },
+    point: { type: Number },
+});
+
 notifySchema.index({ "time": -1 });
 
 const Notify = mongoose.model("AllNotify", notifySchema, "AllNotify");
+const Modal = mongoose.model("ModalNotify", modalSchema, "AllNotify");
 
-export { Notify };
+export { Notify, Modal };

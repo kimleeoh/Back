@@ -2,6 +2,8 @@ import mainInquiry from "../../../functions/mainInquiry.js";
 import { Notify } from "../../../schemas/notify.js";
 import redisHandler from "../../../config/redisHandler.js";
 import { User } from "../../../schemas/user.js";
+import { rewardOtherCheck, rewardNullCheck } from "../../../functions/rewardCheck.js";
+import { notify } from "../../../functions/notifier.js";
 
 const handleNotify = async (req, res) => {
     try{
@@ -38,7 +40,11 @@ const handleNotifyCheck = async (req, res) => {
     }
 
     if (Object.keys(updates).length > 0) {
-        await mainInquiry.write(updates, req.decryptedSessionId);
+        const mr = await mainInquiry.write(updates, req.decryptedSessionId);
+    }
+    const modal = rewardNullCheck(7, {picked:mr.picked},"", mr.uNullRewardList);
+    if(modal.status){
+        await notify.Self(req.decryptedSessionId, modal,"",8,"","");
     }
     res.status(200).send("complete");}
     catch(e){

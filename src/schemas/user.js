@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     Rnotify_list: [],
     notify_meta_list: [],
     Rscore: { type: mongoose.SchemaTypes.ObjectId },
+    Rmodal_noti_list: { type: [mongoose.SchemaTypes.ObjectId] },
     badge_img: { type: String },
     email: { type: String },
     exp: { type: Number },
@@ -23,6 +24,10 @@ const userSchema = new mongoose.Schema({
     warned: { type: Number },
     profile_img: { type: String },
     newNotify: { type: Boolean },
+    attendance: { type: Number },  
+    last_attendance: { type: Date },
+    uNullRewardList: { type: [Boolean] },
+    uMultiRewardList: { type: [Number] },
 }, { versionKey: false });
 
 const User = mongoose.model("User", userSchema, "User");

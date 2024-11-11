@@ -3,6 +3,8 @@ import fs from 'fs';
 import { QnaDocuments } from "../../../schemas/docs.js";
 import mainInquiry from "../../../functions/mainInquiry.js";
 import { notify } from "../../../functions/notifier.js";
+import { UserDocs } from "../../../schemas/userRelated.js";
+import { rewardNullCheck } from "../../../functions/rewardCheck.js";
 
 
 const handleManageUpdatePage = async (req, res) => {
@@ -39,11 +41,31 @@ const handleManageUpdatePage = async (req, res) => {
 const handleManagePickPage = async (req, res) => {
     const { id, picked_index } = req.body;
 
+    if(mainInquiry.isNotRedis()){
+        const redisClient = redisHandler.getRedisClient();
+        mainInquiry.inputRedisClient(redisClient);
+    }
+
     const doc = await QnaDocuments.findById(id);
+    if(doc.picked_index !== -1){
+        res.status(201).send('Already picked');
+        return;
+    }
     doc.picked_index = picked_index;
     const pickedPeople = doc.answer_list[picked_index].Ruser;
 
     await doc.save();
+
+    const rtemp = await mainInquiry.read(['Rdoc', 'uNullRewardList'], req.decryptedSessionId);
+    const forReward = await UserDocs.findById(rtemp.Rdoc, {Ipicked:1});
+    forReward.Ipicked += 1;
+    await forReward.save();
+
+    const r = rewardNullCheck(9, forReward, rtemp.uNullRewardList);
+    if(r.status){
+        await notify.Self(req.decryptedSessionId, r,"", 8,"","");
+        await mainInquiry.write({'uNullRewardList' : r.uNullRewardList}, req.decryptedSessionId);
+    }
 
     await notify.Author(pickedPeople, doc._id, doc.title, req.decryptedUserData.name, 12, "/qna");
     await notify.Follower(doc.Rnotifyusers_list, doc._id, doc.title, req.decryptedUserData.name, 11, "/qna");

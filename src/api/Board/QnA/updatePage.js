@@ -13,7 +13,7 @@ const handleUpdatePage = async (req, res) => {
         const redisClient = redisHandler.getRedisClient();
         mainInquiry.inputRedisClient(redisClient);
     }
-    const received = await mainInquiry.read(['_id','Rdoc'],req.decryptedSessionId);
+    const received = await mainInquiry.read(['_id','Rdoc', 'uNullRewardList', 'uMultiRewardList'],req.decryptedSessionId);
     const userDoc = await UserDocs.findById(received.Rdoc);
     const doc = await QnaDocuments.findById(id);
     let checkMiddleInvalid = false;
@@ -97,12 +97,23 @@ const handleUpdatePage = async (req, res) => {
     doc.likes += lk;
 
     // reward check and notify
-    let modal = rewardNullCheck(3, userDoc, willchange)
-    if(!modal.status){
-        modal = rewardOtherCheck(1, userDoc, willchange);
-    }
+    let modal = rewardNullCheck(3, userDoc, willchange, doc.uNullRewardList);
     if(modal.status){
-        await notify.Self(req.decryptedSessionId, doc._id, doc.title, req.decryptedUserData.name, 3, "/qna");
+        doc.uNullRewardList = modal.uNullRewardList;
+    }else{
+        modal = rewardOtherCheck(1, userDoc, willchange, doc.uMultiRewardList);
+    }
+    if(modal[0].status){
+        doc.uMultiRewardList[0] += 1;
+        await notify.Self(req.decryptedSessionId, doc._id, doc.title, 3, "/qna");
+    }
+    modal = rewardOtherCheck(2, userDoc, willchange, doc.uMultiRewardList);
+    if(modal.length==2){  
+        await notify.Self(req.decryptedSessionId, doc._id, doc.title, 7, "/qna", modal[0].point);
+        await notify.Self(req.decryptedSessionId, modal[1], "", 8, "modal", 0);
+    }else if(modal[0].status){
+        doc.uMultiRewardList[1] += 1;
+        await notify.Self(req.decryptedSessionId, doc._id, doc.title, 7, "/qna", modal[0].point);
     }
 
     if(doc.likes!=0){
@@ -189,7 +200,7 @@ const handleUpdatePage = async (req, res) => {
     const {status, ...mod} = modal;
     doc.save();
     userDoc.save();
-    res.status(200).send({isModal : status, modal : mod});
+    //res.status(200).send({isModal : status, modal : mod});
 
 }
 

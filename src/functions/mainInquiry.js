@@ -4,10 +4,11 @@ import { CustomBoardView } from "../schemas/userRelated.js";
 
 const mainInquiry = (() => {
     let redisClient = null;
-    const stringFields = ["hakbu", "intro", "profile_img"];
-    const listFields = ["Rbadge_list", "Rnotify_list", "notify_meta_list"];
-    const rlistFields = ["-Rbadge_list", "-Rnotify_list", "-notify_meta_list"];
+    const stringFields = ["hakbu", "intro", "profile_img", "exp"];
+    const listFields = ["Rbadge_list", "Rnotify_list", "notify_meta_list", "Rmodal_noti_list"];
+    const rlistFields = ["-Rbadge_list", "-Rnotify_list", "-notify_meta_list", "-Rmodal_noti_list"];
     const boardFields = ["Renrolled_list", "Rbookmark_list", "Rlistened_list"];
+    const checkFields = ["uNullRewardList", "uMultiRewardList"];
 
     return {
         isNotRedis: () => {
@@ -86,35 +87,41 @@ const mainInquiry = (() => {
             let listChunk = {};
             let rlistChunk = {};
             let BlistChunk = {};
+            let checkListChunk = {};
             let numChunk = {};
             let updateObject = {};
             let brdUpdateObject = {};
 
             // 전달된 paramObject에 따라 필드 분류
             Object.keys(paramObject).forEach((key) => {
-                if (boardFields.includes(key)) {
-                    const existingData = userInfo[key] || [];
-                    BlistChunk[key] = paramObject[key];
-                    BlistChunk[key] = Array.from(new Set(BlistChunk[key]));
-                } else if (stringFields.includes(key)) {
-                    stringChunk[key] = paramObject[key];
-                } else if (listFields.includes(key)) {
-                    listChunk[key] = paramObject[key];
-                } else if (rlistFields.includes(key)) {
-                    rlistChunk[key] = paramObject[key];
-                } else if (
-                    typeof paramObject[key] === "number" &&
-                    key !== "level"
-                ) {
-                    // exp는 직접 설정하기 위해 $inc 대신 $set 사용
-                    if (key === "exp") {
-                        stringChunk[key] = paramObject[key]; // $set으로 exp 직접 설정
-                    } else {
-                        numChunk[key] = paramObject[key];
-                    }
-                } else {
-                    stringChunk[key] = paramObject[key];
-                }
+                        if (boardFields.includes(key)) {
+                            // 기존 데이터와 새로운 데이터를 병합
+                            const existingData = userInfo[key] || [];
+                            BlistChunk[key] = paramObject[key]; // 새로운 데이터로 덮어쓰기
+
+                            // 중복된 데이터 제거 (중복 제거를 원하지 않을 경우 이 부분 생략)
+                            BlistChunk[key] = Array.from(
+                                new Set(BlistChunk[key])
+                            );
+                        } else if (stringFields.includes(key)) {
+                            stringChunk[key] = paramObject[key];
+                        } else if (listFields.includes(key)) {
+                            listChunk[key] = paramObject[key];
+                        } else if (rlistFields.includes(key)) {
+                            rlistChunk[key] = paramObject[key];
+                        } else if(checkFields.includes(key)){
+                            checkListChunk[key] = paramObject[key];
+                        }else if (
+                            typeof paramObject[key] === "number" &&
+                            key !== "level"
+                        ) {
+                           // exp는 직접 설정하기 위해 $inc 대신 $set 사용
+                            
+                            numChunk[key] = paramObject[key];
+                            
+                        } else {
+                            stringChunk[key] = paramObject[key]; // $set으로 처리
+                        }
             });
 
             // MongoDB 업데이트용 updateObject 구성
@@ -132,6 +139,9 @@ const mainInquiry = (() => {
             }
             if (Object.keys(BlistChunk).length > 0) {
                 brdUpdateObject.$set = BlistChunk;
+            }
+            if(Object.keys(checkListChunk).length > 0){
+                updateObject.$set = checkListChunk;
             }
 
             // MongoDB에서 사용자 정보 업데이트
@@ -177,10 +187,12 @@ const mainInquiry = (() => {
                         "EX",
                         3600 // 1시간 동안 Redis에 저장
                     );
+                    return willreturn;
                 } catch (err) {
                     console.error("Error updating MongoDB:", err);
                     throw new Error("Failed to update user in MongoDB");
                 }
+                
             } else {
                 let brd = {
                     Renrolled_list: userInfo.Renrolled_list,
@@ -214,6 +226,7 @@ const mainInquiry = (() => {
                     3600 // 1시간 동안 Redis에 저장
                 );
                 console.log("user.");
+                return willreturn2;
             }
         },
     };

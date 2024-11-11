@@ -1,5 +1,5 @@
 import { User } from "../schemas/user.js";
-import { Notify } from "../schemas/notify.js";
+import { Notify, Modal } from "../schemas/notify.js";
 import smtpTransport from "../config/emailHandler.js";
 import mongoose from "mongoose";
 import mainInquiry from "./mainInquiry.js";
@@ -99,7 +99,9 @@ const notify = (() => {
                         await authorNotify.save();
                         return {state: true, message:"created"};
                     }
-                }else{
+                }else if(typeNum==8){}
+                
+                else{
                     authorTimestamp = Date.now();
                     if(typeNum<3){
                         await notiMailer(authorNotify.email, typeNum==2, docId, docTitle, senderName, caType);
@@ -122,6 +124,13 @@ const notify = (() => {
 
                     authorNotify.notify_meta_list.push({Type:typeNum, Sender:senderName});
                     authorNotify.Rnotify_list.push(ID);
+
+                    
+                    while(authorNotify.Rnotify_list.length > 40){
+                    authorNotify.Rnotify_list.shift();
+                    authorNotify.notify_meta_list.shift();
+                    }
+                    
 
                     await authorNotify.save();
                     return {state: true, message:"created"};
@@ -151,6 +160,12 @@ const notify = (() => {
                     user.newNotify = true;
                     user.Rnotify_list.push(ID);
                     user.notify_meta_list.push({Type:typeNum, Sender:senderName});
+
+                    while(user.Rnotify_list.length > 40){
+                        user.Rnotify_list.shift();
+                        user.notify_meta_list.shift();
+                    }
+
                     await user.save();
                     if(typeNum==11) await notiMailer(user.email, 2, docId, docTitle, senderName, caType);
                     
@@ -162,27 +177,38 @@ const notify = (() => {
                 return {state: false, message:"error"};
             }
         },
-        Self:async (selfId, docId, docTitle, typeNum, caType) => {
+        Self:async (selfId, docId, docTitle, typeNum, caType, poin) => {
             //뱃지 획득을 알림창에 띄워두는거
-            try{let poin = 0;
-            if(typeNum==8)poin = 100;
-            else if(typeNum==7)poin = 50;
+            try{
 
             const ID = new mongoose.Types.ObjectId();
-            await Notify.create({
-                _id:ID,
-                types: typeNum,
-                who_user: "system",
-                time: Date.now(),
-                Rdoc : docId,
-                Rdoc_title : docTitle,
-                category_types:caType,
-                checked:false,
-                point:poin,
-                count: 1 // Initialize count
-            });
-
-            await mainInquiry.write({Rnotify_list:ID, notify_meta_list:{Type:typeNum, Sender:senderName}}, selfId);
+            if(typeNum==8){
+                await mainInquiry.write({Rmodal_noti_list:ID, Rbadge_list:docId.bid}, selfId);
+                await Modal.create({
+                    _id:ID,
+                    time: Date.now(),
+                    types: docId.type,
+                    reward: docId.reward,
+                    who_user: "system",
+                    point: docId.point
+                });
+            }
+            else{
+                await mainInquiry.write({Rnotify_list:ID, notify_meta_list:{Type:typeNum, Sender:senderName}}, selfId);
+                await Notify.create({
+                    _id:ID,
+                    types: typeNum,
+                    who_user: "system",
+                    time: Date.now(),
+                    Rdoc : docId,
+                    Rdoc_title : docTitle,
+                    category_types:caType,
+                    checked:false,
+                    point:poin,
+                    count: 1 // Initialize count
+                });
+            }
+            
             return {state: true, message:"created"};
         }
             catch(e){

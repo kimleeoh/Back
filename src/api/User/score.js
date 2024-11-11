@@ -4,6 +4,8 @@ import mainInquiry from "../../functions/mainInquiry.js";
 import redisHandler from "../../config/redisHandler.js";
 import s3Handler from "../../config/s3Handler.js";
 import fs from "fs";
+import { rewardNullCheck } from "../../functions/rewardCheck.js";
+import { notify } from "../../functions/notifier.js";
 
 const handleGetScore = async (req, res) => {    
     //아무것도 안보내고 걍 get하셈
@@ -45,7 +47,7 @@ const handleUploadScore = async (req, res) => {
             const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
-        const received = await mainInquiry.read(['Rscore','_id'], req.decryptedSessionId);
+        const received = await mainInquiry.read(['Rscore','_id', 'uNullRewardList'], req.decryptedSessionId);
 
         const sc = await Score.findById(received.Rscore);
         
@@ -71,6 +73,12 @@ const handleUploadScore = async (req, res) => {
         sc.semester_list[semester].filled = true;
 
         sc.save();
+
+        const m = rewardNullCheck(4, sc, "", received.uNullRewardList);
+        if(m.status){
+            await mainInquiry.write({'uNullRewardList':m.uNullRewardList}, req.decryptedSessionId);
+            await notify.Self(req.decryptedSessionId, m, "", 8, "", "");
+        }
 
         console.log(req.files, req.file);
 
