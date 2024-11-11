@@ -4,7 +4,7 @@ import { QnaDocuments } from "../../schemas/docs.js";
 import redisHandler from "../../config/redisHandler.js";
 import mainInquiry from "../../functions/mainInquiry.js";
 import { UserDocs } from "../../schemas/userRelated.js";
-import { CommonCategory } from "../../schemas/category.js"; // CommonCategory import
+import { CommonCategory } from "../../schemas/category.js";
 
 const handleUserScrapList = async (req, res) => {
     const decryptedSessionId = String(req.decryptedSessionId);
@@ -36,31 +36,17 @@ const handleUserScrapList = async (req, res) => {
         const RmyScrapList = userDocs.RmyScrap_list; // 스크랩한 문서들의 ID 목록
         let documents = [];
 
-        // QnA 문서 처리 (항상 최대 12개)
+        // QnA 문서 처리 (개수 제한 없이 모든 문서 불러오기)
         if (filters.includes("qna") && RmyScrapList.Rqna_list.length > 0) {
             const qnaDocs = await QnaDocuments.find({
                 _id: { $in: RmyScrapList.Rqna_list },
-            })
-                .limit(12)
-                .lean();
+            }).lean();
             documents.push(...qnaDocs);
         }
 
-        // Tips 관련 필터 처리 (필터 개수에 따라 반환할 문서 수 결정)
+        // Tips 관련 필터 처리 (필터 개수에 상관없이 모든 문서 불러오기)
         const tipsFilters = filters.filter((f) => f !== "qna");
-        const numTipsFilters = tipsFilters.length;
 
-        // 필터당 반환할 문서 개수 계산
-        let numDocsPerFilter;
-        if (numTipsFilters === 3) {
-            numDocsPerFilter = 4;
-        } else if (numTipsFilters === 2) {
-            numDocsPerFilter = 6;
-        } else if (numTipsFilters === 1) {
-            numDocsPerFilter = 12;
-        }
-
-        // 필기(Tips) 문서 처리 (Test, Pilgy, Honey)
         for (const filter of tipsFilters) {
             let categoryType;
             let scrapList;
@@ -80,12 +66,11 @@ const handleUserScrapList = async (req, res) => {
                 listField = "Rhoney_list";
             }
 
-            // 필기 관련 문서 조회
+            // 필기 관련 문서 조회 (모든 문서 불러오기)
             if (scrapList && scrapList.length > 0) {
                 const docsFromCategory = await getCategoryTipsDocuments(
                     categoryType,
-                    { [listField]: scrapList },
-                    numDocsPerFilter // 필터 개수에 따른 문서 수 적용
+                    { [listField]: scrapList }
                 );
 
                 for (const doc of docsFromCategory) {
@@ -115,6 +100,7 @@ const handleUserScrapList = async (req, res) => {
                 message: "No documents found.",
             });
         }
+
         // 모든 문서를 모은 후 최신순으로 정렬
         documents.sort((a, b) => new Date(b.time) - new Date(a.time));
 
