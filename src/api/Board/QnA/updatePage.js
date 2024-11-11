@@ -97,17 +97,17 @@ const handleUpdatePage = async (req, res) => {
     doc.likes += lk;
 
     // reward check and notify
-    let modal = rewardNullCheck(3, userDoc, willchange, doc.uNullRewardList);
+    let modal = rewardNullCheck(3, userDoc, willchange, received.uNullRewardList);
     if(modal.status){
         doc.uNullRewardList = modal.uNullRewardList;
     }else{
-        modal = rewardOtherCheck(1, userDoc, willchange, doc.uMultiRewardList);
+        modal = rewardOtherCheck(1, userDoc, willchange, received.uMultiRewardList);
     }
     if(modal[0].status){
         doc.uMultiRewardList[0] += 1;
         await notify.Self(req.decryptedSessionId, doc._id, doc.title, 3, "/qna");
     }
-    modal = rewardOtherCheck(2, userDoc, willchange, doc.uMultiRewardList);
+    modal = rewardOtherCheck(2, userDoc, willchange, received.uMultiRewardList);
     if(modal.length==2){  
         await notify.Self(req.decryptedSessionId, doc._id, doc.title, 7, "/qna", modal[0].point);
         await notify.Self(req.decryptedSessionId, modal[1], "", 8, "modal", 0);
