@@ -5,8 +5,53 @@ import connectDB from "./mongoDBconnect.js";
 import ExcelJS from "exceljs";
 import { Category, LowestCategory } from "../schemas/category.js";
 import fs from "fs";
-
+import { Badge } from "../schemas/badge.js";
+import s3Handler from "./s3Handler.js";
+import dotenv from "dotenv";
+import redisHandler from "./redisHandler.js";
 await connectDB();
+
+// dotenv.config();
+// s3Handler.create([
+//     process.env.AWS_S3_REGION,
+//     process.env.AWS_ACCESS_KEY_ID,
+//     process.env.AWS_SECRET_ACCESS_KEY,
+//     process.env.AWS_S3_BUCKET,
+// ]);
+// redisHandler.create(process.env.REDIS_URL);
+// redisHandler.connect();
+// s3Handler.connect(redisHandler.getRedisClient());
+
+//const prof = await s3Handler.put("badge", fs.createReadStream("C:/Users/cathy/Downloads/badgee/전문가.svg"), 'image/svg+xml');
+//console.log(prof);
+const badgeImgList = [
+    'https://d1bp3kp7g4awpu.cloudfront.net/badge/1.svg',
+  'https://d1bp3kp7g4awpu.cloudfront.net/badge/2.svg',
+  'https://d1bp3kp7g4awpu.cloudfront.net/badge/3.svg',
+  'https://d1bp3kp7g4awpu.cloudfront.net/badge/4.svg',
+  'https://d1bp3kp7g4awpu.cloudfront.net/badge/5.svg',
+  'https://d1bp3kp7g4awpu.cloudfront.net/badge/6.svg',
+  'https://d1bp3kp7g4awpu.cloudfront.net/badge/7.svg',
+  'https://d1bp3kp7g4awpu.cloudfront.net/badge/8.svg',
+  'https://d1bp3kp7g4awpu.cloudfront.net/badge/9.svg'
+];
+const badgeIdList = [];
+const badgenames = ["척척박사", "데일리 출석왕", "채택왕", "슈퍼스타", "모두의 선생님", "수집가", "열혈수강생", "억만장자", "장학생"];
+const badgeExplain =["내가 쓴 답변의 채택 수 5개 돌파!", "출석 5일 연속 돌파!", "내가 채택한 답변 10개 돌파!", "내가 쓴 답변의 좋아요 수 20개 돌파!", "내가 쓴 꿀팁의 다운로드 수 10개 돌파!", "내가 스크랩한 게시글 20개 돌파!", "내가 작성한 질문 20개 돌파!", "내가 구매한 꿀팁 글 10개 돌파!", "평균학점이..4점 이상..!"];
+ for (const badge of badgenames) {
+ const objID = new mongoose.Types.ObjectId();
+ badgeIdList.push(objID);
+// const p = await s3Handler.put("badge", fs.createReadStream(`C:/Users/cathy/Downloads/badgee/${badge}.svg`), 'image/svg+xml');
+// fs.unlinkSync(`C:/Users/cathy/Downloads/badgee/${badge}.svg`);
+// badgeImgList.push(p);
+ }
+console.log(badgeIdList);
+const forMemo = badgenames.map((name,idx) => ([ name, badgeIdList[idx] ]));
+const finale = badgenames.map((name,idx) => ({ _id:badgeIdList[idx],b_name: name, b_img: badgeImgList[idx], b_explain: badgeExplain[idx] }));
+console.log(finale);
+console.log(forMemo);
+await Badge.insertMany(finale);
+
 
 // await Category.deleteMany({type:3})
 //       .then(()=>console.log("Successfully deleted"));
@@ -101,147 +146,147 @@ console.log("done");
 //     "66ccb27bf856e736a17266bd",
 // ],["66ccb2eddfb89ff2c79c59c9"]
 // ];
-const bigs = [
-    "15이전",
-    "16-18",
-    "19",
-    "20-22",
-    "23이후",
-    "기독교과목",
-    "숭실사이버대과목"
-]
-const names = [
-    [
-        ["문학과예술(융합-인문)",[]],
-        ["생활과건강(실용-생활)",[]],
-        ["세계의문화와국제관계(핵심-창의)",[]],
-        ["세계의언어(핵심-창의)",[]],
-        ["역사와철학(융합-인문)",[]],
-        ["인간과사회(융합-사회)",[]],
-        ["인성과리더십(핵심-창의)",[]],
-        ["자연과학과수리(융합-자연)",[]],
-        ["정보와기술(융합-자연)",[]],
-        ["정치와경제(융합-사회)",[]],
-        ["창의성과의사소통능력(핵심-창의)",[]],
-        ["학문과진로탐색(실용-생활)",[]]
-    ],
-    [
-        ["균형교양(사회과학-문화및문명)",[]],
-        ["균형교양(사회과학-사회/정치/경제)",[]],
-        ["균형교양(인문학-문학/어학/예술)",[]],
-        ["균형교양(인문학-역사)",[]],
-        ["균형교양(인문학-철학/사상)",[]],
-        ["균형교양(자연과학-자연과학)",[]],
-        ["기초역량(과학정보기술-과학)",[]],
-        ["기초역량(과학정보기술-정보기술)",[]],
-        ["기초역량(국제어문-고전어문)",[]],
-        ["기초역량(국제어문-국제어)",[]],
-        ["기초역량(국제어문-영어)",[]],
-        ["기초역량(사고력-창의및융합적사고)",[]],
-        ["기초역량(한국어의사소통-의사소통)",[]],
-        ["기초역량(한국어의사소통-읽기와쓰기)",[]],
-        ["숭실품성(리더십-리더십이론및실천)",[]],
-        ["숭실품성(리더십-통일리더십)",[]],
-        ["숭실품성(인성-가치관및윤리교육)",[]],
-        ["숭실품성(인성-공동체인성교육)",[]],
-        ["숭실품성(인성-종교가치인성교육)",[]],
-        ["실용교양(개인과가족생활)",[]],
-        ["실용교양(경제경영)",[]],
-        ["실용교양(공공생활)",[]],
-        ["실용교양(기술생활)",[]],
-        ["실용교양(자기개발과진로탐색)",[]],
-    ],
-    [
-        ["균형교양-사회과학(사회/역사)",[]],
-        ["균형교양-인문학(인간/문화/사고력)",[]],
-        ["균형교양-자연/공학(자연/과학/기술)",[]],
-        ["기초역량-한국어의사소통과국제어문",[]],
-        ["숭실품성-인성과리더십",[]]
-    ],
-    [
-        ["공동체/리더십,숭실품성-인성과리더십",[]],
-        ["공동체/리더십,숭실품성-자기계발과진로탐색",[]],
-        ["의사소통/글로벌,기초역량-국제어문",[]],
-        ["의사소통/글로벌,기초역량-한국어의사소통",[]],
-        ["창의/융합,균형교양-문학·예술",[]],
-        ["창의/융합,균형교양-사회·문화·심리",[]],
-        ["창의/융합,균형교양-역사·철학·종교",[]],
-        ["창의/융합,균형교양-자연과학·공학·기술",[]],
-        ["창의/융합,균형교양-정치·경제·경영",[]]
-    ],
-    [
-        ["과학·기술",[]],
-        ["문화·예술",[]],
-        ["사회·정치·경제",[]],
-        ["인간·언어",[]],
-        ["자기개발·진로탐색",[]]
-    ],
-    [
-        ["기독교과목",[]],
-    ],
-    [
-        ["숭실사이버대과목",[]]
-    ]
-];
+// const bigs = [
+//     "15이전",
+//     "16-18",
+//     "19",
+//     "20-22",
+//     "23이후",
+//     "기독교과목",
+//     "숭실사이버대과목"
+// ]
+// const names = [
+//     [
+//         ["문학과예술(융합-인문)",[]],
+//         ["생활과건강(실용-생활)",[]],
+//         ["세계의문화와국제관계(핵심-창의)",[]],
+//         ["세계의언어(핵심-창의)",[]],
+//         ["역사와철학(융합-인문)",[]],
+//         ["인간과사회(융합-사회)",[]],
+//         ["인성과리더십(핵심-창의)",[]],
+//         ["자연과학과수리(융합-자연)",[]],
+//         ["정보와기술(융합-자연)",[]],
+//         ["정치와경제(융합-사회)",[]],
+//         ["창의성과의사소통능력(핵심-창의)",[]],
+//         ["학문과진로탐색(실용-생활)",[]]
+//     ],
+//     [
+//         ["균형교양(사회과학-문화및문명)",[]],
+//         ["균형교양(사회과학-사회/정치/경제)",[]],
+//         ["균형교양(인문학-문학/어학/예술)",[]],
+//         ["균형교양(인문학-역사)",[]],
+//         ["균형교양(인문학-철학/사상)",[]],
+//         ["균형교양(자연과학-자연과학)",[]],
+//         ["기초역량(과학정보기술-과학)",[]],
+//         ["기초역량(과학정보기술-정보기술)",[]],
+//         ["기초역량(국제어문-고전어문)",[]],
+//         ["기초역량(국제어문-국제어)",[]],
+//         ["기초역량(국제어문-영어)",[]],
+//         ["기초역량(사고력-창의및융합적사고)",[]],
+//         ["기초역량(한국어의사소통-의사소통)",[]],
+//         ["기초역량(한국어의사소통-읽기와쓰기)",[]],
+//         ["숭실품성(리더십-리더십이론및실천)",[]],
+//         ["숭실품성(리더십-통일리더십)",[]],
+//         ["숭실품성(인성-가치관및윤리교육)",[]],
+//         ["숭실품성(인성-공동체인성교육)",[]],
+//         ["숭실품성(인성-종교가치인성교육)",[]],
+//         ["실용교양(개인과가족생활)",[]],
+//         ["실용교양(경제경영)",[]],
+//         ["실용교양(공공생활)",[]],
+//         ["실용교양(기술생활)",[]],
+//         ["실용교양(자기개발과진로탐색)",[]],
+//     ],
+//     [
+//         ["균형교양-사회과학(사회/역사)",[]],
+//         ["균형교양-인문학(인간/문화/사고력)",[]],
+//         ["균형교양-자연/공학(자연/과학/기술)",[]],
+//         ["기초역량-한국어의사소통과국제어문",[]],
+//         ["숭실품성-인성과리더십",[]]
+//     ],
+//     [
+//         ["공동체/리더십,숭실품성-인성과리더십",[]],
+//         ["공동체/리더십,숭실품성-자기계발과진로탐색",[]],
+//         ["의사소통/글로벌,기초역량-국제어문",[]],
+//         ["의사소통/글로벌,기초역량-한국어의사소통",[]],
+//         ["창의/융합,균형교양-문학·예술",[]],
+//         ["창의/융합,균형교양-사회·문화·심리",[]],
+//         ["창의/융합,균형교양-역사·철학·종교",[]],
+//         ["창의/융합,균형교양-자연과학·공학·기술",[]],
+//         ["창의/융합,균형교양-정치·경제·경영",[]]
+//     ],
+//     [
+//         ["과학·기술",[]],
+//         ["문화·예술",[]],
+//         ["사회·정치·경제",[]],
+//         ["인간·언어",[]],
+//         ["자기개발·진로탐색",[]]
+//     ],
+//     [
+//         ["기독교과목",[]],
+//     ],
+//     [
+//         ["숭실사이버대과목",[]]
+//     ]
+// ];
 
-const tt = ["공동체/리더십,숭실품성-자기계발과진로탐색",[]];
+// const tt = ["공동체/리더십,숭실품성-자기계발과진로탐색",[]];
 
-const gs = [
-    "(외국인을위한)대학글쓰기",
-    "Academic and Professional English 1",
-    "Academic and Professional English 2",
-    "Academic and Professional English 2(고급)",
-    "기업가정신과행동",
-    "대학한국어1",
-    "대학한국어2",
-    "비전채플",
-    "미디어사회와비평적글쓰기",
-    "비판적사고와학술적글쓰기",
-    "기술혁신사회와과학기술글쓰기",
-    "소그룹채플",
-    "외국인신입생세미나",
-    "인류문명과기독교",
-    "인문학과성서",
-    "현대사회이슈와기독교",
-    "고전읽기와상상력",
-    "디지털미래세계와소통",
-    "융합독서디베이트",
-    "인문적상상력과데이터기반토론",
-    "컴퓨팅적사고",
-    "학문목적한국어5",
-    "학문목적한국어6",
-    "한반도평화와통일",
-    "AI와데이터기초",
-    "AI와머신러닝",
-    "AI개발과실전",
-    "CTE for IT,Engineering&Natura",
-    "CTE for Liberal Arts&Humanit",
-    "CTE for Social Science & Busin",
-    "글로벌도시이해",
-    "글로벌시민과국제기구",
-    "세계화와글로벌이슈"
-]
-const readExcelFile = async (filePath) => {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(filePath);
-    const worksheet = workbook.worksheets[0];
-    const jsonData = [];
-    worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber > 1) {
-            // Assuming the first row is the header
-            const rowData = {};
-            row.eachCell((cell, colNumber) => {
-                if (colNumber > 0) {
-                const header = worksheet.getRow(1).getCell(colNumber).value;
+// const gs = [
+//     "(외국인을위한)대학글쓰기",
+//     "Academic and Professional English 1",
+//     "Academic and Professional English 2",
+//     "Academic and Professional English 2(고급)",
+//     "기업가정신과행동",
+//     "대학한국어1",
+//     "대학한국어2",
+//     "비전채플",
+//     "미디어사회와비평적글쓰기",
+//     "비판적사고와학술적글쓰기",
+//     "기술혁신사회와과학기술글쓰기",
+//     "소그룹채플",
+//     "외국인신입생세미나",
+//     "인류문명과기독교",
+//     "인문학과성서",
+//     "현대사회이슈와기독교",
+//     "고전읽기와상상력",
+//     "디지털미래세계와소통",
+//     "융합독서디베이트",
+//     "인문적상상력과데이터기반토론",
+//     "컴퓨팅적사고",
+//     "학문목적한국어5",
+//     "학문목적한국어6",
+//     "한반도평화와통일",
+//     "AI와데이터기초",
+//     "AI와머신러닝",
+//     "AI개발과실전",
+//     "CTE for IT,Engineering&Natura",
+//     "CTE for Liberal Arts&Humanit",
+//     "CTE for Social Science & Busin",
+//     "글로벌도시이해",
+//     "글로벌시민과국제기구",
+//     "세계화와글로벌이슈"
+// ]
+// const readExcelFile = async (filePath) => {
+//     const workbook = new ExcelJS.Workbook();
+//     await workbook.xlsx.readFile(filePath);
+//     const worksheet = workbook.worksheets[0];
+//     const jsonData = [];
+//     worksheet.eachRow((row, rowNumber) => {
+//         if (rowNumber > 1) {
+//             // Assuming the first row is the header
+//             const rowData = {};
+//             row.eachCell((cell, colNumber) => {
+//                 if (colNumber > 0) {
+//                 const header = worksheet.getRow(1).getCell(colNumber).value;
 
-                rowData[header] = cell.value == null ? "" : cell.value;
-                }
-            });
-            jsonData.push(rowData);
-        }
-    });
-    return jsonData;
-};
+//                 rowData[header] = cell.value == null ? "" : cell.value;
+//                 }
+//             });
+//             jsonData.push(rowData);
+//         }
+//     });
+//     return jsonData;
+// };
 
 // for (let g =0; g<33; g++){
 //     const lowestCategoryData = await readExcelFile(
@@ -320,90 +365,90 @@ const readExcelFile = async (filePath) => {
 // }
 // console.log("all set to go");
 
-for (let i = 0; i < 5; i++) {
-    //const categoryData = readExcelFile("src/data/category.xlsx");
-    const lowestCategoryData = await readExcelFile(
-        `C:/Users/cathy/Downloads/교선/${i}.xlsx`
-    ); 
-    console.log(lowestCategoryData);
+// for (let i = 0; i < 5; i++) {
+//     //const categoryData = readExcelFile("src/data/category.xlsx");
+//     const lowestCategoryData = await readExcelFile(
+//         `C:/Users/cathy/Downloads/교선/${i}.xlsx`
+//     ); 
+//     console.log(lowestCategoryData);
     
-    const processedData = [];
-    for (const v of lowestCategoryData) {
-        // const objID = new mongoose.Types.ObjectId();
-        const objID = await LowestCategory.findOne({category_name: 
-            v.category_name
-        }, {_id: 1});
-        console.log("찾은놈:",objID);
-        let seeCat = v.교과영역;
-        seeCat = seeCat.split('.').map(category => category.trim()).filter(category => category.length > 0);
-        for(const cat of seeCat){
-            let qit = false;
-            //for(const name of names){
-              //  for(const x of name){
-                    if(tt[0]
-                        //x[0]
-                         == cat){
-                        tt[1].push(objID._id);
-                        qit = true;
-                        break;
-                    //}
-                //}
-                if(qit)break;
-            }
-        }
+//     const processedData = [];
+//     for (const v of lowestCategoryData) {
+//         // const objID = new mongoose.Types.ObjectId();
+//         const objID = await LowestCategory.findOne({category_name: 
+//             v.category_name
+//         }, {_id: 1});
+//         console.log("찾은놈:",objID);
+//         let seeCat = v.교과영역;
+//         seeCat = seeCat.split('.').map(category => category.trim()).filter(category => category.length > 0);
+//         for(const cat of seeCat){
+//             let qit = false;
+//             //for(const name of names){
+//               //  for(const x of name){
+//                     if(tt[0]
+//                         //x[0]
+//                          == cat){
+//                         tt[1].push(objID._id);
+//                         qit = true;
+//                         break;
+//                     //}
+//                 //}
+//                 if(qit)break;
+//             }
+//         }
         
     
 
-        // const { 교과영역, ...w } = v;
+//         // const { 교과영역, ...w } = v;
         
         
-        // processedData.push({
-        //     _id: objID,
-        //     ...w,
-        //     type: 4,
-        //     Rqna_list: [],
-        //     Rpilgy_list: [],
-        //     Rtest_list: [],
-        //     Rhoney_list: [],
-        // });
-   }
+//         // processedData.push({
+//         //     _id: objID,
+//         //     ...w,
+//         //     type: 4,
+//         //     Rqna_list: [],
+//         //     Rpilgy_list: [],
+//         //     Rtest_list: [],
+//         //     Rhoney_list: [],
+//         // });
+//    }
 
-    // await LowestCategory.insertMany(processedData)
-    //     .then(() => console.log("Successfully inserted lowest category data"))
-    //     .catch((e) => console.error(e));
-}
+//     // await LowestCategory.insertMany(processedData)
+//     //     .then(() => console.log("Successfully inserted lowest category data"))
+//     //     .catch((e) => console.error(e));
+// }
 
-await Category.findOneAndUpdate({category_name: tt[0]}, {sub_category_list: tt[1]}, {new: true}).then((result)=>console.log(result));
-const fe = [
-    '670cf64af65766da4930d4db',
-    '670cf64af65766da4930d4dc',
-    '670cf64af65766da4930d4dd',
-    '670cf64af65766da4930d4de',
-    '670cf64af65766da4930d4df',
-    '670cf64af65766da4930d4e0',
-    '670cf64af65766da4930d4e1',
-    '670cf64af65766da4930d4e2',
-    '670cf64af65766da4930d4e3',
-    '670cf64af65766da4930d4e4',
-    '670cf64af65766da4930d4e5',
-    '670cf64af65766da4930d4e6',
-    '670cf64af65766da4930d4e7',
-    '670cf64bf65766da4930d4ea',
-    '670cf64bf65766da4930d4eb',
-    '670cf64bf65766da4930d4ec',
-    '670cf64bf65766da4930d4ed',
-    '670cf64bf65766da4930d4ee',
-    '670cf64bf65766da4930d4ef',
-    '670cf64bf65766da4930d4f0',
-    '670cf64bf65766da4930d4f1',
-    '670cf64bf65766da4930d4f2',
-    '670cf64bf65766da4930d4f3',
-    '670cf64bf65766da4930d4f4',
-    '670cf64bf65766da4930d4f5',
-    '670cf64bf65766da4930d4f6',
-    '670cf64bf65766da4930d4f7'
-];
-await LowestCategory.deleteMany({_id:{$in:fe}}).then(()=>console.log("deleted"));
+// await Category.findOneAndUpdate({category_name: tt[0]}, {sub_category_list: tt[1]}, {new: true}).then((result)=>console.log(result));
+// const fe = [
+//     '670cf64af65766da4930d4db',
+//     '670cf64af65766da4930d4dc',
+//     '670cf64af65766da4930d4dd',
+//     '670cf64af65766da4930d4de',
+//     '670cf64af65766da4930d4df',
+//     '670cf64af65766da4930d4e0',
+//     '670cf64af65766da4930d4e1',
+//     '670cf64af65766da4930d4e2',
+//     '670cf64af65766da4930d4e3',
+//     '670cf64af65766da4930d4e4',
+//     '670cf64af65766da4930d4e5',
+//     '670cf64af65766da4930d4e6',
+//     '670cf64af65766da4930d4e7',
+//     '670cf64bf65766da4930d4ea',
+//     '670cf64bf65766da4930d4eb',
+//     '670cf64bf65766da4930d4ec',
+//     '670cf64bf65766da4930d4ed',
+//     '670cf64bf65766da4930d4ee',
+//     '670cf64bf65766da4930d4ef',
+//     '670cf64bf65766da4930d4f0',
+//     '670cf64bf65766da4930d4f1',
+//     '670cf64bf65766da4930d4f2',
+//     '670cf64bf65766da4930d4f3',
+//     '670cf64bf65766da4930d4f4',
+//     '670cf64bf65766da4930d4f5',
+//     '670cf64bf65766da4930d4f6',
+//     '670cf64bf65766da4930d4f7'
+// ];
+// await LowestCategory.deleteMany({_id:{$in:fe}}).then(()=>console.log("deleted"));
 // names.forEach(async(Name, index) => {
 // // Map strings to Mongoose ObjectIds
 // //const objectIds = stringIds[index].map(id => new mongoose.Types.ObjectId(id));

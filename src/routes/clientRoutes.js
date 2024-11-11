@@ -48,6 +48,7 @@ import { handleRenderTipsPage } from "../api/Board/Tips/renderPage.js";
 import { handleManageUpdateTipsPage } from '../api/Board/Tips/tipsModify.js'
 import { handleDeleteTips } from "../api/Board/Tips/deletePage.js";
 import { handlePurchased } from "../api/User/myPurchased.js";
+import { handleModal } from "../api/User/modal.js";
 
 const lightRouter = express.Router();
 const loginRouter = express.Router();
@@ -119,6 +120,8 @@ lightRouter.post('/board/detail', loadBoardDetail); // 보드과목별 상세페
 
 lightRouter.get('/score', myMiddleware, handleGetScore); // 성적가져오기
 lightRouter.post('/score', myMiddleware, upload.single('img'), handleUploadScore); // 성적업로드
+
+lightRouter.get('/modal-notify', myMiddleware, handleModal); // 새로운 알림 확인
 
 // 마이페이지 관련 라우터
 heavyRouter.get('/mypage/profile', myMiddleware, handleUserProfile); // 마이페이지 기본값 조회

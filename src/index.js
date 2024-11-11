@@ -6,7 +6,11 @@ import s3Handler from "./config/s3Handler.js";
 import rateLimiter from "./functions/rateLimiter.js";
 
 import adminRoutes from "./routes/adminRoutes.js";
-import { lightRouter, heavyRouter, loginRouter} from "./routes/clientRoutes.js";
+import {
+    lightRouter,
+    heavyRouter,
+    loginRouter,
+} from "./routes/clientRoutes.js";
 
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";

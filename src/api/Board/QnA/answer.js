@@ -21,7 +21,7 @@ const handleQnaAnswer = async (req, res) => {
             const redisClient = redisHandler.getRedisClient();
             mainInquiry.inputRedisClient(redisClient);
         }
-        const received = await mainInquiry.read(['Rdoc', '_id'],req.decryptedSessionId);
+        const received = await mainInquiry.read(['Rdoc', '_id', 'uNullRewardList', 'uMultiRewardList'],req.decryptedSessionId);
 
         const qna = await QnaDocuments.findById(id);
         const userDoc = await UserDocs.findById(received.Rdoc);
@@ -37,13 +37,14 @@ const handleQnaAnswer = async (req, res) => {
             fs.unlinkSync(a.path)
         }}
 
+        const nowCategory = Object.keys(qna.now_category_list[qna.now_category_list.length-1]);
         const answerId = new mongoose.Types.ObjectId();
         await QnaAnswers.create({
             _id: answerId,
             content: answer.target.value,
             img_list: linkList,
             warn_why_list: [0,0,0,0,0,0,0,0],
-            QNAcategory: Object.keys(qna.now_category_list[qna.now_category_list.length-1])[0],
+            QNAcategory: nowCategory[0],
             likes: 0,
             time: Date.now(),
             warn: 0,
@@ -53,11 +54,40 @@ const handleQnaAnswer = async (req, res) => {
         await qna.save();
         delete req.currentDocs;
 
-        let modal = rewardNullCheck(1, userDoc, {})
+        let modal = await rewardNullCheck(1, userDoc, {}, received.uNullRewardList);
         userDoc.written+=1;
+        if (!userDoc.Rreply_category_map[nowCategory[0]]) {
+            userDoc.Rreply_category_map[nowCategory[0]] = 1;
+        }else{
+        userDoc.Rreply_category_map[nowCategory[0]]+=1;}
         await userDoc.save();
-        if(!modal.status){
-            modal = rewardOtherCheck(3, userDoc, {});
+
+        let willwrite = {};
+        if(modal.status){
+            willwrite.uNullRewardList = modal.uNullRewardList;
+            
+            const ID = new mongoose.Types.ObjectId();
+            await Modal.create({
+                _id:ID,
+                time: Date.now(),
+                types: nw.type,
+                reward: nw.reward,
+                who_user: "system",
+                point: nw.point
+            });
+
+            willwrite.Rmodal_noti_list = ID;
+        }else{
+            modal = await rewardOtherCheck(3, userDoc, nowCategory, received.uMultiRewardList);
+            if(modal[0].status){
+                received.uMultiRewardList[2] += 1;
+                willwrite.uMultiRewardList = received.uMultiRewardList;
+                if('bid' in modal[0]){
+                    await notify.Self(req.decryptedSessionId, modal[0], "", 8, "/qna", "");
+                }else{
+                    await notify.Self(req.decryptedSessionId, id, qna.title, 13, "/qna", modal.point);
+                }
+            }
         }
         // if(modal.status){
         //     await notify.Self(received._id, qna._id, qna.title, req.decryptedUserData.name, 3);

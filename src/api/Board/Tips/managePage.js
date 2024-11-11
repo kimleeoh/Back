@@ -8,6 +8,9 @@ import {
 import mainInquiry from '../../../functions/mainInquiry.js'; // 세션에서 유저 정보 가져오기
 import { UserDocs } from "../../../schemas/userRelated.js";
 import redisHandler from "../../../config/redisHandler.js";
+import { rewardNullCheck, rewardOtherCheck } from "../../../functions/rewardCheck.js";
+import { Modal } from "../../../schemas/notify.js";
+import { notify } from "../../../functions/notifier.js";
 
 const checkIsUserTips = async (req, res) => {
     try {
@@ -90,7 +93,7 @@ const handlePurchaseTipsPage = async(req, res) => {
     console.log("decryptedSessionId: ", decryptedSessionId); // 세션 ID 확인
 
     const { docid, category_type } = req.body;
-    const paramList = ["_id", "Rdoc", "POINT"]; // 필요한 필드 (유저 ID)
+    const paramList = ["_id", "Rdoc", "POINT", "uNullRewardList", "uMultiRewardList"]; // 필요한 필드 (유저 ID)
 
     try{
         if (mainInquiry.isNotRedis()) {
@@ -131,7 +134,7 @@ const handlePurchaseTipsPage = async(req, res) => {
     }
 
     if(userInfo.POINT<document.purchase_price){ return res.status(201).send({message:"Not enough POINT"}); }
-
+    let willwrite = {POINT: -document.purchase_price};
     console.log("document: ", document);
 
     const updatePurchased = await UserDocs.findOne({
@@ -155,9 +158,32 @@ const handlePurchaseTipsPage = async(req, res) => {
     // purchasedFiles.Rpurchase_list=[userInfo._id];}
     // else{}
 
+    const r = await rewardNullCheck(6, updatePurchased, "", userInfo.uNullRewardList);
+    if(r.status){
+        const ID = new mongoose.Types.ObjectId();
+        await Modal.create({
+            _id:ID,
+            time: Date.now(),
+            types: r.type,
+            reward: r.reward,
+            who_user: "system",
+            point: r.point
+        });
+
+        willwrite.Rmodal_noti_list = ID;
+        willwrite.uNullRewardList = r.uNullRewardList;
+    }else{
+        const mr = await rewardOtherCheck(4, updatePurchased, "", userInfo.uMultiRewardList);
+        if(mr[0].status){
+            await notify.Self(decryptedSessionId, mr[0], "", 8, "/tips", "");
+            userInfo.uMultiRewardList[3] += 1;
+            willwrite.uMultiRewardList = userInfo.uMultiRewardList;
+        }
+    }
+
     await purchasedFiles.save();
     await updatePurchased.save();
-    await mainInquiry.write({POINT: -document.purchase_price}, decryptedSessionId);
+    await mainInquiry.write(willwrite, decryptedSessionId);
     
     res.status(200).send({message:"Success"});
 }

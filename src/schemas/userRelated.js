@@ -30,11 +30,13 @@ const userDocSchema = new mongoose.Schema({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
     totalLike: { type: Number },
     written: { type: Number },
+    Ipicked: { type: Number },
     Rpilgy_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rhoney_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rtest_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rqna_list: { type: [mongoose.SchemaTypes.ObjectId] },
     Rreply_list: { type: [mongoose.SchemaTypes.ObjectId] },
+    Rreply_category_map: { type: Object },
     RmyLike_list: {
         Rqna_list: { type: [mongoose.SchemaTypes.ObjectId] },
         Rpilgy_list: { type: [mongoose.SchemaTypes.ObjectId] },

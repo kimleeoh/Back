@@ -2,6 +2,7 @@ import { User } from "../../schemas/user.js"; // 유저 스키마
 import { UserDocs } from "../../schemas/userRelated.js"; // 유저 스키마
 // import {}
 import redisHandler from "../../config/redisHandler.js"; // Redis 핸들러
+import {Badge} from "../../schemas/badge.js"; // 뱃지 스키마
 import mainInquiry from "../../functions/mainInquiry.js";
 
 
@@ -13,7 +14,7 @@ const handleUserProfile = async (req, res) => {
         }
 
         const decryptedSessionId = String(req.decryptedSessionId);
-        const paramList = ["_id", "name", "intro", "level", "exp", "Rdoc", "hakbu"];
+        const paramList = ["_id", "name", "intro", "level", "exp", "Rdoc", "hakbu", "Rbadge_list"];
         console.log("Requested params:", paramList);
 
         let userInfo;
@@ -44,6 +45,7 @@ const handleUserProfile = async (req, res) => {
 
         const name = userInfo.name || "Unknown";
         const intro = userInfo.intro || "소개가 없습니다";
+        const badge = userInfo.Rbadge_list.length>0? await Badge.find({_id:{$in:received.Rbadge}}) : "뱃지가 없습니다";
 
         // UserDocs 조회
         const userDocs = await UserDocs.findOne({ _id: Rdoc });
@@ -67,6 +69,7 @@ const handleUserProfile = async (req, res) => {
             exp,
             tipsCount,
             replyCount,
+            badge,
             profile: req.decryptedUserData.profile,
         });
     } catch (error) {
