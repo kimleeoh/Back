@@ -44,7 +44,7 @@ const getCategoryTipsDocuments = async (categoryType, categoryData, limit, depth
     const documents = await model
         .find({ '_id': { $in: docList } })
         .select(
-        "_id title preview_img target Ruser time views likes purchase_price"
+        "_id title preview_img now_category target Ruser time views likes purchase_price"
         )
         .populate({ path: "Ruser", model: User, select: "name hakbu" })
         .lean();
