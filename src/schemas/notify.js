@@ -17,7 +17,7 @@ const notifySchema = new mongoose.Schema({
 const modalSchema = new mongoose.Schema
 ({
     _id: { type: mongoose.SchemaTypes.ObjectId, required: true },
-    types: { type: Number },
+    types: { type: String },
     reward: { type: String },
     who_user: { type: String },
     time: { type: Number, default: Date.now },
