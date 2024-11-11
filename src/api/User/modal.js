@@ -14,7 +14,7 @@ const handleModal = async(req,res)=>{
     }
     const result = await Modal.find({_id : {$in:r.Rmodal_noti_list}});
     const totalAddPoint = result.reduce((acc,cur)=>acc+=cur.point,0);
-    const totalHTMLfy = result.map((cur)=>`<p>${cur.types}</p><br><p>${cur.reward}</p>`);
+    const totalHTMLfy = result.map((cur)=>`<p>${cur.types}</p><p>${cur.reward}</p>`);
     await Modal.deleteMany({_id : {$in:r.Rmodal_noti_list}});
     await mainInquiry.write({'-Rmodal_noti_list':r.Rmodal_noti_list, 'POINT':totalAddPoint}, req.decryptedSessionId);
 
