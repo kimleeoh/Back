@@ -97,33 +97,28 @@ const handleUpdatePage = async (req, res) => {
     doc.likes += lk;
 
     // reward check and notify
-    let modal = rewardNullCheck(3, userDoc, willchange, received.uNullRewardList);
+    let modal = await rewardNullCheck(3, userDoc, willchange, received.uNullRewardList);
     if(modal.status){
-        doc.uNullRewardList = modal.uNullRewardList;
+        received.uNullRewardList = modal.uNullRewardList;
     }else{
-        modal = rewardOtherCheck(1, userDoc, willchange, received.uMultiRewardList);
+        modal = await rewardOtherCheck(1, userDoc, willchange, received.uMultiRewardList);
     }
+    console.log(modal);
     if(modal[0].status){
-        doc.uMultiRewardList[0] += 1;
+        received.uMultiRewardList[0] += 1;
         await notify.Self(req.decryptedSessionId, doc._id, doc.title, 3, "/qna");
     }
-    modal = rewardOtherCheck(2, userDoc, willchange, received.uMultiRewardList);
+    modal = await rewardOtherCheck(2, userDoc, willchange, received.uMultiRewardList);
     if(modal.length==2){  
         await notify.Self(req.decryptedSessionId, doc._id, doc.title, 7, "/qna", modal[0].point);
         await notify.Self(req.decryptedSessionId, modal[1], "", 8, "modal", 0);
     }else if(modal[0].status){
-        doc.uMultiRewardList[1] += 1;
+        received.uMultiRewardList[1] += 1;
         await notify.Self(req.decryptedSessionId, doc._id, doc.title, 7, "/qna", modal[0].point);
     }
 
-    if(doc.likes!=0){
-        await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 3, "/qna");
-        if(doc.likes%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
-    }
-    if(doc.scrap!=0){
-        await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 4, "/qna");
-        if(doc.scrap%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
-    }
+    if(doc.likes!=0&&doc.likes%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
+    if(doc.scrap!=0&&doc.scrap%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
     console.log("처리이전:",userDoc.toJSON());
     const islk = Number(willchange.isLiked);
     switch (lk) {
@@ -131,7 +126,7 @@ const handleUpdatePage = async (req, res) => {
             if(islk==1) {userDoc.RmyLike_list.Rqna_list = userDoc.RmyLike_list.Rqna_list.filter(item => item.toString() !== id.toString());
                 userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());
                 userDoc.totalLike -=  1; console.log("문제", userDoc.RmyUnlike_list.Rqna_list);}
-            else if(islk==0) {userDoc.RmyUnlike_list.Rqna_list.push(id);userDoc.RmyLike_list.Rqna_list = userDoc.RmyLike_list.Rqna_list.filter(item => item.toString() !== id.toString());}
+            else if(islk==0) {await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 3, "/qna");userDoc.RmyUnlike_list.Rqna_list.push(id);userDoc.RmyLike_list.Rqna_list = userDoc.RmyLike_list.Rqna_list.filter(item => item.toString() !== id.toString());}
             break;
         case -2:
             userDoc.totalLike -=  1;
@@ -143,12 +138,13 @@ const handleUpdatePage = async (req, res) => {
             if(islk==-1) {
                 userDoc.RmyLike_list.Rqna_list = userDoc.RmyLike_list.Rqna_list.filter(item => item.toString() !== id.toString());
                 userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());}
-            else if(islk==0) {userDoc.RmyLike_list.Rqna_list.push(id);userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());userDoc.totalLike +=  1;}
+            else if(islk==0) {await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 3, "/qna");userDoc.RmyLike_list.Rqna_list.push(id);userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());userDoc.totalLike +=  1;}
             break;
         case 2:
             userDoc.totalLike  +=  1;
             userDoc.RmyUnlike_list.Rqna_list = userDoc.RmyUnlike_list.Rqna_list.filter(item => item.toString() !== id.toString());
             userDoc.RmyLike_list.Rqna_list.push(id);
+            await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 3, "/qna");
             break;
         case 0:
             break;
@@ -162,7 +158,7 @@ const handleUpdatePage = async (req, res) => {
 
     if(checkMiddleInvalid) return;
 
-    console.log(willchange.scrap);
+    console.log(willchange, willchange.scrap);
     switch (willchange.scrap) {
         case "false":
             if(willchange.isScrapped=="true") {userDoc.RmyScrap_list.Rqna_list.filter(item => item !== id);
@@ -170,7 +166,7 @@ const handleUpdatePage = async (req, res) => {
             break;
         case "true":
             if(willchange.isScrapped=="false"){userDoc.RmyScrap_list.Rqna_list.push(id);
-            doc.scrap += 1;}
+            doc.scrap += 1;await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 4, "/qna");}
             break;
         default:
             console.log("스크랩");
@@ -200,7 +196,7 @@ const handleUpdatePage = async (req, res) => {
     const {status, ...mod} = modal;
     doc.save();
     userDoc.save();
-    //res.status(200).send({isModal : status, modal : mod});
+    res.status(200).send({});
 
 }
 

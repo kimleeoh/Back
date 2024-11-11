@@ -42,7 +42,7 @@ const handleNotifyCheck = async (req, res) => {
     if (Object.keys(updates).length > 0) {
         const mr = await mainInquiry.write(updates, req.decryptedSessionId);
     }
-    const modal = rewardNullCheck(7, {picked:mr.picked},"", mr.uNullRewardList);
+    const modal = await rewardNullCheck(7, {picked:mr.picked},"", mr.uNullRewardList);
     if(modal.status){
         await notify.Self(req.decryptedSessionId, modal,"",8,"","");
     }

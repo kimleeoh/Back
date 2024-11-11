@@ -54,7 +54,7 @@ const handleQnaAnswer = async (req, res) => {
         await qna.save();
         delete req.currentDocs;
 
-        let modal = rewardNullCheck(1, userDoc, {}, received.uNullRewardList);
+        let modal = await rewardNullCheck(1, userDoc, {}, received.uNullRewardList);
         userDoc.written+=1;
         if (!userDoc.Rreply_category_map[nowCategory[0]]) {
             userDoc.Rreply_category_map[nowCategory[0]] = 1;
@@ -78,7 +78,7 @@ const handleQnaAnswer = async (req, res) => {
 
             willwrite.Rmodal_noti_list = ID;
         }else{
-            modal = rewardOtherCheck(3, userDoc, nowCategory, received.uMultiRewardList);
+            modal = await rewardOtherCheck(3, userDoc, nowCategory, received.uMultiRewardList);
             if(modal[0].status){
                 received.uMultiRewardList[2] += 1;
                 willwrite.uMultiRewardList = received.uMultiRewardList;

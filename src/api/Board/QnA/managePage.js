@@ -61,7 +61,7 @@ const handleManagePickPage = async (req, res) => {
     forReward.Ipicked += 1;
     await forReward.save();
 
-    const r = rewardNullCheck(9, forReward, rtemp.uNullRewardList);
+    const r = await rewardNullCheck(9, forReward, rtemp.uNullRewardList);
     if(r.status){
         await notify.Self(req.decryptedSessionId, r,"", 8,"","");
         await mainInquiry.write({'uNullRewardList' : r.uNullRewardList}, req.decryptedSessionId);

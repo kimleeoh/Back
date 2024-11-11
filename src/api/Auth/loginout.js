@@ -168,7 +168,7 @@ const handleLogin = async (req, res) => {
         } else if (lastAttendance.getTime() === yesterday.getTime()) {
             user.attendance += 1;
         }
-        const re = rewardNullCheck(8, user, "", user.uNullRewardList);
+        const re = await rewardNullCheck(8, user, "", user.uNullRewardList);
         if(re.status){
             user.uNullRewardList = re.uNullRewardList;
             user.Rbadge_list.push(re.bid);

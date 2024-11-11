@@ -158,7 +158,7 @@ const handlePurchaseTipsPage = async(req, res) => {
     // purchasedFiles.Rpurchase_list=[userInfo._id];}
     // else{}
 
-    const r = rewardNullCheck(6, updatePurchased, "", userInfo.uNullRewardList);
+    const r = await rewardNullCheck(6, updatePurchased, "", userInfo.uNullRewardList);
     if(r.status){
         const ID = new mongoose.Types.ObjectId();
         await Modal.create({
@@ -173,7 +173,7 @@ const handlePurchaseTipsPage = async(req, res) => {
         willwrite.Rmodal_noti_list = ID;
         willwrite.uNullRewardList = r.uNullRewardList;
     }else{
-        const mr = rewardOtherCheck(4, updatePurchased, "", userInfo.uMultiRewardList);
+        const mr = await rewardOtherCheck(4, updatePurchased, "", userInfo.uMultiRewardList);
         if(mr[0].status){
             await notify.Self(decryptedSessionId, mr[0], "", 8, "/tips", "");
             userInfo.uMultiRewardList[3] += 1;

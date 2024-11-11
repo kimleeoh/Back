@@ -73,7 +73,7 @@ const handleQnACreate = async(req, res)=>{
         const lastCheck = await UserDocs.findOneAndUpdate({_id:i},{$inc:{written:1}, $push:{Rqna_list:objId}},{new:true});
         await LowestCategory.findByIdAndUpdate(data.Rcategory,{$push:{Rqna_list:objId}});
         console.log(lastCheck);
-        const nw = rewardNullCheck(1, {written:lastCheck.written}, "", received.uNullRewardList);
+        const nw = await rewardNullCheck(1, {written:lastCheck.written}, "", received.uNullRewardList);
         
         if(nw.status) {
             willwrite.uNullRewardList = nw.uNullRewardList;
@@ -92,7 +92,7 @@ const handleQnACreate = async(req, res)=>{
         }
 
         if(!nw.status){
-        const mr = rewardOtherCheck(5, lastCheck, "", received.uMultiRewardList);
+        const mr = await rewardOtherCheck(5, lastCheck, "", received.uMultiRewardList);
         if(mr[0].status){
             await notify.Self(req.decryptedSessionId, mr[0], "", 8, "/qna", "");
             received.uMultiRewardList[4] += 1;

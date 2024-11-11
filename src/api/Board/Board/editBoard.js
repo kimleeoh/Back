@@ -45,7 +45,7 @@ const handleEditBoard = async (req, res) => {
                 console.log("error!!!!!!");
         }
 
-        const m = rewardNullCheck(5, allNum, "", r.uNullRewardList);
+        const m = await rewardNullCheck(5, allNum, "", r.uNullRewardList);
         if(m.status){
             willwrite.uNullRewardList = m.uNullRewardList;
             await notify.Self(req.decryptedSessionId, m, "", 8, "", "");

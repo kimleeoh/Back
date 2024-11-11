@@ -74,7 +74,7 @@ const handleUploadScore = async (req, res) => {
 
         sc.save();
 
-        const m = rewardNullCheck(4, sc, "", received.uNullRewardList);
+        const m = await rewardNullCheck(4, sc, "", received.uNullRewardList);
         if(m.status){
             await mainInquiry.write({'uNullRewardList':m.uNullRewardList}, req.decryptedSessionId);
             await notify.Self(req.decryptedSessionId, m, "", 8, "", "");
