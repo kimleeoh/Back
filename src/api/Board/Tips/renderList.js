@@ -8,9 +8,11 @@ import { CustomBoardView } from "../../../schemas/userRelated.js";
 // 필터를 통해 게시판 데이터 로드
 const loadBoardWithFilter = async (req, res) => {
     try {
-        let { filters, 
-            //lastDocTime, 
-            depth } = req.body; // 마지막 문서의 time을 함께 받음
+        let {
+            filters,
+            //lastDocTime,
+            depth,
+        } = req.body; // 마지막 문서의 time을 함께 받음
 
         if (!filters || filters.length === 0) {
             filters = ["test", "pilgy", "honey"];
@@ -18,7 +20,13 @@ const loadBoardWithFilter = async (req, res) => {
 
         const decryptedSessionId = String(req.decryptedSessionId);
 
-        const paramList = ["_id", "Rcustom_brd", "Renrolled_list", "Rbookmark_list", "Rlistened_list"];
+        const paramList = [
+            "_id",
+            "Rcustom_brd",
+            "Renrolled_list",
+            "Rbookmark_list",
+            "Rlistened_list",
+        ];
         let userInfo;
         try {
             userInfo = await mainInquiry.read(paramList, decryptedSessionId);
@@ -57,7 +65,7 @@ const loadBoardWithFilter = async (req, res) => {
             return res.status(404).json({ message: "Category not found" });
         }
 
-        console.log("카테고리길이",categories.length);
+        console.log("카테고리길이", categories.length);
 
         let documents = [];
 
@@ -75,9 +83,9 @@ const loadBoardWithFilter = async (req, res) => {
                     depth
                 );
 
-                console.log("docs",docs);
+                console.log("docs", docs);
 
-                if(docs.length === 0){
+                if (docs.length === 0) {
                     continue;
                 }
 
@@ -87,13 +95,18 @@ const loadBoardWithFilter = async (req, res) => {
                 });
 
                 documents.push(...docs);
-                
+
                 // documents가 비어있을 경우 상태 200으로 메시지 반환
-                if (documents.length === 0 ) {
-                    return res.status(200).json({ message: "Filtered category lists are null" });
+                if (documents.length === 0) {
+                    return res
+                        .status(200)
+                        .json({ message: "Filtered category lists are null" });
                 }
             }
         }
+
+        // 총 12개까지만 결과 제한
+        documents = documents.slice(0, 12);
 
         // 모든 문서를 모은 후 최신순으로 정렬
         documents.sort((a, b) => new Date(b.time) - new Date(a.time));
@@ -102,7 +115,6 @@ const loadBoardWithFilter = async (req, res) => {
 
         // 결과를 클라이언트로 반환
         res.json(documents);
-        
     } catch (error) {
         console.error("Error fetching board data:", error);
         res.status(500).json({ message: "Server error" });
