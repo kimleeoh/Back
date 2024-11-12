@@ -45,7 +45,7 @@ const handleUserProfile = async (req, res) => {
 
         const name = userInfo.name || "Unknown";
         const intro = userInfo.intro || "소개가 없습니다";
-        const badge = userInfo.Rbadge_list.length>0? await Badge.find({_id:{$in:received.Rbadge}}) : "뱃지가 없습니다";
+        const badge = userInfo.Rbadge_list.length>0? await Badge.find({_id:{$in:received.Rbadge_list}}, {_id:0}) : "뱃지가 없습니다";
 
         // UserDocs 조회
         const userDocs = await UserDocs.findOne({ _id: Rdoc });
