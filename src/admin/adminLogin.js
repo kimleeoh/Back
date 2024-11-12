@@ -14,13 +14,13 @@ const handleAdminLogin = async (req, res) => {
     AdminLogin.find({_id:"3", Admins:{$elemMatch:{id:username, pw:password}}})
     .then((result)=>{
         if(result.length > 0){
-            req.session.user = {
+            req.session.user= {
                 name: username,
                 authCode: ADMIN_AUTH_CODE.get()
             };
             console.log(req.session.user);
             const redisClient = redisHandler.getRedisClient();
-            redisClient.sAdd('logged_in_admins', req.session.user.name)
+            redisClient.sAdd('logged_in_admins', username)
             .then(() => {
                 res.redirect(301, '/admin/online');
             })

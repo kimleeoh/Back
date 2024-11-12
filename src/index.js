@@ -41,7 +41,7 @@ const {
 const adminSessionMiddleware = session({
     secret: ADMIN_SESSION_SECRET,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
