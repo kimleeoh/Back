@@ -3,8 +3,7 @@ import express from "express";
 import dotenv from "dotenv";
 import redisHandler from "./config/redisHandler.js";
 import s3Handler from "./config/s3Handler.js";
-import rateLimiter from "./functions/rateLimiter.js";
-
+import { RedisStore } from "connect-redis";
 import adminRoutes from "./routes/adminRoutes.js";
 import {
     lightRouter,
@@ -13,7 +12,6 @@ import {
     categoryRouter,
 } from "./routes/clientRoutes.js";
 
-import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
 import { setupSocketIO } from "./io.js";
 import session from "express-session";
@@ -39,6 +37,7 @@ const {
 } = process.env;
 
 const adminSessionMiddleware = session({
+    store: new RedisStore({ client: redisHandler.getRedisClient() }),
     secret: ADMIN_SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
@@ -73,7 +72,6 @@ s3Handler.create([
 //adminApp.set('views', 'src/admin/views');
 adminApp.set("view engine", "ejs");
 adminApp.use("/admin", express.static("src/admin/"));
-adminApp.use(adminSessionMiddleware);
 adminApp.use(express.urlencoded({ extended: true }));
 adminApp.use(express.json());
 
@@ -113,6 +111,7 @@ mongoose
     .then(() => console.log("Successfully connected to mongodb"))
     .catch((e) => console.error(e));
 
+adminApp.use(adminSessionMiddleware);
 adminApp.use("/", adminRoutes);
 clientApp.set('trust proxy', 1);
 clientApp.use("/api", limiter.loginRate(), loginRouter);

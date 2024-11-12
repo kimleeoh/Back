@@ -62,6 +62,11 @@ const handleAdminOnline = async (req, res) => {
 // });
 
 const handleAdminRedis = async (req, res) => {
+    if(ADMIN_AUTH_CODE.get() !== req.session.user.authCode){
+        res.status(401).send('Unauthorized');
+        return;
+    }
+
     const redisClient = redisHandler.getRedisClient();
     
     if(req.body.type=="selected"){
@@ -103,6 +108,10 @@ const handleAdminNewData = (req, res) => {
 // router.post('/admin/mongoose', async (req, res) => {
 // });
 const handleAdminMongoose = async (req, res) => {
+    if(ADMIN_AUTH_CODE.get() !== req.session.user.authCode){
+        res.status(401).send('Unauthorized');
+        return;
+    }
     const idd = new mongoose.Types.ObjectId(req.body.id, "hex");
     console.log(idd);
 
@@ -354,6 +363,10 @@ const handleAdminMongoose = async (req, res) => {
 
 
 const handleAdminGetMongoose = async (req, res) => {
+if(ADMIN_AUTH_CODE.get() !== req.session.user.authCode){
+    res.status(401).send('Unauthorized');
+    return;
+}
 if(req.body.type=="user"){
         
     User.findById(req.body.id, {name:1, hakbu:1, hakbun:1, _id:1})
