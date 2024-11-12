@@ -53,6 +53,7 @@ import { handleModal } from "../api/User/modal.js";
 const lightRouter = express.Router();
 const loginRouter = express.Router();
 const heavyRouter = express.Router();
+const categoryRouter = express.Router();
 //const categoryRouter = express.Router()
 const upload = multer({ dest: 'uploads/' }); 
 
@@ -61,7 +62,7 @@ lightRouter.get('/dummy/testqna', getQnaData);
 lightRouter.get('/dummy/testtip', getTipData);
 
 // 카테고리 관련 라우터
-heavyRouter.post('/category', getCategory);
+categoryRouter.post('/category', getCategory);
 
 // 로그인 관련 라우터
 loginRouter.post('/login', handleLogin);
@@ -143,4 +144,4 @@ heavyRouter.post("/home/answer-possible", myMiddleware, handleAnswerPossibleList
 // // 캐시 테스트
 // router.get('/cache/popular-posts', getCachedPopularPosts);
 
-export {lightRouter, loginRouter, heavyRouter};
+export {lightRouter, loginRouter, heavyRouter, categoryRouter};

@@ -9,7 +9,7 @@ const handleAdminLogin = async (req, res) => {
     console.log(req.body);
     const { rawUsername, rawPassword } = req.body;
     const username = String(rawUsername).replace(/[^a-zA-Z0-9*@]/g, '');
-    const password = String(rawPassword).replace(/[^a-zA-Z0-9@]/g, '');
+    const password = String(rawPassword).replace(/[^a-zA-Z0-9*@]/g, '');
     console.log(username, password);
     AdminLogin.find({_id:"3", Admins:{$elemMatch:{id:username, pw:password}}})
     .then((result)=>{

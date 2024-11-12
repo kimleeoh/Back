@@ -10,6 +10,7 @@ import {
     lightRouter,
     heavyRouter,
     loginRouter,
+    categoryRouter,
 } from "./routes/clientRoutes.js";
 
 import jwt from "jsonwebtoken";
@@ -117,6 +118,7 @@ clientApp.set('trust proxy', 1);
 clientApp.use("/api", limiter.loginRate(), loginRouter);
 clientApp.use("/api", limiter.lightRate(), lightRouter);
 clientApp.use("/api", limiter.heavyRate(), heavyRouter);
+clientApp.use("/api", limiter.categoryRate(), categoryRouter);
 clientApp.get("/", (req, res) => {
     res.send("<h1>서버 실행 중</h1>");
 });
