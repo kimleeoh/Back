@@ -28,12 +28,12 @@ const handleAdminOnline = async (req, res) => {
         const redisClient = redisHandler.getRedisClient();
 
         try {
-            const result = await AdminConfirm.findOne({ _id: 0 });
+            const result = await AdminConfirm.findOne({ _id: "0" });
             console.log(result);
 
-            const warn = await AdminWarn.findOne({ _id: 1 });
-            const users = await AdminUsers.findOne({ _id: 2 });
-            const scores = await AdminScore.findOne({ _id: 4 });
+            const warn = await AdminWarn.findOne({ _id: "1" });
+            const users = await AdminUsers.findOne({ _id: "2" });
+            const scores = await AdminScore.findOne({ _id: "4" });
 
             const members = await redisClient.sMembers('logged_in_admins');
             const selecte = await redisClient.sMembers('selected');
