@@ -5,8 +5,14 @@ import {
     QnaDocuments
 } from "../schemas/docs.js";
 import { User } from "../schemas/user.js";
+import { Category } from "../schemas/category.js";
 
-const getCategoryTipsDocuments = async (categoryType, categoryData, limit, depth) => {
+const getCategoryTipsDocuments = async (
+    categoryType,
+    categoryData,
+    limit,
+    depth
+) => {
     let model;
     let docList;
 
@@ -31,23 +37,43 @@ const getCategoryTipsDocuments = async (categoryType, categoryData, limit, depth
     console.log("docList: ", docList);
 
     const end = -limit * (depth - 1) || undefined;
-    const start = end==undefined? -limit : end - limit;
+    const start = end == undefined ? -limit : end - limit;
 
-    // Rqna_list에서 마지막 20개의 문서 ID 가져오기
+    if (docList.length > limit) docList = docList.slice(start, end);
+    else if (docList.length < limit && depth > 1) docList = [];
 
-    if(docList.length>limit) docList = docList.slice(start, end);
-    else if(docList.length<limit&&depth>1)docList=[];
-
-    console.log(start,end,docList);
+    console.log(start, end, docList);
 
     // 문서 조회 및 populate
     const documents = await model
-        .find({ '_id': { $in: docList } })
+        .find({ _id: { $in: docList } })
         .select(
-        "_id title preview_img now_category target Ruser time views likes purchase_price"
+            "_id title preview_img now_category target Ruser time views likes purchase_price"
         )
         .populate({ path: "Ruser", model: User, select: "name hakbu" })
         .lean();
+
+    // now_category에 대한 _id와 category_name 추가
+    for (const doc of documents) {
+        if (doc.now_category) {
+            const category = await Category.findOne({
+                _id: doc.now_category,
+            })
+                .select("category_name")
+                .lean();
+            doc.now_category = category
+                ? {
+                    _id: doc.now_category,
+                    category_type: categoryType,
+                    category_name: category.category_name,
+                }
+                : {
+                    _id: doc.now_category,
+                    category_type: categoryType,
+                    category_name: "Unknown Category",
+                };
+        }
+    }
 
     console.log("doc", documents);
 

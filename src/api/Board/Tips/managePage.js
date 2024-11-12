@@ -145,9 +145,9 @@ const handlePurchaseTipsPage = async(req, res) => {
         _id: document.Rfile,
     });
 
-    console.log(updatePurchased, purchasedFiles);
+    console.log("update:", updatePurchased,"purchase", purchasedFiles);
 
-    console.log("Rpurchase_list: ", updatePurchased.Rpurchased_list);
+    console.log("Rpurchase_list인데 update: ", updatePurchased.Rpurchased_list);
     updatePurchased.Rpurchased_list.push(docid);
     purchasedFiles.Rpurchase_list.push(userInfo._id);
     // if(updatePurchased.Rpurchased_list.length>0){
