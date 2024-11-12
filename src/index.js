@@ -39,6 +39,7 @@ const {
 
 // Redis 연결
 redisHandler.create(REDIS_URL);
+redisHandler.connect();
 const redisClient = redisHandler.getRedisClient();
 
 if (!redisClient) throw new Error("Failed to connect to Redis");
