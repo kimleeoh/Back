@@ -12,14 +12,14 @@ const handleAdminLogin = async (req, res) => {
     const password = String(rawPassword).replace(/[^a-zA-Z0-9*@]/g, '');
     console.log(username, password);
     await AdminLogin.find({_id:"3", Admins:{$elemMatch:{id:username, pw:password}}})
-    .then((result)=>{
+    .then(async(result)=>{
         console.log(result);
         if(result.length > 0){
             req.session.user= {
                 name: username,
                 authCode: ADMIN_AUTH_CODE.get()
             };
-            req.session.save();
+            await req.session.save();
             console.log(req.session.user);
             const redisClient = redisHandler.getRedisClient();
             redisClient.sAdd('logged_in_admins', username)

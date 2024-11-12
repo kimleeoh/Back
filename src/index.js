@@ -45,7 +45,7 @@ const adminSessionMiddleware = session({
     cookie: {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        
         maxAge: 2 * 60 * 60 * 1000, // 2 시간
     },
 });
