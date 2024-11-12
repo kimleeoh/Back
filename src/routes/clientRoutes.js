@@ -131,7 +131,7 @@ lightRouter.post('/menu/scraplist', myMiddleware, handleUserScrapList); // 스�
 lightRouter.post('/menu/likelist', myMiddleware, handleUserLikeList); // 좋아요 리스트 조회
 lightRouter.post('/menu/postlist', myMiddleware, handleUserPostList); // 내가 쓴 글 리스트 조회
 lightRouter.get("/menu/recentlist", myMiddleware, handleRecentRead); // 최근 본 글 리스트 조회
-lightRouter.get("/menu/purchased", myMiddleware, handlePurchased);
+lightRouter.post("/menu/purchased", myMiddleware, handlePurchased);
 
 // 인기 게시물 조회 관련
 heavyRouter.post("/mypage/trending", myMiddleware, handleMytrendingList); // 프로필페이지의 인기게시글 조회

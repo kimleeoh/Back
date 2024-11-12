@@ -4,7 +4,7 @@ import { QnaDocuments } from "../../schemas/docs.js";
 import redisHandler from "../../config/redisHandler.js";
 import mainInquiry from "../../functions/mainInquiry.js";
 import { UserDocs } from "../../schemas/userRelated.js";
-import { CommonCategory } from "../../schemas/category.js";
+import { Category } from "../../schemas/category.js";
 
 const handleUserScrapList = async (req, res) => {
     const decryptedSessionId = String(req.decryptedSessionId);
@@ -44,7 +44,7 @@ const handleUserScrapList = async (req, res) => {
             documents.push(...qnaDocs);
         }
 
-        // Tips 관련 필터 처리 (필터 개수에 상관없이 모든 문서 불러오기)
+        // Tips 관련 필터 처리
         const tipsFilters = filters.filter((f) => f !== "qna");
 
         for (const filter of tipsFilters) {
@@ -66,30 +66,14 @@ const handleUserScrapList = async (req, res) => {
                 listField = "Rhoney_list";
             }
 
-            // 필기 관련 문서 조회 (모든 문서 불러오기)
+            // 필기 관련 문서 조회
             if (scrapList && scrapList.length > 0) {
                 const docsFromCategory = await getCategoryTipsDocuments(
                     categoryType,
                     { [listField]: scrapList }
                 );
 
-                for (const doc of docsFromCategory) {
-                    // CommonCategory에서 category_name 가져오기
-                    const categoryDoc = await CommonCategory.findOne({
-                        [listField]: doc._id,
-                    }).lean();
-
-                    // category_name 추가 및 category_type 설정
-                    if (categoryDoc) {
-                        doc.category_name = categoryDoc.category_name;
-                        doc.category_type = categoryType;
-                    } else {
-                        doc.category_name = "Unknown Category"; // 카테고리 못 찾을 경우
-                        doc.category_type = categoryType;
-                    }
-                }
-
-                // documents 배열에 추가
+                // docsFromCategory가 배열 형식이므로 그대로 documents에 추가
                 documents.push(...docsFromCategory);
             }
         }
@@ -101,10 +85,10 @@ const handleUserScrapList = async (req, res) => {
             });
         }
 
-        // 모든 문서를 모은 후 최신순으로 정렬
+        // 모든 문서를 최신순으로 정렬
         documents.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-        // documents가 있을 경우
+        // 최종 응답
         res.status(200).json({
             userId: userInfo._id,
             Rdoc: userInfo.Rdoc,

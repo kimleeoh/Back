@@ -1,11 +1,12 @@
 import mainInquiry from "../../functions/mainInquiry.js";
 import redisHandler from "../../config/redisHandler.js";
 import { UserDocs } from "../../schemas/userRelated.js";
-import { HoneyDocuments, PilgyDocuments, TestDocuments } from "../../schemas/docs.js";
+import { getCategoryTipsDocuments } from "../../functions/documentHelpers.js";
+import { Category } from "../../schemas/category.js"; // Category 스키마 추가
 
-const handlePurchased = async(req,res) =>{
+const handlePurchased = async (req, res) => {
     const decryptedSessionId = String(req.decryptedSessionId);
-    const { filters, depth } = req.query; // filters 값 받기
+    const { filters } = req.body;
 
     try {
         if (mainInquiry.isNotRedis()) {
@@ -13,44 +14,64 @@ const handlePurchased = async(req,res) =>{
             mainInquiry.inputRedisClient(redisClient);
         }
 
-        // Redis에서 유저 정보 가져오기
         const userInfo = await mainInquiry.read(
             ["_id", "Rdoc"],
             decryptedSessionId
         );
-        if (!userInfo || !userInfo._id || !userInfo.Rdoc) {
+        if (!userInfo || !userInfo.Rdoc) {
             return res.status(400).json({
                 message: "Failed to retrieve user information from Redis",
             });
         }
 
-        // UserDocs에서 유저의 Rqna_list, Rpilgy_list, Rhoney_list, Rtest_list 가져오기
-        const userDocs = await UserDocs.findOne({ _id: userInfo.Rdoc }).select('Rpurchased_list').lean();
+        const userDocs = await UserDocs.findOne({ _id: userInfo.Rdoc })
+            .select("Rpurchased_list")
+            .lean();
         if (!userDocs) {
             return res
                 .status(404)
                 .json({ message: "User documents not found" });
         }
-        const end = -12 * (depth - 1) || undefined;
-        const start = end - 12;
-        const renderDocs = userDocs.Rpurchased_list.slice(start, end);
 
-        const a = await PilgyDocuments.find({_id : {$in : renderDocs}}).lean();
-        const b = await HoneyDocuments.find({_id : {$in : renderDocs}}).lean();
-        const c = await TestDocuments.find({_id : {$in : renderDocs}}).lean();
+        const renderDocs = userDocs.Rpurchased_list;
+        console.log("구매id", renderDocs);
+        let docs = [];
 
-        let result = [...a,...b,...c];
-        result.sort((prev, after)=> after.time-prev.time);
+        // 각 필터에 따른 문서 검색 및 docs에 추가
+        for (const filter of filters) {
+            let categoryDocs = [];
 
-        console.log("P result", result);
+            if (filter === "pilgy") {
+                categoryDocs =
+                    (await getCategoryTipsDocuments("pilgy", {
+                        Rpilgy_list: renderDocs,
+                    })) || []; // 결과가 없으면 빈 배열로 초기화
+            } else if (filter === "honey") {
+                categoryDocs =
+                    (await getCategoryTipsDocuments("honey", {
+                        Rhoney_list: renderDocs,
+                    })) || []; // 결과가 없으면 빈 배열로 초기화
+            } else if (filter === "test") {
+                categoryDocs =
+                    (await getCategoryTipsDocuments("test", {
+                        Rtest_list: renderDocs,
+                    })) || []; // 결과가 없으면 빈 배열로 초기화
+            }
 
-        res.status(200).send({pList:result});
+            docs = docs.concat(categoryDocs);
+        }
 
-    }catch(error){
-        console.error("Error fetch like list:", error);
+        // docs가 비어 있지 않을 때만 정렬 실행
+        if (docs.length > 0) {
+            docs.sort((a, b) => new Date(b.time) - new Date(a.time));
+        }
+
+        console.log("P result", docs);
+        res.status(200).send({ docs });
+    } catch (error) {
+        console.error("Error fetching purchased documents:", error);
         res.status(500).json({ message: "Failed to retrieve like list" });
     }
-
-}
+};
 
 export { handlePurchased };
