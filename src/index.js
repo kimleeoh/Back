@@ -102,6 +102,7 @@ clientApp.use(
         optionsSuccessStatus: 200,
     })
 );
+adminApp.use(cors({origin:["http://localhost:4501", "http://localhost:4502"], credentials:true, optionsSuccessStatus: 200}));
 
 s3Handler.connect(redisHandler.getRedisClient());
 redisHandler.connect();
