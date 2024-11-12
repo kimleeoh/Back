@@ -63,7 +63,7 @@ const {
 
         // 세션 미들웨어 설정
         const adminSessionMiddleware = session({
-            store,
+            store: store,
             secret: ADMIN_SESSION_SECRET,
             resave: false,
             saveUninitialized: false,
@@ -95,7 +95,7 @@ const {
         adminApp.use("/", adminRoutes);
         adminApp.use(
             cors({
-                origin: ["http://localhost:4501", "http://localhost:4502"],
+                origin: true,
                 credentials: true,
             })
         );
