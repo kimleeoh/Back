@@ -70,6 +70,7 @@ let store;
             AWS_SECRET_ACCESS_KEY,
             AWS_S3_BUCKET,
         ]);
+        s3Handler.connect(redisClient);
         console.log("S3 configuration completed");
 
         // MongoDB 연결
