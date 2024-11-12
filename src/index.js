@@ -113,6 +113,7 @@ mongoose
     .catch((e) => console.error(e));
 
 adminApp.use("/", adminRoutes);
+clientApp.set('trust proxy', 1);
 clientApp.use("/api", limiter.loginRate(), loginRouter);
 clientApp.use("/api", limiter.lightRate(), lightRouter);
 clientApp.use("/api", limiter.heavyRate(), heavyRouter);
