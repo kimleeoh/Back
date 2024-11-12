@@ -5,7 +5,7 @@ const { EMAIL_SERVICE, EMAIL_HOST, EMAIL_USER, EMAIL_PASS } = process.env;
 
 const smtpTransport = nodemailer.createTransport({
     pool: true,
-    maxConnections: 1,
+    //maxConnections: 1,
     service: EMAIL_SERVICE,
     host: EMAIL_HOST,
     port: 465,
