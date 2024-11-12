@@ -11,13 +11,14 @@ const handleAdminLogin = async (req, res) => {
     const username = String(rawUsername).replace(/[^a-zA-Z0-9*@]/g, '');
     const password = String(rawPassword).replace(/[^a-zA-Z0-9*@]/g, '');
     console.log(username, password);
-    AdminLogin.find({_id:"3", Admins:{$elemMatch:{id:username, pw:password}}})
+    await AdminLogin.find({_id:"3", Admins:{$elemMatch:{id:username, pw:password}}})
     .then((result)=>{
         if(result.length > 0){
             req.session.user= {
                 name: username,
                 authCode: ADMIN_AUTH_CODE.get()
             };
+            req.session.save();
             console.log(req.session.user);
             const redisClient = redisHandler.getRedisClient();
             redisClient.sAdd('logged_in_admins', username)
@@ -75,6 +76,7 @@ const handleAdminSessionTimeLeft = async (req, res) => {
     if (req.session) {
         const ttl = req.session.cookie.maxAge - (Date.now() - req.session.cookie._expires.getTime());
         req.session.user.authCode = req.body.authCode;
+        await req.session.save();
         res.status(200).json({ time: ttl});
     } else {
         res.status(404).send('No active session');
