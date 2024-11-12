@@ -13,6 +13,7 @@ const handleAdminLogin = async (req, res) => {
     console.log(username, password);
     await AdminLogin.find({_id:"3", Admins:{$elemMatch:{id:username, pw:password}}})
     .then((result)=>{
+        console.log(result);
         if(result.length > 0){
             req.session.user= {
                 name: username,
