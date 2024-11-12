@@ -12,10 +12,9 @@ const ADMIN_AUTH_CODE = (() => {
     const updateAuthCode = () => {
         authCode = generateAuthCode();
         console.log(`Auth code updated to: ${authCode}`);
-        axios.get('http://localhost:4502/admin/session-time-left')
+        axios.post('http://localhost:4502/admin/session-time-left', { authCode: authCode })
     .then((response) => {
         if (response.status === 200 && response.data.time>0) {
-            response.data.session.user.authCode = authCode;
             alert(`남은 로그인 시간: ${response.data.time}\n시간 초과 시 재로그인하세요.`);
         }else{
             alert('세션이 만료되었습니다. 다시 로그인하세요.');

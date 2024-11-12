@@ -74,7 +74,8 @@ const handleAdminLogout = async (req, res) => {
 const handleAdminSessionTimeLeft = async (req, res) => {    
     if (req.session) {
         const ttl = req.session.cookie.maxAge - (Date.now() - req.session.cookie._expires.getTime());
-        res.status(200).json({ time: ttl, session: req.session });
+        req.session.user.authCode = req.body.authCode;
+        res.status(200).json({ time: ttl});
     } else {
         res.status(404).send('No active session');
     }

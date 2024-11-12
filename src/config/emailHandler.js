@@ -9,7 +9,7 @@ const smtpTransport = nodemailer.createTransport({
     service: EMAIL_SERVICE,
     host: EMAIL_HOST,
     port: 465,
-    secure: false,
+    secure: true,
     requireTLS: true,
     auth: {
         user: EMAIL_USER,
