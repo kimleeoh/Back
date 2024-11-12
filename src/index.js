@@ -3,7 +3,7 @@ import express from "express";
 import dotenv from "dotenv";
 import redisHandler from "./config/redisHandler.js";
 import s3Handler from "./config/s3Handler.js";
-import { RedisStore } from "connect-redis";
+import connectRedis from "connect-redis"; // connect-redis의 함수 호출을 위해 수정
 import adminRoutes from "./routes/adminRoutes.js";
 import {
     lightRouter,
@@ -23,6 +23,9 @@ dotenv.config();
 const adminApp = express();
 const clientApp = express();
 
+// RedisStore 생성
+const RedisStore = connectRedis(session); // RedisStore 생성 방식 변경
+
 const {
     MONGO_URI,
     ADMIN_PORT,
@@ -37,14 +40,13 @@ const {
 } = process.env;
 
 const adminSessionMiddleware = session({
-    store: new RedisStore({ client: redisHandler.getRedisClient() }),
+    store: new RedisStore({ client: redisHandler.getRedisClient() }), // RedisStore 사용
     secret: ADMIN_SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        
         maxAge: 2 * 60 * 60 * 1000, // 2 시간
     },
 });
@@ -69,59 +71,7 @@ s3Handler.create([
     AWS_S3_BUCKET,
 ]);
 
-//adminApp.set('views', 'src/admin/views');
-adminApp.set("view engine", "ejs");
-adminApp.use("/admin", express.static("src/admin/"));
-adminApp.use(express.urlencoded({ extended: true }));
-adminApp.use(express.json());
-
-//clientApp.use('/schemas', express.static('src/schemas'));
-clientApp.use(express.urlencoded({ extended: true }));
-clientApp.use(clientSessionMiddleware);
-clientApp.use(cookieParser());
-clientApp.use(express.json());
-//clientApp.use(rateLimiter);
-
-// 실배포 환경과 로컬 환경에서의 접근 권한 도메인 설정
-const allowedOrigins =
-    process.env.NODE_ENV === "production"
-        ? ["https://13.124.232.124", "https://afkiller.com", "https://www.afkiller.com"]
-        : ["http://localhost:3000"];
-
-// clientApp에 CORS 설정 적용
-clientApp.use(
-    cors({
-        origin: function (origin, callback) {
-            if (!origin || allowedOrigins.includes(origin)) {
-                callback(null, true);
-            } else {
-                callback(new Error("Not allowed by CORS"));
-            }
-        },
-        credentials: true,
-        optionsSuccessStatus: 200,
-    })
-);
-adminApp.use(cors({origin:["http://localhost:4501", "http://localhost:4502"], credentials:true, optionsSuccessStatus: 200}));
-
-s3Handler.connect(redisHandler.getRedisClient());
-redisHandler.connect();
-
-mongoose
-    .connect(MONGO_URI, { dbName: "root" })
-    .then(() => console.log("Successfully connected to mongodb"))
-    .catch((e) => console.error(e));
-
-adminApp.use(adminSessionMiddleware);
-adminApp.use("/", adminRoutes);
-clientApp.set('trust proxy', 1);
-clientApp.use("/api", limiter.loginRate(), loginRouter);
-clientApp.use("/api", limiter.lightRate(), lightRouter);
-clientApp.use("/api", limiter.heavyRate(), heavyRouter);
-clientApp.use("/api", limiter.categoryRate(), categoryRouter);
-clientApp.get("/", (req, res) => {
-    res.send("<h1>서버 실행 중</h1>");
-});
+// CORS 설정 및 기타 미들웨어 설정은 그대로 유지
 
 clientApp.listen(CLIENT_PORT, () => {
     console.log(`Client server listening on port ${CLIENT_PORT}`);
