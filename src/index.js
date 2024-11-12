@@ -36,122 +36,117 @@ const {
     AWS_S3_BUCKET,
 } = process.env;
 
-(async () => {
-    try {
-        // Redis 연결
-        redisHandler.create(REDIS_URL);
-        const redisClient = redisHandler.getRedisClient();
 
-        if (!redisClient) throw new Error("Failed to connect to Redis");
-        console.log("Successfully connected to Redis");
+// Redis 연결
+redisHandler.create(REDIS_URL);
+const redisClient = redisHandler.getRedisClient();
 
-        const store = new RedisStore({ client: redisClient });
+if (!redisClient) throw new Error("Failed to connect to Redis");
+console.log("Successfully connected to Redis");
 
-        // S3 연결
-        s3Handler.create([
-            AWS_S3_REGION,
-            AWS_ACCESS_KEY_ID,
-            AWS_SECRET_ACCESS_KEY,
-            AWS_S3_BUCKET,
-        ]);
-        s3Handler.connect(redisClient);
-        console.log("S3 configuration completed");
+const store = new RedisStore({ client: redisClient });
 
-        // MongoDB 연결
-        await mongoose.connect(MONGO_URI, { dbName: "root" });
-        console.log("Successfully connected to MongoDB");
+// S3 연결
+s3Handler.create([
+    AWS_S3_REGION,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_S3_BUCKET,
+]);
+s3Handler.connect(redisClient);
+console.log("S3 configuration completed");
 
-        // 세션 미들웨어 설정
-        const adminSessionMiddleware = session({
-            store: store,
-            secret: ADMIN_SESSION_SECRET,
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                maxAge: 2 * 60 * 60 * 1000, // 2 시간
-            },
-        });
+// MongoDB 연결
+await mongoose.connect(MONGO_URI, { dbName: "root" });
+console.log("Successfully connected to MongoDB");
 
-        const clientSessionMiddleware = session({
-            secret: CLIENT_SESSION_SECRET,
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: 24 * 60 * 60 * 1000, // 24 시간
-            },
-        });
+// 세션 미들웨어 설정
+const adminSessionMiddleware = session({
+    store: store,
+    secret: ADMIN_SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 2 * 60 * 60 * 1000, // 2 시간
+    },
+});
 
-        // adminApp 설정
-        adminApp.set("view engine", "ejs");
-        adminApp.use("/admin", express.static("src/admin/"));
-        adminApp.use(express.urlencoded({ extended: true }));
-        adminApp.use(express.json());
-        adminApp.use(adminSessionMiddleware);
-        adminApp.use("/", adminRoutes);
-        adminApp.use(
-            cors({
-                origin: true,
-                credentials: true,
-            })
-        );
+const clientSessionMiddleware = session({
+    secret: CLIENT_SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000, // 24 시간
+    },
+});
 
-        // clientApp 설정
-        clientApp.use(express.urlencoded({ extended: true }));
-        clientApp.use(clientSessionMiddleware);
-        clientApp.use(cookieParser());
-        clientApp.use(express.json());
+// adminApp 설정
+adminApp.set("view engine", "ejs");
+adminApp.use("/admin", express.static("src/admin/"));
+adminApp.use(express.urlencoded({ extended: true }));
+adminApp.use(express.json());
+adminApp.use(adminSessionMiddleware);
+adminApp.use(
+    cors({
+        origin: true,
+        credentials: true,
+    })
+);
+adminApp.use("/", adminRoutes);
 
-        // CORS 설정
-        const allowedOrigins =
-            process.env.NODE_ENV === "production"
-                ? [
-                      "https://13.124.232.124",
-                      "https://afkiller.com",
-                      "https://www.afkiller.com",
-                  ]
-                : ["http://localhost:3000"];
+// clientApp 설정
+clientApp.use(express.urlencoded({ extended: true }));
+//clientApp.use(clientSessionMiddleware);
+clientApp.use(cookieParser());
+clientApp.use(express.json());
 
-        clientApp.use(
-            cors({
-                origin: function (origin, callback) {
-                    if (!origin || allowedOrigins.includes(origin)) {
-                        callback(null, true);
-                    } else {
-                        callback(new Error("Not allowed by CORS"));
-                    }
-                },
-                credentials: true,
-                optionsSuccessStatus: 200,
-            })
-        );
+// CORS 설정
+const allowedOrigins =
+    process.env.NODE_ENV === "production"
+        ? [
+                "https://13.124.232.124",
+                "https://afkiller.com",
+                "https://www.afkiller.com",
+            ]
+        : ["http://localhost:3000"];
 
-        // 라우터 설정
-        clientApp.use("/api", limiter.loginRate(), loginRouter);
-        clientApp.use("/api", limiter.lightRate(), lightRouter);
-        clientApp.use("/api", limiter.heavyRate(), heavyRouter);
-        clientApp.use("/api", limiter.categoryRate(), categoryRouter);
-        clientApp.get("/", (req, res) => {
-            res.send("<h1>서버 실행 중</h1>");
-        });
+clientApp.use(
+    cors({
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
+        credentials: true,
+        optionsSuccessStatus: 200,
+    })
+);
 
-        // 서버 시작
-        clientApp.listen(CLIENT_PORT, () => {
-            console.log(`Client server listening on port ${CLIENT_PORT}`);
-        });
+// 라우터 설정
+clientApp.use("/api", limiter.loginRate(), loginRouter);
+clientApp.use("/api", limiter.lightRate(), lightRouter);
+clientApp.use("/api", limiter.heavyRate(), heavyRouter);
+clientApp.use("/api", limiter.categoryRate(), categoryRouter);
+clientApp.get("/", (req, res) => {
+    res.send("<h1>서버 실행 중</h1>");
+});
 
-        const adminServer = adminApp.listen(ADMIN_PORT, () => {
-            console.log(`Admin server listening on port ${ADMIN_PORT}`);
-        });
+// 서버 시작
+clientApp.listen(CLIENT_PORT, () => {
+    console.log(`Client server listening on port ${CLIENT_PORT}`);
+});
 
-        // Socket.IO 설정
-        const io = new Server(adminServer, { path: "/admin/online" });
-        setupSocketIO(io);
-    } catch (error) {
-        console.error("Error during initialization:", error);
-    }
-})();
+const adminServer = adminApp.listen(ADMIN_PORT, () => {
+    console.log(`Admin server listening on port ${ADMIN_PORT}`);
+});
+
+// Socket.IO 설정
+const io = new Server(adminServer, { path: "/admin/online" });
+setupSocketIO(io);
