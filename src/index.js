@@ -23,14 +23,6 @@ dotenv.config();
 const adminApp = express();
 const clientApp = express();
 
-process.on("uncaughtException", (error) => {
-    console.error("Uncaught Exception:", error);
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-    console.error("Unhandled Rejection at:", promise, "reason:", reason);
-});
-
 const {
     MONGO_URI,
     ADMIN_PORT,
@@ -44,25 +36,17 @@ const {
     AWS_S3_BUCKET,
 } = process.env;
 
-// store를 try 블록 외부에 선언
-let store;
-
 (async () => {
     try {
         // Redis 연결
-        await redisHandler.create(REDIS_URL);
-        console.log("Redis handler initialized.");
-
+        redisHandler.create(REDIS_URL);
         const redisClient = redisHandler.getRedisClient();
-        if (!redisClient) {
-            console.error("Redis client failed to initialize.");
-            throw new Error("Failed to connect to Redis");
-        }
-        console.log("Redis client obtained successfully.");
 
-        // store를 초기화
-        store = new RedisStore({ client: redisClient });
-        
+        if (!redisClient) throw new Error("Failed to connect to Redis");
+        console.log("Successfully connected to Redis");
+
+        const store = new RedisStore({ client: redisClient });
+
         // S3 연결
         s3Handler.create([
             AWS_S3_REGION,
@@ -114,14 +98,6 @@ let store;
                 credentials: true,
             })
         );
-        adminApp.use((req, res, next) => {
-            console.log(`Incoming request: ${req.method} ${req.url}`);
-            next();
-        });
-        adminApp.get("/admin/test", (req, res) => {
-            console.log("Test route hit");
-            res.send("Test route is working");
-        });
 
         // clientApp 설정
         clientApp.use(express.urlencoded({ extended: true }));

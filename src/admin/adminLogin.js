@@ -6,54 +6,43 @@ import redisHandler from '../config/redisHandler.js';
 // });
 
 const handleAdminLogin = async (req, res) => {
-    console.log("Received login request:", req.body); // 로그인 요청 로그
-
+    console.log(req.body);
     const { rawUsername, rawPassword } = req.body;
-    const username = String(rawUsername).replace(/[^a-zA-Z0-9*@]/g, "");
-    const password = String(rawPassword).replace(/[^a-zA-Z0-9*@]/g, "");
-
-    console.log("Sanitized Username:", username); // 사용자 이름 확인
-    console.log("Sanitized Password:", password); // 비밀번호 확인
-
-    const redisClient = redisHandler.getRedisClient();
-    if (!redisClient) {
-        console.error("Failed to connect to Redis."); // Redis 연결 실패 로그
-        return res
-            .status(500)
-            .render("home.ejs", { loginStatus: "Internal Server Error-Redis" });
-    }
-
-    try {
-        const result = await AdminLogin.find({
-            _id: "3",
-            Admins: { $elemMatch: { id: username, pw: password } },
-        });
-
-        console.log("Database query result:", result); // 데이터베이스 조회 결과 확인
-
-        if (result.length > 0) {
-            req.session.user = {
+    const username = String(rawUsername).replace(/[^a-zA-Z0-9*@]/g, '');
+    const password = String(rawPassword).replace(/[^a-zA-Z0-9*@]/g, '');
+    console.log(username, password);
+    await AdminLogin.find({_id:"3", Admins:{$elemMatch:{id:username, pw:password}}})
+    .then(async(result)=>{
+        console.log(result);
+        if(result.length > 0){
+            req.session.user= {
                 name: username,
-                authCode: ADMIN_AUTH_CODE.get(),
+                authCode: ADMIN_AUTH_CODE.get()
             };
             await req.session.save();
-            console.log("Session saved for user:", req.session.user);
-
-            await redisClient.sAdd("logged_in_admins", username);
-            console.log("Added to Redis logged_in_admins set:", username); // Redis에 추가 확인
-
-            res.redirect(301, "/admin/online");
+            console.log(req.session.user);
+            const redisClient = redisHandler.getRedisClient();
+            redisClient.sAdd('logged_in_admins', username)
+            .then(() => {
+                res.redirect(301, '/admin/online');
+            })
+            .catch((err) => {
+                console.log(err);
+                if (err) {
+                    console.error('Redis error:', err);
+                    res.status(500).render("home.ejs", { loginStatus: 'Internal Server Error-Redis' });
+                }
+            });
         } else {
-            console.log("No matching user found, Unauthorized");
-            res.status(401).render("home.ejs", { loginStatus: "Unauthorized" });
+            res.status(401).render("home.ejs", { loginStatus: 'Unauthorized' });
         }
-    } catch (e) {
-        console.error("Error during login process:", e); // 오류 로그
-        res.status(500).render("home.ejs", {
-            loginStatus: "Internal Server Error",
-        });
-    }
-};2
+    })
+    .catch((e) => {
+        console.error(e);
+        res.status(500).render("home.ejs", { loginStatus: 'Internal Server Error' });
+    });
+}
+
 // router.post('/logout', async (req, res) => {
 // });
 
