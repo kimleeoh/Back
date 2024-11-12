@@ -23,6 +23,7 @@ const handleAdminHome = async (req, res) => {
 // });
 
 const handleAdminOnline = async (req, res) => {
+    console.log(req.session.user);
     if (req.session.user && req.session.user.authCode && req.session.user.authCode === ADMIN_AUTH_CODE.get()) {
         console.log("yup");
         const redisClient = redisHandler.getRedisClient();
