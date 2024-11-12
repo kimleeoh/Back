@@ -85,6 +85,7 @@ clientApp.use(express.json());
 //clientApp.use(rateLimiter);
 
 // 실배포 환경과 로컬 환경에서의 접근 권한 도메인 설정
+adminApp.user(cors({ origin:true,credentials: true }));
 const allowedOrigins =
     process.env.NODE_ENV === "production"
         ? ["https://13.124.232.124", "https://afkiller.com", "https://www.afkiller.com"]
