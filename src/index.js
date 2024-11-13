@@ -68,7 +68,7 @@ const adminSessionMiddleware = session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false,
         maxAge: 2 * 60 * 60 * 1000, // 2 시간
     },
 });
