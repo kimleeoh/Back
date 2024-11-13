@@ -12,6 +12,7 @@ import { CustomBoardView } from "../../schemas/userRelated.js";
 import { rewardNullCheck } from "../../functions/rewardCheck.js";
 import { notify } from "../../functions/notifier.js";
 import { Modal } from "../../schemas/notify.js";
+import mongoose from "mongoose";
 
 //이거는 jwt인증용 rsa키가 될 것.
 const privateKeyPem = fs.readFileSync(
