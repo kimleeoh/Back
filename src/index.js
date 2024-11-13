@@ -42,9 +42,6 @@ redisHandler.create(REDIS_URL);
 redisHandler.connect();
 const redisClient = redisHandler.getRedisClient();
 
-if (!redisClient) throw new Error("Failed to connect to Redis");
-console.log("Successfully connected to Redis");
-
 const store = new RedisStore({ client: redisClient });
 
 // S3 연결
@@ -54,12 +51,14 @@ s3Handler.create([
     AWS_SECRET_ACCESS_KEY,
     AWS_S3_BUCKET,
 ]);
-s3Handler.connect(redisClient);
+await s3Handler.connect(redisClient);
 console.log("S3 configuration completed");
 
 // MongoDB 연결
-await mongoose.connect(MONGO_URI, { dbName: "root" });
-console.log("Successfully connected to MongoDB");
+mongoose
+    .connect(MONGO_URI, { dbName: "root" })
+    .then(() => console.log("Successfully connected to mongodb"))
+    .catch((e) => console.error(e));
 
 // 세션 미들웨어 설정
 const adminSessionMiddleware = session({
@@ -98,11 +97,10 @@ adminApp.use(
         credentials: true,
     })
 );
-adminApp.use("/", adminRoutes);
 
 // clientApp 설정
 clientApp.use(express.urlencoded({ extended: true }));
-//clientApp.use(clientSessionMiddleware);
+clientApp.use(clientSessionMiddleware);
 clientApp.use(cookieParser());
 clientApp.use(express.json());
 
@@ -131,6 +129,8 @@ clientApp.use(
 );
 
 // 라우터 설정
+adminApp.use("/", adminRoutes);
+
 clientApp.use("/api", limiter.loginRate(), loginRouter);
 clientApp.use("/api", limiter.lightRate(), lightRouter);
 clientApp.use("/api", limiter.heavyRate(), heavyRouter);

@@ -20,11 +20,13 @@ const redisHandler = (() => {
                 throw error;
             }
         },
-        connect: () => {
-            redisClient
-                .connect()
-                .then(() => console.log("Successfully connected to redis"))
-                .catch((e) => console.error(e));
+        connect: async() => {
+            try{
+                await redisClient.connect()
+                console.log("Successfully connected to redis");}
+            catch(e){
+                console.error(e);
+            }
         },
         getRedisClient: () => redisClient,
     };
