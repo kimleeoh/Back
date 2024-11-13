@@ -70,11 +70,13 @@ const mainInquiry = (() => {
         },
         write: async (paramObject, redisId) => {
             let RedisId = String(redisId);
-            const stringfiedJSON = await redisClient.get(RedisId);
+            let stringfiedJSON = await redisClient.get(RedisId);
             if (!stringfiedJSON) {
+                stringfiedJSON = await redisClient.get(RedisId);
+                if(!stringfiedJSON){
                 throw new Error(
                     "No data found in Redis for the given session ID"
-                );
+                );}
             }
 
             const userInfo = JSON.parse(stringfiedJSON);
