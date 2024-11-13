@@ -66,8 +66,6 @@ const handleQnACreate = async(req, res)=>{
         let willwrite = {};
         if(p*-1<0) {res.status(400).send('Not enough points');return;}
         else willwrite.POINT=p;
-        delete req.decryptedSessionId;
-        delete req.decryptedUserData;
         console.log(data);
         await data.save();
         const i = new mongoose.Types.ObjectId(received.Rdoc);
