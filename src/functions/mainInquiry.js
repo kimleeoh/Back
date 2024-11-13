@@ -110,7 +110,8 @@ const mainInquiry = (() => {
                         } else if (listFields.includes(key)) {
                             listChunk[key] = paramObject[key];
                         } else if (rlistFields.includes(key)) {
-                            rlistChunk[key] = paramObject[key];
+                            const field = key.slice(1);
+                            rlistChunk[key] = paramObject[field];
                         } else if(checkFields.includes(key)){
                             checkListChunk[key] = paramObject[key];
                         }else if (
