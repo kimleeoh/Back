@@ -284,7 +284,7 @@ const handleRegister=async(req,res)=>{
         
         await axios.create({
             baseURL: 'http://localhost:4502',
-        }).get('/admin/online/newData');
+        }).put('/admin/online/newData');
         
         res.status(200).send({message : "User created and broadcasted to admin"});
     }
