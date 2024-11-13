@@ -48,8 +48,8 @@ const handleUpdatePage = async (req, res) => {
         switch (wa[index]) {
             case -1 :
                 if(willchange.isAnswerLiked[index]==1) {
-                userDoc.RmyLike_list.Ranswer_list = userDoc.RmyLike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
-                userDoc.RmyUnlike_list.Ranswer_list = userDoc.RmyUnlike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
+                userDoc.RmyLike_list.Rreply_list = userDoc.RmyLike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
+                userDoc.RmyUnlike_list.Rreply_list = userDoc.RmyUnlike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());
                 userDoc.totalLike -=  1;}
                 else if(willchange.isAnswerLiked[index]==0) {userDoc.RmyUnlike_list.Rreply_list.push(answer._id);userDoc.RmyLike_list.Ranswer_list = userDoc.RmyLike_list.Rreply_list.filter(item => item.toString() !== answer._id.toString());}
                 break;
