@@ -101,7 +101,7 @@ const handleUpdatePage = async (req, res) => {
     // reward check and notify
     let modal = await rewardNullCheck(3, userDoc, willchange, received.uNullRewardList);
     if(modal.status){
-        mainInquiryUp[uNullRewardList] = modal.uNullRewardList;
+        mainInquiryUp['uNullRewardList'] = modal.uNullRewardList;
         const ID = new mongoose.Types.ObjectId();
         await Modal.create({
             _id: ID,
@@ -111,7 +111,7 @@ const handleUpdatePage = async (req, res) => {
             who_user: "system",
             point: re.point
         });
-        mainInquiryUp[Rmodal_noti_list] =[ID];
+        mainInquiryUp['Rmodal_noti_list'] =[ID];
     }else{
         modal = await rewardOtherCheck(1, userDoc, willchange, received.uMultiRewardList);
         if(modal[0].status){
@@ -130,7 +130,7 @@ const handleUpdatePage = async (req, res) => {
         await notify.Self(req.decryptedSessionId, doc._id, doc.title, 7, "/qna", modal[0].point);
     }
 
-    mainInquiryUp[uMultiRewardList] = received.uMultiRewardList;
+    mainInquiryUp['uMultiRewardList'] = received.uMultiRewardList;
 
     if(doc.likes!=0&&doc.likes%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
     if(doc.scrap!=0&&doc.scrap%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
