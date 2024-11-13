@@ -121,7 +121,7 @@ const handleLogin = async (req, res) => {
                     who_user: "system",
                     point: isModal.point
                 });
-                user.Rmodal_noti_list.push(ID);
+                rawUser.Rmodal_noti_list.push(ID);
                 //user.POINT+=isModal.point;
             }
             rawUser.confirmed = 3;
