@@ -132,10 +132,10 @@ clientApp.use(
 // 라우터 설정
 adminApp.use("/", adminRoutes);
 
-clientApp.use("/api", limiter.loginRate(), loginRouter);
+clientApp.use("/api/lg", limiter.loginRate(), loginRouter);
 clientApp.use("/api", limiter.lightRate(), lightRouter);
-clientApp.use("/api", limiter.heavyRate(), heavyRouter);
-clientApp.use("/api", limiter.categoryRate(), categoryRouter);
+clientApp.use("/api/h", limiter.heavyRate(), heavyRouter);
+clientApp.use("/api/c", limiter.categoryRate(), categoryRouter);
 clientApp.get("/", (req, res) => {
     res.send("<h1>서버 실행 중</h1>");
 });
