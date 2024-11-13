@@ -12,6 +12,8 @@ import mainInquiry from "../../../functions/mainInquiry.js"; // 사용자 정보
 import { CommonCategory } from "../../../schemas/category.js";
 import fs from "fs";
 import { fromPath } from "pdf2pic"; // pdf2pic을 사용하여 PDF를 이미지로 변환
+import { Modal } from "../../../schemas/notify.js";
+import { rewardNullCheck, rewardOtherCheck } from "../../../functions/rewardCheck.js";
 
 const handleTipsCreate = async (req, res) => {
     try {
@@ -36,7 +38,7 @@ const handleTipsCreate = async (req, res) => {
         }
 
         const received = await mainInquiry.read(
-            ["_id", "hakbu", "name", "exp", "Rdoc"],
+            ["_id", "hakbu", "name", "exp", "Rdoc", "uNullRewardList", "uMultiRewardList"],
             req.decryptedSessionId
         );
 
@@ -167,8 +169,9 @@ const handleTipsCreate = async (req, res) => {
         });
 
         // 사용자 경험치 증가 및 문서 저장
+        let willwrite = {};
         const newExp = (received.exp || 0) + 30;
-        await mainInquiry.write({ exp: newExp }, req.decryptedSessionId);
+        willwrite.exp= newExp;
         await doc.save();
 
         // AllFiles에 이미지 링크 저장
@@ -209,8 +212,36 @@ const handleTipsCreate = async (req, res) => {
                 return res.status(500).send("Failed to update CommonCategory");
             }
             // console.log("updateCommonCategory", updateCommonCategory);
+            const nw = await rewardNullCheck(1, {written:updateCommonCategory.written}, "", received.uNullRewardList);
+        
+        if(nw.status) {
+            willwrite.uNullRewardList = nw.uNullRewardList;
+            
+            const ID = new mongoose.Types.ObjectId();
+            await Modal.create({
+                _id:ID,
+                time: Date.now(),
+                types: nw.type,
+                reward: nw.reward,
+                who_user: "system",
+                point: nw.point
+            });
 
-            console.log("Document and category updated successfully");
+            willwrite.Rmodal_noti_list = ID;
+        }
+
+        if(!nw.status){
+        const mr = await rewardOtherCheck(5, lastCheck, "", received.uMultiRewardList);
+        if(mr[0].status){
+            await notify.Self(req.decryptedSessionId, mr[0], "", 8, "/qna", "");
+            received.uMultiRewardList[4] += 1;
+            willwrite.uMultiRewardList = received.uMultiRewardList;
+        }
+        }
+
+        await mainInquiry.write(willwrite, req.decryptedSessionId);
+
+        console.log("Document and category updated successfully");
 
         res.status(200).json({ message: "Success" });
     } catch (e) {

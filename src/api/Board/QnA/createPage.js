@@ -10,6 +10,7 @@ import { LowestCategory } from '../../../schemas/category.js';
 import { DataRedundancy } from '@aws-sdk/client-s3';
 import { rewardNullCheck, rewardOtherCheck } from '../../../functions/rewardCheck.js';
 import { notify } from '../../../functions/notifier.js';
+import { Modal } from '../../../schemas/notify.js';
 
 //decryptedSessionId: sessionId_D, 이건 해독된 세션아이디
 //decryptedUserData: decoded.userData -> 이건 이름이랑 프로필 사진만 가지고 있음

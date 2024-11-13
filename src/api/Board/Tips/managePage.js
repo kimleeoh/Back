@@ -11,6 +11,7 @@ import redisHandler from "../../../config/redisHandler.js";
 import { rewardNullCheck, rewardOtherCheck } from "../../../functions/rewardCheck.js";
 import { Modal } from "../../../schemas/notify.js";
 import { notify } from "../../../functions/notifier.js";
+import mongoose from "mongoose";
 
 const checkIsUserTips = async (req, res) => {
     try {

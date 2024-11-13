@@ -5,6 +5,7 @@ import redisHandler from "../../../config/redisHandler.js";
 import mainInquiry from "../../../functions/mainInquiry.js";
 import { notify } from "../../../functions/notifier.js";
 import { rewardNullCheck, rewardOtherCheck } from "../../../functions/rewardCheck.js";
+import { Modal } from "../../../schemas/notify.js";
 import fs from "fs";
 import mongoose from "mongoose";
 

@@ -5,6 +5,7 @@ import {QnaDocuments, QnaAnswers} from '../../../schemas/docs.js';
 import { UserDocs } from '../../../schemas/userRelated.js';
 import redisHandler from '../../../config/redisHandler.js';
 import { Modal } from '../../../schemas/notify.js';
+import mongoose from 'mongoose';
 
 const handleUpdatePage = async (req, res) => {
 
