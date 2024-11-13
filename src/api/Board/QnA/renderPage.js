@@ -13,7 +13,7 @@ const handleRenderQnaPage = async(req, res)=>{
         const redisClient = redisHandler.getRedisClient();
         mainInquiry.inputRedisClient(redisClient);
     }
-    const Doc = await mainInquiry.read(['Rdoc', '_id', 'Rscore', 'level', 'hakbu', 'name', 'profile_img'], req.decryptedSessionId);
+    const Doc = await mainInquiry.read(['Rdoc', '_id', 'Rscore', 'exp', 'hakbu', 'name', 'profile_img'], req.decryptedSessionId);
     const shouldIshowLS = await UserDocs.findById(Doc.Rdoc, {RmyLike_list:1, RmyScrap_list:1, RmyUnlike_list:1}).lean();
     const Qdoc = await QnaDocuments.findById(id).lean();
     let answerAble = true;
@@ -100,7 +100,7 @@ const handleRenderQnaPage = async(req, res)=>{
     const RuserList = answer_list.map(answer => answer.Ruser);
     const gradeList = answer_list.map(answer => answer.user_grade);
     const answers = await QnaAnswers.find({_id:{$in:RanswerList}}, { Rqna:0, warn_why_list:0}).lean();
-    const users = await User.find({_id:{$in:RuserList}}, {hakbu:1, name:1, profile_img:1, level:1}).lean();
+    const users = await User.find({_id:{$in:RuserList}}, {hakbu:1, name:1, profile_img:1, exp:1}).lean();
     answered = RuserList.reduce((indices, user, index) => {
     if (user.toString() === Doc._id.toString()) {
         indices.push(index);
@@ -143,7 +143,7 @@ const handleRenderQnaPage = async(req, res)=>{
         answer_list: res_list,
         isScore: answerAble,
         whatScore,
-        level:Doc.level,
+        exp:Doc.exp,
         major:Doc.hakbu,
         name:Doc.name,
         profile_img:Doc.profile_img,
