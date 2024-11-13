@@ -282,9 +282,9 @@ const handleRegister=async(req,res)=>{
             res.status(500).send(`Internal Server Error-mongoose: ${err}`);
         }
         
-        await axios.create({
-            baseURL: 'http://13.125.218.184:4502',
-        }).put('/admin/online/newData');
+        // await axios.create({
+        //     baseURL: 'http://13.125.218.184:4502',
+        // }).put('/admin/online/newData');
         
         res.status(200).send({message : "User created and broadcasted to admin"});
     }
