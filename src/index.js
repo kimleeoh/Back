@@ -3,7 +3,7 @@ import express from "express";
 import dotenv from "dotenv";
 import redisHandler from "./config/redisHandler.js";
 import s3Handler from "./config/s3Handler.js";
-import connectRedis from "connect-redis";
+import RedisStore from "connect-redis";
 import adminRoutes from "./routes/adminRoutes.js";
 import {
     lightRouter,
@@ -42,8 +42,7 @@ redisHandler.create(REDIS_URL);
 await redisHandler.connect();
 const redisClient = redisHandler.getRedisClient();
 
-const store = new connectRedis({ client: redisClient });
-//const store = RedisStore({ client: redisClient });
+const store = RedisStore({ client: redisClient });
 
 // S3 연결
 s3Handler.create([
