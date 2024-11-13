@@ -100,6 +100,7 @@ const handleQnACreate = async(req, res)=>{
             willwrite.uMultiRewardList = received.uMultiRewardList;
         }
         }
+        console.log(willwrite); 
 
         await mainInquiry.write(willwrite, req.decryptedSessionId);
 
