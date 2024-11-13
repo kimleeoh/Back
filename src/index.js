@@ -42,7 +42,7 @@ redisHandler.create(REDIS_URL);
 await redisHandler.connect();
 const redisClient = redisHandler.getRedisClient();
 
-const store = RedisStore({ client: redisClient });
+const store = new RedisStore({ client: redisClient });
 
 // S3 연결
 s3Handler.create([
