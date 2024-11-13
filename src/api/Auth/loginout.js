@@ -93,7 +93,7 @@ const handleLogin = async (req, res) => {
 
     try {
         const rawUser = await User.findOne({ email: username });
-        const user = rawUser.toObject();
+        let user = rawUser.toObject();
 
         if (user == null) {
             return res
@@ -111,7 +111,7 @@ const handleLogin = async (req, res) => {
             const isModal = await rewardNullCheck(0,"", "", user.uNullRewardList);
 
             if(isModal.status){
-                user.uNullRewardList = isModal.uNullList;
+                rawUser.uNullRewardList = isModal.uNullList;
                 const ID = new mongoose.Types.ObjectId();
                 await Modal.create({
                     _id:ID,
@@ -125,7 +125,7 @@ const handleLogin = async (req, res) => {
                 //user.POINT+=isModal.point;
             }
             rawUser.confirmed = 3;
-            await rawUser.save();
+            
         }
         else if(user.confirmed == 4){
             return res.status(401).json({ message: "신고 누적으로 인해 차단된 계정입니다." });
@@ -165,14 +165,14 @@ const handleLogin = async (req, res) => {
         yesterday.setHours(0, 0, 0, 0);
         
         if (lastAttendance.getTime() < yesterday.getTime()) {
-            user.attendance = 0;
+            rawUser.attendance = 0;
         } else if (lastAttendance.getTime() === yesterday.getTime()) {
-            user.attendance += 1;
+            rawUser.attendance += 1;
         }
         const re = await rewardNullCheck(8, user, "", user.uNullRewardList);
         if(re.status){
-            user.uNullRewardList = re.uNullRewardList;
-            user.Rbadge_list.push(re.bid);
+            rawUser.uNullRewardList = re.uNullRewardList;
+            rawUser.Rbadge_list.push(re.bid);
             const ID = new mongoose.Types.ObjectId();
             await Modal.create({
                 _id: ID,
@@ -182,9 +182,13 @@ const handleLogin = async (req, res) => {
                 who_user: "system",
                 point: re.point
             });
-            user.Rmodal_noti_list.push(ID);
+            rawUser.Rmodal_noti_list.push(ID);
         }
-        user.last_attendance = new Date();
+        rawUser.last_attendance = new Date();
+        await rawUser.save();
+        user = rawUser.toObject();
+
+
 
         // 유저의 MongoDB _id도 추가하여 나중에 조회 가능하도록 함
         const userData = {
