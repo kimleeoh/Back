@@ -39,7 +39,7 @@ const {
 
 // Redis 연결
 redisHandler.create(REDIS_URL);
-redisHandler.connect();
+await redisHandler.connect();
 const redisClient = redisHandler.getRedisClient();
 
 const store = new RedisStore({ client: redisClient });
