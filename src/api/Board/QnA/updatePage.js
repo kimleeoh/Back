@@ -107,10 +107,10 @@ const handleUpdatePage = async (req, res) => {
         await Modal.create({
             _id: ID,
             time: Date.now(),
-            types: re.type,
-            reward: re.reward,
+            types: modal.type,
+            reward: modal.reward,
             who_user: "system",
-            point: re.point
+            point: modal.point
         });
         mainInquiryUp['Rmodal_noti_list'] =[ID];
     }else{
