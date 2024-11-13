@@ -73,8 +73,8 @@ const handleDeleteTips = async (req, res) => {
         if (Rfile) {
             const allFileDoc = await AllFiles.findById(Rfile);
             if (allFileDoc) {
-                // S3에서 모든 파일을 한 번에 삭제
-                await s3Handler.delete(allFileDoc.file_link_list);
+                // // S3에서 모든 파일을 한 번에 삭제
+                // await s3Handler.delete(allFileDoc.file_link_list);
                 await allFileDoc.deleteOne(); // AllFiles에서 삭제
             }
         }
