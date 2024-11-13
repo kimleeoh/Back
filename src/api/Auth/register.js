@@ -261,7 +261,7 @@ const handleRegister=async(req,res)=>{
             newNotify:false,
             profile_img: "",
             uNullRewardList: [false, false, false, false,false, false, false, false, false, false],
-            uMulitRewardList: [0, 0, 0, 0, 0],
+            uMultiRewardList: [0, 0, 0, 0, 0],
             Rmodal_noti_list: [],
             attendance: 0,
             last_attendance: new Date(),

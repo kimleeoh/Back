@@ -67,7 +67,7 @@ const rewardNullCheck = async (type, userData, currentDocs, uNullList) => {
                 }
                 break;
             case 3:
-                if (Number(currentDocs.like)>0&&userData.totalLike == 0) {
+                if (Number(currentDocs.like)>0&&userData.totalLike == 1) {
                     return {
                         status: true,
                         type: "에프킬러에 처음으로 좋아요를 누르셨어요!\n앞으로도 좋아요를 많이 눌러 경험치를 쌓아보세요!",
