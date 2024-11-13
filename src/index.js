@@ -90,6 +90,7 @@ adminApp.set("view engine", "ejs");
 adminApp.use("/admin", express.static("src/admin/"));
 adminApp.use(express.urlencoded({ extended: true }));
 adminApp.use(express.json());
+adminApp.use(cookieParser());
 adminApp.use(adminSessionMiddleware);
 adminApp.use(
     cors({
