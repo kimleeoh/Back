@@ -4,6 +4,7 @@ import { rewardNullCheck, rewardOtherCheck } from '../../../functions/rewardChec
 import {QnaDocuments, QnaAnswers} from '../../../schemas/docs.js';
 import { UserDocs } from '../../../schemas/userRelated.js';
 import redisHandler from '../../../config/redisHandler.js';
+import { Modal } from '../../../schemas/notify.js';
 
 const handleUpdatePage = async (req, res) => {
 
@@ -96,18 +97,30 @@ const handleUpdatePage = async (req, res) => {
     const lk = Number(willchange.like);
     doc.likes += lk;
 
+    const mainInquiryUp = {};
     // reward check and notify
     let modal = await rewardNullCheck(3, userDoc, willchange, received.uNullRewardList);
     if(modal.status){
-        received.uNullRewardList = modal.uNullRewardList;
+        mainInquiryUp[uNullRewardList] = modal.uNullRewardList;
+        const ID = new mongoose.Types.ObjectId();
+        await Modal.create({
+            _id: ID,
+            time: Date.now(),
+            types: re.type,
+            reward: re.reward,
+            who_user: "system",
+            point: re.point
+        });
+        mainInquiryUp[Rmodal_noti_list] =[ID];
     }else{
         modal = await rewardOtherCheck(1, userDoc, willchange, received.uMultiRewardList);
+        if(modal[0].status){
+            received.uMultiRewardList[0] += 1;
+            await notify.Self(req.decryptedSessionId, doc._id, doc.title, 3, "/qna");
+        }
     }
     console.log(modal);
-    if(modal[0].status){
-        received.uMultiRewardList[0] += 1;
-        await notify.Self(req.decryptedSessionId, doc._id, doc.title, 3, "/qna");
-    }
+    
     modal = await rewardOtherCheck(2, userDoc, willchange, received.uMultiRewardList);
     if(modal.length==2){  
         await notify.Self(req.decryptedSessionId, doc._id, doc.title, 7, "/qna", modal[0].point);
@@ -116,6 +129,8 @@ const handleUpdatePage = async (req, res) => {
         received.uMultiRewardList[1] += 1;
         await notify.Self(req.decryptedSessionId, doc._id, doc.title, 7, "/qna", modal[0].point);
     }
+
+    mainInquiryUp[uMultiRewardList] = received.uMultiRewardList;
 
     if(doc.likes!=0&&doc.likes%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
     if(doc.scrap!=0&&doc.scrap%10==0) await notify.Author(doc.Ruser, doc._id, doc.title, req.decryptedUserData.name, 7, '/qna');
@@ -194,8 +209,9 @@ const handleUpdatePage = async (req, res) => {
     if(checkMiddleInvalid) return;
 
     const {status, ...mod} = modal;
-    doc.save();
-    userDoc.save();
+    await doc.save();
+    await userDoc.save();
+    await mainInquiry.write(mainInquiryUp, req.decryptedSessionId);
     res.status(200).send({});
 
 }
