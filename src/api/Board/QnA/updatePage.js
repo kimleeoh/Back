@@ -101,6 +101,7 @@ const handleUpdatePage = async (req, res) => {
     doc.likes += lk;
 
     const mainInquiryUp = {};
+    
     // reward check and notify
     let modal = await rewardNullCheck(3, userDoc, willchange, received.uNullRewardList);
     if(modal.status){
