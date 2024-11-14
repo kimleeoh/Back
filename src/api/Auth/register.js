@@ -303,30 +303,50 @@ const handleCheckAlreadyEmail=async(req,res)=>{
     }
 }
 
-const handleEmailAuthSend=async(req,res)=>{
-    console.log(req.body.email);
+const handleEmailAuthSend = async (req, res) => {
+    console.log("수신자 이메일:", req.body.email);
     const redisClient = redisHandler.getRedisClient();
     const number = generateRandomNumber(11111, 99999);
-    
+
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: req.body.email,
-        subject: " [A-F Killer] 이메일 확인 인증번호 안내",
-        html: `<h1>아래 인증번호를 확인하여 5분 내로 이메일 인증을 완료해 주세요.</h1><br></br><b>${number}</b>`
+        subject: "[A-F Killer] 이메일 확인 인증번호 안내",
+        html: `<h1>아래 인증번호를 확인하여 5분 내로 이메일 인증을 완료해 주세요.</h1><br></br><b>${number}</b>`,
     };
 
-    try{
-        await smtpTransport.sendMail(mailOptions);
-        await redisClient.hSet(req.body.email, 'authNum', number);
+    try {
+        // 이메일 전송 Promise 래핑
+        await new Promise((resolve, reject) => {
+            smtpTransport.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error("Error sending email:", error);
+                    console.log({
+                        message: "Email not exists",
+                        errorDetails: error.message,
+                    });
+                    reject(new Error("Email not exists")); // Promise reject
+                } else {
+                    console.log("Email sent:", info.response);
+                    resolve(info); // Promise resolve
+                }
+            });
+        });
+
+        // Redis에 인증 번호 저장 및 만료 시간 설정
+        await redisClient.hSet(req.body.email, "authNum", number);
         await redisClient.expire(req.body.email, 300);
+
         smtpTransport.close();
-        res.status(200).send({message : "mail sent"});
-    }
-    catch(err){
-        res.status(500).send(err);
+        // 성공적으로 이메일 전송 시 응답
+        res.status(200).send({ message: "mail sent" });
+    } catch (err) {
+        console.error("Error in handleEmailAuthSend:", err.message);
         smtpTransport.close();
+        // 오류 발생 시 응답을 전송
+        res.status(500).send({ message: err.message });
     }
-}
+};
 
 // registerRoute.post('/register/emailAuthNum', async (req,res)=>{
 //     //{email : 입력이메일값, authNum : 입력인증번호}
