@@ -44,6 +44,8 @@ const handleUpdatePage = async (req, res) => {
             res.status(400).send('Invalid request');
             checkMiddleInvalid = true;
         }
+
+        if(checkMiddleInvalid) return;
         
         switch (wa[index]) {
             case -1 :
