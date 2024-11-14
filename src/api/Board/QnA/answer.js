@@ -53,11 +53,11 @@ const handleQnaAnswer = async (req, res) => {
         });
         qna.answer_list.push({Ruser: received._id, Ranswer : answerId, user_grade: score});
         await qna.save();
-        delete req.currentDocs;
+        //delete req.currentDocs;
 
         let modal = await rewardNullCheck(1, userDoc, {}, received.uNullRewardList);
         userDoc.written+=1;
-        if (!userDoc.Rreply_category_map[nowCategory[0]]) {
+        if (!(nowCategory[0] in userDoc.Rreply_category_map)){ 
             userDoc.Rreply_category_map[nowCategory[0]] = 1;
         }else{
         userDoc.Rreply_category_map[nowCategory[0]]+=1;}
