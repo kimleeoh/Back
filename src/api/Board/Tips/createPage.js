@@ -101,15 +101,6 @@ const handleTipsCreate = async (req, res) => {
                         );
                         linkList.push(imgLink);
 
-                        // 첫 번째 이미지를 preview에 저장
-                        if (req.files.indexOf(file) === 0) {
-                            preview_img = await s3Handler.put(
-                                "preview",
-                                fileStream
-                            );
-                            console.log("previewimg", preview_img);
-                        }
-
                         await fs.promises.unlink(file.path);
                     } else {
                         console.error("Image file not found:", file.path);
@@ -117,6 +108,7 @@ const handleTipsCreate = async (req, res) => {
                             .status(500)
                             .send(`Image file not found: ${file.path}`);
                     }
+                    preview_img = linkList[0];
                 }
             }
         } else {
