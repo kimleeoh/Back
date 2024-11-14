@@ -101,7 +101,7 @@ adminApp.use(
 
 // clientApp 설정
 clientApp.use(express.urlencoded({ extended: true }));
-clientApp.set('trust proxy', 1); // Trust the first proxy
+//clientApp.set('trust proxy', 1); // Trust the first proxy
 clientApp.use(clientSessionMiddleware);
 clientApp.use(cookieParser());
 clientApp.use(express.json());
