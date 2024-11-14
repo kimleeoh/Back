@@ -51,7 +51,7 @@ const handleQnaAnswer = async (req, res) => {
             warn: 0,
             Rqna: id
         });
-        qna.answer_list.push({Ruser: received._id, Ranswer : answerId, user_grade: score});
+        qna.answer_list.push({Ruser: received._id, Ranswer : answerId, user_grade: score==undefined? "":score });
         await qna.save();
         //delete req.currentDocs;
 
