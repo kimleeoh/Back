@@ -10,6 +10,8 @@ import { CustomBoardView, Score, UserDocs } from '../../schemas/userRelated.js';
 import { AdminConfirm } from '../../admin/adminSchemas.js';
 import s3Handler from '../../config/s3Handler.js';
 
+const DATA_FILE_PATH = path.join(__dirname, 'symmetricDataQueue.json');
+
 class symmetricDataQueue {
     #items;
     #times;
@@ -17,6 +19,8 @@ class symmetricDataQueue {
     constructor() {
         this.#items = new Map();
         this.#times = [];
+
+        this.loadFromFile();
     }
 
     // Add an element to the end of the queue
@@ -32,6 +36,8 @@ class symmetricDataQueue {
 
         // Schedule removal of this element after 30 minutes
         setTimeout(() => this.deleteByKey(id), 1800000);
+
+        this.saveToFile();
     }
 
     // Remove elements that have been in the queue for more than 30 minutes
@@ -57,6 +63,24 @@ class symmetricDataQueue {
         }
         this.#items.delete(key);
         return 1;
+    }
+
+    // Save data to a file
+    saveToFile() {
+        const data = {
+            items: Array.from(this.#items.entries()),
+            times: this.#times,
+        };
+        fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(data));
+    }
+
+    // Load data from a file
+    loadFromFile() {
+        if (fs.existsSync(DATA_FILE_PATH)) {
+            const data = JSON.parse(fs.readFileSync(DATA_FILE_PATH, 'utf8'));
+            this.#items = new Map(data.items);
+            this.#times = data.times;
+        }
     }
 }
 
