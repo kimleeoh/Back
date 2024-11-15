@@ -21,8 +21,8 @@ const limiter =(()=>{
             message: "Too many requests, please try again later."
         }),
         categoryRate:()=>rateLimit({
-            windowMs: 1* 30 * 1000, // 30 seconds
-            max: 1000, 
+            windowMs: 1* 10 * 1000, // 30 seconds
+            max: 2000, 
             message: "Too many requests, please try again later."
         }),
     }
