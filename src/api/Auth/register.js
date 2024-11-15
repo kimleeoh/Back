@@ -304,7 +304,7 @@ const handleCheckAlreadyEmail=async(req,res)=>{
 }
 
 // 이메일 전송 재시도 로직 함수
-const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
+const sendEmailWithRetry = async (mailOptions, maxRetries = 3, delay = 3000) => { // 재시도 간 딜레이를 3초로 증가
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
             const info = await new Promise((resolve, reject) => {
@@ -325,7 +325,7 @@ const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
                 throw new Error("Failed to send email after multiple attempts");
             }
             console.log(`Retrying... (${attempt}/${maxRetries})`);
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // 재시도 전 1초 대기
+            await new Promise((resolve) => setTimeout(resolve, delay)); // 재시도 간 대기 시간 (3초)
         }
     }
 };

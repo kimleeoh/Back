@@ -16,7 +16,8 @@ const smtpTransport = nodemailer.createTransport({
     },
     tls: {
         rejectUnauthorized: false,
-    }
+    },
+    maxConnections: 1,          
 });
 
 export default smtpTransport;
