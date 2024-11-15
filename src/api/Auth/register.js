@@ -1,7 +1,7 @@
 import {User} from '../../schemas/user.js';
 import crypto from 'crypto';
 import redisHandler from '../../config/redisHandler.js';
-import { createTransporter } from '../../config/emailHandler.js'; // 정확한 경로로 수정 필요
+import smtpTransport from '../../config/emailHandler.js'; // 정확한 경로로 수정 필요
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import axios from 'axios';
@@ -306,7 +306,6 @@ const handleCheckAlreadyEmail=async(req,res)=>{
 // 이메일 전송 재시도 로직 함수
 const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        const smtpTransport = createTransporter(); // emailHandler.js의 createTransporter 호출
         try {
             const info = await new Promise((resolve, reject) => {
                 smtpTransport.sendMail(mailOptions, (error, info) => {
@@ -327,8 +326,6 @@ const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
             }
             console.log(`Retrying... (${attempt}/${maxRetries})`);
             await new Promise((resolve) => setTimeout(resolve, 1000)); // 재시도 전 1초 대기
-        } finally {
-            smtpTransport.close(); // 각 시도 후 연결 닫기
         }
     }
 };
