@@ -134,9 +134,9 @@ clientApp.use(
 adminApp.use("/", adminRoutes);
 
 clientApp.use("/api/lg", limiter.loginRate(), loginRouter);
-clientApp.use("/api", limiter.lightRate(), lightRouter);
+clientApp.use("/api/l", limiter.lightRate(), lightRouter);
 clientApp.use("/api/h", limiter.heavyRate(), heavyRouter);
-clientApp.use("/api/c", categoryRouter);
+clientApp.use("/api/c", limiter.categoryRate(), categoryRouter);
 clientApp.get("/", (req, res) => {
     res.send("<h1>서버 실행 중</h1>");
 });
