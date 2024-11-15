@@ -1,6 +1,7 @@
 import { User } from "../schemas/user.js";
 import { Notify, Modal } from "../schemas/notify.js";
-import smtpTransport from "../config/emailHandler.js";
+// 이메일 전송 로직이 있는 파일
+import { createTransporter } from '../config/emailHandler.js'; // 정확한 경로로 수정 필요
 import mongoose from "mongoose";
 import mainInquiry from "./mainInquiry.js";
 

@@ -1,7 +1,7 @@
 import {User} from '../../schemas/user.js';
 import crypto from 'crypto';
 import redisHandler from '../../config/redisHandler.js';
-import smtpTransport from '../../config/emailHandler.js';
+import { createTransporter } from '../../config/emailHandler.js'; // 정확한 경로로 수정 필요
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import axios from 'axios';
@@ -306,6 +306,7 @@ const handleCheckAlreadyEmail=async(req,res)=>{
 // 이메일 전송 재시도 로직 함수
 const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        const smtpTransport = createTransporter(); // emailHandler.js의 createTransporter 호출
         try {
             const info = await new Promise((resolve, reject) => {
                 smtpTransport.sendMail(mailOptions, (error, info) => {
@@ -318,13 +319,16 @@ const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
                 });
             });
             console.log("Email sent:", info.response);
-            return info; // 성공 시 전송 정보 반환
+            return info; // 전송 성공 시 정보 반환
         } catch (error) {
             if (attempt === maxRetries) {
                 console.error("Failed to send email after multiple attempts");
-                throw new Error("Failed to send email after multiple attempts"); // 재시도 실패 시 최종 오류 발생
+                throw new Error("Failed to send email after multiple attempts");
             }
             console.log(`Retrying... (${attempt}/${maxRetries})`);
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // 재시도 전 1초 대기
+        } finally {
+            smtpTransport.close(); // 각 시도 후 연결 닫기
         }
     }
 };
@@ -343,24 +347,18 @@ const handleEmailAuthSend = async (req, res) => {
     };
 
     try {
-        // 재시도 로직을 통한 이메일 전송
         await sendEmailWithRetry(mailOptions);
 
         // Redis에 인증 번호 저장 및 만료 시간 설정
         await redisClient.hSet(req.body.email, "authNum", number);
         await redisClient.expire(req.body.email, 300);
 
-        smtpTransport.close();
-        // 성공적으로 이메일 전송 시 응답
         res.status(200).send({ message: "mail sent" });
     } catch (err) {
         console.error("Error in handleEmailAuthSend:", err.message);
-        smtpTransport.close();
-        // 오류 발생 시 응답을 전송
         res.status(500).send({ message: err.message });
     }
 };
-
 // registerRoute.post('/register/emailAuthNum', async (req,res)=>{
 //     //{email : 입력이메일값, authNum : 입력인증번호}
 // });
