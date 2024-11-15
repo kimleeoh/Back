@@ -1,7 +1,7 @@
 import {User} from '../../schemas/user.js';
 import crypto from 'crypto';
 import redisHandler from '../../config/redisHandler.js';
-import smtpTransport from '../../config/emailHandler.js';
+import smtpTransport from '../../config/emailHandler.js'; // 정확한 경로로 수정 필요
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import axios from 'axios';
@@ -303,31 +303,59 @@ const handleCheckAlreadyEmail=async(req,res)=>{
     }
 }
 
-const handleEmailAuthSend=async(req,res)=>{
-    console.log(req.body.email);
+// 이메일 전송 재시도 로직 함수
+const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => { // 재시도 간 딜레이를 3초로 증가
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const info = await new Promise((resolve, reject) => {
+                smtpTransport.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.error(`Attempt ${attempt} failed:`, error.message);
+                        reject(error);
+                    } else {
+                        resolve(info);
+                    }
+                });
+            });
+            console.log("Email sent:", info.response);
+            return info; // 전송 성공 시 정보 반환
+        } catch (error) {
+            if (attempt === maxRetries) {
+                console.error("Failed to send email after multiple attempts");
+                throw new Error("Failed to send email after multiple attempts");
+            }
+            console.log(`Retrying... (${attempt}/${maxRetries})`);
+            await new Promise((resolve) => setTimeout(resolve, 5000)); // 재시도 간 대기 시간 (3초)
+        }
+    }
+};
+
+// handleEmailAuthSend 함수
+const handleEmailAuthSend = async (req, res) => {
+    console.log("수신자 이메일:", req.body.email);
     const redisClient = redisHandler.getRedisClient();
     const number = generateRandomNumber(11111, 99999);
-    
+
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: req.body.email,
-        subject: " [A-F Killer] 이메일 확인 인증번호 안내",
-        html: `<h1>아래 인증번호를 확인하여 5분 내로 이메일 인증을 완료해 주세요.</h1><br></br><b>${number}</b>`
+        subject: "[A-F Killer] 이메일 확인 인증번호 안내",
+        html: `<h1>아래 인증번호를 확인하여 5분 내로 이메일 인증을 완료해 주세요.</h1><br></br><b>${number}</b>`,
     };
 
-    try{
-        await smtpTransport.sendMail(mailOptions);
-        await redisClient.hSet(req.body.email, 'authNum', number);
-        await redisClient.expire(req.body.email, 300);
-        smtpTransport.close();
-        res.status(200).send({message : "mail sent"});
-    }
-    catch(err){
-        res.status(500).send(err);
-        smtpTransport.close();
-    }
-}
+    try {
+        await sendEmailWithRetry(mailOptions);
 
+        // Redis에 인증 번호 저장 및 만료 시간 설정
+        await redisClient.hSet(req.body.email, "authNum", number);
+        await redisClient.expire(req.body.email, 300);
+
+        res.status(200).send({ message: "mail sent" });
+    } catch (err) {
+        console.error("Error in handleEmailAuthSend:", err.message);
+        res.status(500).send({ message: err.message });
+    }
+};
 // registerRoute.post('/register/emailAuthNum', async (req,res)=>{
 //     //{email : 입력이메일값, authNum : 입력인증번호}
 // });
@@ -393,7 +421,7 @@ const handleFindPassword = async (req, res) => {
       }
   }
   
-  const handleAuthFindPassword = async (req, res) => {
+const handleAuthFindPassword = async (req, res) => {
       const { email, authNum } = req.body;
       const redisClient = redisHandler.getRedisClient();
       const number = await redisClient.hGet(email, 'authNum');
@@ -403,7 +431,7 @@ const handleFindPassword = async (req, res) => {
       return res.status(200).send({message: "Authentication success"});
   }
   
-  const handleResetPassword = async (req, res) => {
+const handleResetPassword = async (req, res) => {
     //const salt = crypto.randomBytes(16);
     const { email, newPassword, iv } = req.body;
     const redisClient = redisHandler.getRedisClient();

@@ -5,19 +5,19 @@ const { EMAIL_SERVICE, EMAIL_HOST, EMAIL_USER, EMAIL_PASS } = process.env;
 
 const smtpTransport = nodemailer.createTransport({
     pool: true,
-    //maxConnections: 1,
-    service: EMAIL_SERVICE,
-    host: EMAIL_HOST,
+    service: process.env.EMAIL_SERVICE,
+    host: process.env.EMAIL_HOST,
     port: 465,
     secure: true,
     requireTLS: true,
     auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     },
     tls: {
         rejectUnauthorized: false,
     },
+    maxConnections: 1,          
 });
 
 export default smtpTransport;
