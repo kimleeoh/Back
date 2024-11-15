@@ -1,0 +1,6 @@
+{
+    "watch": ["src"],
+    "ignore": ["src/api/Auth/symmetricDataQueue.json"],
+    "ext": "js,json",
+    "exec": "node --experimental-modules src/index.js"
+}
