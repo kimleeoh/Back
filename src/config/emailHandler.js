@@ -18,6 +18,8 @@ const smtpTransport = nodemailer.createTransport({
     tls: {
         rejectUnauthorized: false,
     },
+    connectionTimeout: 10000, // 연결 타임아웃
+    socketTimeout: 10000, // 소켓 타임아웃
 });
 
 export default smtpTransport;

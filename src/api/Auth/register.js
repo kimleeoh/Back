@@ -303,6 +303,33 @@ const handleCheckAlreadyEmail=async(req,res)=>{
     }
 }
 
+// 이메일 전송 재시도 로직 함수
+const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const info = await new Promise((resolve, reject) => {
+                smtpTransport.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.error(`Attempt ${attempt} failed:`, error.message);
+                        reject(error);
+                    } else {
+                        resolve(info);
+                    }
+                });
+            });
+            console.log("Email sent:", info.response);
+            return info; // 성공 시 전송 정보 반환
+        } catch (error) {
+            if (attempt === maxRetries) {
+                console.error("Failed to send email after multiple attempts");
+                throw new Error("Failed to send email after multiple attempts"); // 재시도 실패 시 최종 오류 발생
+            }
+            console.log(`Retrying... (${attempt}/${maxRetries})`);
+        }
+    }
+};
+
+// handleEmailAuthSend 함수
 const handleEmailAuthSend = async (req, res) => {
     console.log("수신자 이메일:", req.body.email);
     const redisClient = redisHandler.getRedisClient();
@@ -316,22 +343,8 @@ const handleEmailAuthSend = async (req, res) => {
     };
 
     try {
-        // 이메일 전송 Promise 래핑
-        await new Promise((resolve, reject) => {
-            smtpTransport.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error("Error sending email:", error);
-                    console.log({
-                        message: "Email not exists",
-                        errorDetails: error.message,
-                    });
-                    reject(new Error("Email not exists")); // Promise reject
-                } else {
-                    console.log("Email sent:", info.response);
-                    resolve(info); // Promise resolve
-                }
-            });
-        });
+        // 재시도 로직을 통한 이메일 전송
+        await sendEmailWithRetry(mailOptions);
 
         // Redis에 인증 번호 저장 및 만료 시간 설정
         await redisClient.hSet(req.body.email, "authNum", number);
@@ -413,7 +426,7 @@ const handleFindPassword = async (req, res) => {
       }
   }
   
-  const handleAuthFindPassword = async (req, res) => {
+const handleAuthFindPassword = async (req, res) => {
       const { email, authNum } = req.body;
       const redisClient = redisHandler.getRedisClient();
       const number = await redisClient.hGet(email, 'authNum');
@@ -423,7 +436,7 @@ const handleFindPassword = async (req, res) => {
       return res.status(200).send({message: "Authentication success"});
   }
   
-  const handleResetPassword = async (req, res) => {
+const handleResetPassword = async (req, res) => {
     //const salt = crypto.randomBytes(16);
     const { email, newPassword, iv } = req.body;
     const redisClient = redisHandler.getRedisClient();
