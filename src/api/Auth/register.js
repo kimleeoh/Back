@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import axios from 'axios';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import path from 'path';
 import { CustomBoardView, Score, UserDocs } from '../../schemas/userRelated.js';
 import { AdminConfirm } from '../../admin/adminSchemas.js';
