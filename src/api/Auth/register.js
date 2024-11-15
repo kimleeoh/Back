@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import axios from 'axios';
 import fs from 'fs';
+import path from 'path';
 import { CustomBoardView, Score, UserDocs } from '../../schemas/userRelated.js';
 import { AdminConfirm } from '../../admin/adminSchemas.js';
 import s3Handler from '../../config/s3Handler.js';
