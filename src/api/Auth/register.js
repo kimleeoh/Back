@@ -11,6 +11,8 @@ import { CustomBoardView, Score, UserDocs } from '../../schemas/userRelated.js';
 import { AdminConfirm } from '../../admin/adminSchemas.js';
 import s3Handler from '../../config/s3Handler.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const DATA_FILE_PATH = path.join(__dirname, 'symmetricDataQueue.json');
 
 class symmetricDataQueue {
