@@ -325,7 +325,7 @@ const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => { // 재시도
                 throw new Error("Failed to send email after multiple attempts");
             }
             console.log(`Retrying... (${attempt}/${maxRetries})`);
-            await new Promise((resolve) => setTimeout(resolve, 5000)); // 재시도 간 대기 시간 (3초)
+            await new Promise((resolve) => setTimeout(resolve, 6000)); // 재시도 간 대기 시간 (3초)
         }
     }
 };
