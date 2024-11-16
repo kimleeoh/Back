@@ -225,7 +225,7 @@ const handleTipsCreate = async (req, res) => {
         if(!nw.status){
         const mr = await rewardOtherCheck(5, updateCommonCategory, "", received.uMultiRewardList);
         if(mr[0].status){
-            await notify.Self(req.decryptedSessionId, mr[0], "", 8, "/qna", "");
+            await notify.Self(req.decryptedSessionId, mr[0], "", 8, `/tips/${req.body.type}`, "");
             received.uMultiRewardList[4] += 1;
             willwrite.uMultiRewardList = received.uMultiRewardList;
         }

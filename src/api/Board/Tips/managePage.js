@@ -176,7 +176,7 @@ const handlePurchaseTipsPage = async(req, res) => {
     }else{
         const mr = await rewardOtherCheck(4, updatePurchased, "", userInfo.uMultiRewardList);
         if(mr[0].status){
-            await notify.Self(decryptedSessionId, mr[0], "", 8, "/tips", "");
+            await notify.Self(decryptedSessionId, mr[0], "", 8, `/tips/${category_type}`, "");
             userInfo.uMultiRewardList[3] += 1;
             willwrite.uMultiRewardList = userInfo.uMultiRewardList;
         }
