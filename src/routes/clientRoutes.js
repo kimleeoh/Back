@@ -49,6 +49,7 @@ import { handleManageUpdateTipsPage } from '../api/Board/Tips/tipsModify.js'
 import { handleDeleteTips } from "../api/Board/Tips/deletePage.js";
 import { handlePurchased } from "../api/User/myPurchased.js";
 import { handleModal } from "../api/User/modal.js";
+import { handleBoardSearch, handleCategorySearch } from '../api/Board/Common/search.js'
 
 const lightRouter = express.Router();
 const loginRouter = express.Router();
@@ -141,6 +142,8 @@ heavyRouter.post("/mypage/trending", myMiddleware, handleMytrendingList); // 프
 heavyRouter.post("/home/trending", myMiddleware, handleHomeDataList); // 홈 게시판별 인기 tips조회
 heavyRouter.post("/home/answer-possible", myMiddleware, handleAnswerPossibleList); // 홈 게시판별 인기 qna조회
 
+lightRouter.get('/search/posts', myMiddleware, handleBoardSearch); // 게시물 검색
+lightRouter.get('/search/categories', myMiddleware, handleCategorySearch); // 유저 검색
 // // 캐시 테스트
 // router.get('/cache/popular-posts', getCachedPopularPosts);
 
