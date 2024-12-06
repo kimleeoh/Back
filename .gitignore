@@ -4,3 +4,8 @@ node_modules/
 trendingcheck.js
 src/utils/trendingcheck.js
 .github/
+
+# macOS 시스템 파일
+.DS_Store
+src/.DS_Store
+**/.DS_Store
